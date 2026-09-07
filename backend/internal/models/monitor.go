@@ -1,0 +1,139 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+// MonitorType 监控类型
+type MonitorType string
+
+const (
+	MonitorTypeDomain MonitorType = "domain"
+	MonitorTypeIP     MonitorType = "ip"
+	MonitorTypeSite   MonitorType = "site"
+	MonitorTypeGithub MonitorType = "github"
+	MonitorTypeWIH    MonitorType = "wih"
+	MonitorTypeCVE    MonitorType = "cve"
+)
+
+// MonitorStatus 监控状态
+type MonitorStatus string
+
+const (
+	MonitorStatusActive  MonitorStatus = "active"
+	MonitorStatusPaused  MonitorStatus = "paused"
+	MonitorStatusStopped MonitorStatus = "stopped"
+)
+
+// MonitorOptions 监控选项
+type MonitorOptions struct {
+	EnableDomainBrute bool `json:"enable_domain_brute"` // 启用域名爆破
+	EnablePortScan    bool `json:"enable_port_scan"`    // 启用端口扫描
+	EnableSiteDetect  bool `json:"enable_site_detect"`  // 启用站点识别
+	EnableScreenshot  bool `json:"enable_screenshot"`   // 启用站点截图
+	EnablePoCscan     bool `json:"enable_poc_scan"`     // 启用POC检测
+}
+
+// NotificationConfig 通知配置
+type NotificationConfig struct {
+	EnableWebhook  bool     `json:"enable_webhook"`  // 通用Webhook通知
+	EnableDingDing bool     `json:"enable_dingding"` // 钉钉通知
+	EnableFeishu   bool     `json:"enable_feishu"`   // 飞书通知
+	EnableEmail    bool     `json:"enable_email"`    // 邮件通知
+	EmailReceivers []string `json:"email_receivers"` // 邮件接收人
+}
+
+// Monitor 监控任务
+type Monitor struct {
+	ID                 string        `gorm:"primaryKey;type:uuid" json:"id"`
+	Name               string        `gorm:"type:varchar(255);not null" json:"name"`
+	Type               MonitorType   `gorm:"type:varchar(50);not null" json:"type"`
+	Target             string        `gorm:"type:text;not null" json:"target"`
+	Status             MonitorStatus `gorm:"type:varchar(50);default:'active'" json:"status"`
+	Interval           int           `gorm:"not null" json:"interval"`                         // 监控间隔（秒）
+	Options            string        `gorm:"type:text" json:"options"`                         // JSON格式的监控选项
+	NotificationConfig string        `gorm:"type:text" json:"notification_config"`             // JSON格式的通知配置
+	AssetGroupID       *string       `gorm:"type:uuid" json:"asset_group_id,omitempty"`        // 资产分组ID
+	ScopeID            string        `gorm:"type:varchar(36);index" json:"scope_id,omitempty"` // 授权扫描范围；仅网络监控使用
+	RunCount           int           `gorm:"default:0" json:"run_count"`                       // 运行次数
+	LastRunTime        *time.Time    `json:"last_run_time,omitempty"`
+	NextRunTime        *time.Time    `json:"next_run_time,omitempty"`
+	LastError          string        `gorm:"type:text" json:"last_error,omitempty"` // 最后一次错误
+	CreatedAt          time.Time     `json:"created_at"`
+	UpdatedAt          time.Time     `json:"updated_at"`
+}
+
+func (m *Monitor) BeforeCreate(tx *gorm.DB) error {
+	if m.ID == "" {
+		m.ID = uuid.New().String()
+	}
+	return nil
+}
+
+func (Monitor) TableName() string {
+	return "monitors"
+}
+
+// MonitorResult 监控结果
+type MonitorResult struct {
+	ID          string    `gorm:"primaryKey;type:uuid" json:"id"`
+	MonitorID   string    `gorm:"type:uuid;index;not null" json:"monitor_id"`
+	ChangeType  string    `gorm:"type:varchar(100)" json:"change_type"` // new, modified, deleted
+	Description string    `gorm:"type:text" json:"description"`
+	Data        string    `gorm:"type:text" json:"data"` // JSON格式的变化数据
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+func (mr *MonitorResult) BeforeCreate(tx *gorm.DB) error {
+	if mr.ID == "" {
+		mr.ID = uuid.New().String()
+	}
+	return nil
+}
+
+func (MonitorResult) TableName() string {
+	return "monitor_results"
+}
+
+// AssetGroup 资产分组
+type AssetGroup struct {
+	ID          string    `gorm:"primaryKey;type:uuid" json:"id"`
+	Name        string    `gorm:"type:varchar(255);not null;unique" json:"name"`
+	Description string    `gorm:"type:text" json:"description,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (ag *AssetGroup) BeforeCreate(tx *gorm.DB) error {
+	if ag.ID == "" {
+		ag.ID = uuid.New().String()
+	}
+	return nil
+}
+
+func (AssetGroup) TableName() string {
+	return "asset_groups"
+}
+
+// AssetGroupItem 资产分组项
+type AssetGroupItem struct {
+	ID        string    `gorm:"primaryKey;type:uuid" json:"id"`
+	GroupID   string    `gorm:"type:uuid;not null;uniqueIndex:idx_group_asset" json:"group_id"`
+	AssetType string    `gorm:"type:varchar(50);not null;uniqueIndex:idx_group_asset" json:"asset_type"` // domain, ip, site, canonical
+	AssetID   string    `gorm:"type:uuid;not null;uniqueIndex:idx_group_asset" json:"asset_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (agi *AssetGroupItem) BeforeCreate(tx *gorm.DB) error {
+	if agi.ID == "" {
+		agi.ID = uuid.New().String()
+	}
+	return nil
+}
+
+func (AssetGroupItem) TableName() string {
+	return "asset_group_items"
+}
