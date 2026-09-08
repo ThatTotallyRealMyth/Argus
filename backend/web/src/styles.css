@@ -826,7 +826,7 @@ pre {
   }
 }
 
-/* ctOS visual layer: Tailwind supplies the token/runtime layer; these rules are
+/* Argus visual layer: Tailwind supplies the token/runtime layer; these rules are
    limited to the product's scan-line, grid and signal treatments. */
 .app-shell { position: relative; }
 .sidebar { background: rgba(3, 8, 9, .9); border-right-color: rgba(57, 245, 208, .2); z-index: 2; }
@@ -1891,7 +1891,7 @@ th, td { font-family: var(--font-mono); font-size: 12px; }
 @media (max-width:760px) { .hero-panel { padding: 18px; }.hero-cyber-content { grid-template-columns:1fr; }.hero-telemetry { grid-template-columns:1fr 120px; }.orbit-panel { width:120px; }.hero-footer { right:18px; left:18px; }.hero-panel h2 { font-size:26px; } }
 
 /* HNUSEC-inspired spatial layer: floating code, soft waves and oversized type
-   fused with the dark ctOS command surface. */
+   fused with the dark Argus command surface. */
 :root {
   --bg: #090a10;
   --bg-2: #11131c;

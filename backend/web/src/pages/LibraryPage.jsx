@@ -18,9 +18,9 @@ const customPoCTemplate = `requests:
         words: [replace-with-response-marker]
 `;
 
-const nucleiPoCTemplate = `id: eclipse-recon-check
+const nucleiPoCTemplate = `id: argus-check
 info:
-  name: Eclipse Recon check
+  name: Argus check
   author: operator
   severity: medium
 http:

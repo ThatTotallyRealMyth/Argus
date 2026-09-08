@@ -1,5 +1,5 @@
 export const BRAND = {
-  name: "Eclipse Recon",
-  mark: "ER",
-  subtitle: "Authorized attack-surface reconnaissance",
+  name: "Argus",
+  mark: "A",
+  subtitle: "Web App and External Pen Testing Framework",
 };

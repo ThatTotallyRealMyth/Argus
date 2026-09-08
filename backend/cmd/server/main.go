@@ -139,7 +139,7 @@ func main() {
 
 	serverErrors := make(chan error, 1)
 	go func() {
-		log.Printf("Starting Eclipse Recon server on %s (%s)...", address, config.GlobalConfig.Server.Environment)
+		log.Printf("Starting Argus server on %s (%s)...", address, config.GlobalConfig.Server.Environment)
 		serverErrors <- httpServer.ListenAndServe()
 	}()
 

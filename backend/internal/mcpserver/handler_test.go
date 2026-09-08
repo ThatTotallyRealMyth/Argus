@@ -72,7 +72,7 @@ func TestMCPProtocolListsHunterToolsAndCallsCapabilities(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client := mcp.NewClient(&mcp.Implementation{Name: "eclipse-recon-test", Version: "1.0.0"}, nil)
+	client := mcp.NewClient(&mcp.Implementation{Name: "argus-test", Version: "1.0.0"}, nil)
 	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
 		Endpoint:   httpServer.URL,
 		HTTPClient: &http.Client{Transport: bearerTransport{key: testMCPAPIKey}},

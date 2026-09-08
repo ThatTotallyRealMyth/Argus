@@ -1,8 +1,8 @@
-# Eclipse Recon
+# Argus
 
-Eclipse Recon is an asset reconnaissance platform for authorized security testing and attack-surface operations. It brings scan orchestration, asset management, HTTP observations, fingerprint and proof-of-concept (PoC) libraries, proxy management, internet intelligence providers, and MCP tools into one web console.
+Argus is a web app and external pen testing framework for authorized security research and attack-surface operations. It brings scan orchestration, asset management, HTTP observations, fingerprint and proof-of-concept (PoC) libraries, proxy management, internet intelligence providers, and MCP tools into one web console.
 
-The application uses a Go backend and a React/Vite frontend. PostgreSQL stores application data, while Redis stores runtime state and cache data. The interface uses a dark ctOS-inspired design with route-level lazy loading.
+The application uses a Go backend and a React/Vite frontend. PostgreSQL stores application data, while Redis stores runtime state and cache data. The Argus interface uses a dark security-operations design with route-level lazy loading.
 
 > Use the scanning, PoC, proxy, and MCP features only against assets that you own or are explicitly authorized to test.
 

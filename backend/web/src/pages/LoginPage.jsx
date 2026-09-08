@@ -39,16 +39,16 @@ export default function LoginPage({ onLogin }) {
       <div className="login-coordinates">NODE 31.2304 N / 121.4737 E</div>
       <section className="login-intel">
         <NetworkCanvas />
-        <div className="login-brandline"><div className="brand-mark large">{BRAND.mark}</div><span>ctOS // RECON NODE</span></div>
+        <div className="login-brandline"><div className="brand-mark large">{BRAND.mark}</div><span>ARGUS // RESEARCH NODE</span></div>
         <div className="login-heading">
           <span className="eyebrow cyber"><Activity size={14} /> Network intelligence active</span>
-          <h1>ECLIPSE<br />RECON</h1>
+          <h1>ARGUS</h1>
           <p>{BRAND.subtitle}</p>
         </div>
         <div className="login-radar" aria-hidden="true">
           <span className="radar-ring r1" /><span className="radar-ring r2" /><span className="radar-ring r3" />
           <i className="radar-node n1" /><i className="radar-node n2" /><i className="radar-node n3" /><i className="radar-node n4" />
-          <b>ER_NODE_01</b>
+          <b>ARGUS_NODE_01</b>
         </div>
         <div className="login-stream" aria-hidden="true"><span>19.873.44.102</span><span>443/TCP</span><span>TLS_1.3</span><span>SIGNAL +82</span></div>
       </section>

@@ -36,10 +36,10 @@ func NewHandler(deps *Deps, apiKey string) http.Handler {
 		})
 	}
 	server := mcp.NewServer(&mcp.Implementation{
-		Name:    "eclipse-recon",
+		Name:    "argus",
 		Version: serverVersion,
 	}, &mcp.ServerOptions{
-		Instructions: "Eclipse Recon The bounty hunter scout platform..Priority by global asset list -> Cluster attack trail -> Evidence workstation -> Delegation of authority PoC Authentication order work; Scan and PoC Access to external targets, Pre-implementation confirmation of the scope of the mandate.",
+		Instructions: "Argus is a web app and external pen testing framework for authorized security research. Use the global asset inventory, clustered hunting leads, evidence workspace, and scope-controlled PoC validation workflow. Confirm authorization scope before scans or PoC requests access external targets.",
 	})
 
 	RegisterTools(server, deps)

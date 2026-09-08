@@ -29,7 +29,7 @@ while (( SECONDS < deadline )); do
   if [[ -n "${backend_container}" ]]; then
     health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "${backend_container}" 2>/dev/null || true)"
     if [[ "${health}" == "healthy" ]]; then
-      echo "Eclipse Recon is ready: ${DEPLOY_URL:-http://127.0.0.1:5003}"
+      echo "Argus is ready: ${DEPLOY_URL:-http://127.0.0.1:5003}"
       exit 0
     fi
     if [[ "$(docker inspect -f '{{.State.Status}}' "${backend_container}" 2>/dev/null || true)" == "exited" ]]; then

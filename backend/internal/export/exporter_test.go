@@ -136,7 +136,7 @@ func TestHTMLReportEscapesUntrustedReconEvidence(t *testing.T) {
 		}
 	}
 	for _, marker := range []string{
-		"Eclipse Recon Reconnaissance report",
+		"Argus security research report",
 		"Content-Security-Policy",
 		"&lt;script&gt;alert(7)&lt;/script&gt;",
 		"&lt;b&gt;confirmed&lt;/b&gt;",

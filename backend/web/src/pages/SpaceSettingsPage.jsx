@@ -175,7 +175,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
       enabledKey: "webhook_enabled",
       urlKey: "webhook_url",
       secretKey: "webhook_secret",
-      urlPlaceholder: "https://example.com/hooks/eclipse-recon",
+      urlPlaceholder: "https://example.com/hooks/argus",
     },
     {
       id: "dingtalk",

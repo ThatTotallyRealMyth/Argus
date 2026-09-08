@@ -57,7 +57,7 @@ func (h *SettingHandler) TestNotification(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 12*time.Second)
 	defer cancel()
 	results := notifier.Send(ctx, services.NotificationEvent{
-		Type: "notification_test", Title: "Eclipse Recon Notification Test", Message: "Notify channel connection test successful.", Severity: "info", OccurredAt: time.Now(),
+		Type: "notification_test", Title: "Argus Notification Test", Message: "Notification channel connection test succeeded.", Severity: "info", OccurredAt: time.Now(),
 	}, selection)
 	for _, result := range results {
 		if !result.Success {

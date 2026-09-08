@@ -88,7 +88,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "platform_capabilities",
-		Description: "Back Eclipse Recon MCP The overcovered hunters' workflow, Function Fields, Resource name and operation constraints.Call this tool first when you need to plan an operation.",
+		Description: "Describe the Argus MCP security-research workflow, tool fields, resource names, and operational constraints. Call this tool first when planning an operation.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		result := map[string]any{
