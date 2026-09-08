@@ -24,26 +24,26 @@ import (
 )
 
 func main() {
-	// 加载全局配置
+	// Load Global Configuration
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// 验证必要配置项
+	// Verify necessary configurations
 	if missing := config.GlobalConfig.IsMissingRequiredConfig(); len(missing) > 0 {
 		log.Fatalf("Missing required config: %v", missing)
 	}
 	gin.SetMode(config.GlobalConfig.Server.Mode)
 
-	// 初始化日志系统
+	// Initialization of the log system
 	if err := logger.InitLogger(config.GlobalConfig.Logging.File, config.GlobalConfig.Logging.Level); err != nil {
 		log.Printf("Warning: Failed to initialize logger: %v (using default log)", err)
 	}
 
-	// 初始化JWT配置（密钥不存在会直接panic）
+	// InitializationJWTConfigure (Key does not exist and it's directpanic)
 	auth.Init()
 
-	// 初始化数据库
+	// Initialize Database
 	dbConfig := database.Config{
 		Host:         config.GlobalConfig.Database.Host,
 		Port:         config.GlobalConfig.Database.Port,
@@ -62,12 +62,12 @@ func main() {
 	stopProxyChecker := proxypool.StartAutoChecker()
 	defer stopProxyChecker()
 
-	// 初始化字典数据
+	// Initialize Dictionary Data
 	if err := database.InitDictionaries(); err != nil {
 		log.Printf("Warning: Failed to initialize dictionaries: %v", err)
 	}
 
-	// 自动加载默认指纹库（首次启动时）
+	// Autoload default fingerprint library (On first start)
 	fingerprintLoader := services.NewFingerprintLoader()
 	if err := fingerprintLoader.LoadDefaultFingerprints(); err != nil {
 		log.Printf("Warning: Failed to load default fingerprints: %v", err)
@@ -75,7 +75,7 @@ func main() {
 
 	log.Println("Using smart PoC detection based on fingerprints")
 
-	// 初始化Redis
+	// InitializationRedis
 	redisConfig := cache.Config{
 		Host:     config.GlobalConfig.Redis.Host,
 		Port:     config.GlobalConfig.Redis.Port,
@@ -88,7 +88,7 @@ func main() {
 	}
 	defer cache.Close()
 
-	// 创建任务服务
+	// Create the task service.
 	taskService := services.NewTaskService()
 	defer taskService.Close()
 	enterpriseService := services.NewEnterpriseService(taskService)
@@ -102,7 +102,7 @@ func main() {
 		}
 	}()
 
-	// MCP 服务（默认启用，可通过 config.yaml 中 mcp.enabled 关闭）
+	// MCP Services (Default Enable, Through config.yaml Medium mcp.enabled Close)
 	var mcpHandler http.Handler
 	if config.GlobalConfig.MCP.Enabled {
 		apiKey := config.GlobalConfig.MCP.APIKey
@@ -114,10 +114,10 @@ func main() {
 		}
 	}
 
-	// 设置路由
+	// Set Path
 	router := api.SetupRouter(taskService, enterpriseService, mcpHandler, monitorScheduler)
 
-	// 启动服务器
+	// Start Server
 	host := config.GlobalConfig.Server.Host
 	if host == "" {
 		host = "127.0.0.1"

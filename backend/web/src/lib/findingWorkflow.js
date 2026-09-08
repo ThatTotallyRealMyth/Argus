@@ -1,14 +1,14 @@
 export const findingStatusOptions = [
-  { value: "new", label: "新发现" },
-  { value: "validated", label: "已验证" },
-  { value: "submitted", label: "已提交" },
-  { value: "resolved", label: "已解决" },
-  { value: "false_positive", label: "误报" },
-  { value: "regressed", label: "复发" },
+  { value: "new", label: "New Discovery" },
+  { value: "validated", label: "Verifyed" },
+  { value: "submitted", label: "Submitted" },
+  { value: "resolved", label: "Resolved" },
+  { value: "false_positive", label: "Misreporting" },
+  { value: "regressed", label: "Relapsing" },
 ];
 
 export function findingStatusLabel(value) {
-  return findingStatusOptions.find((option) => option.value === value)?.label || "新发现";
+  return findingStatusOptions.find((option) => option.value === value)?.label || "New Discovery";
 }
 
 export function findingStatusTone(value) {
@@ -16,7 +16,7 @@ export function findingStatusTone(value) {
 }
 
 export function verificationResultLabel(value) {
-  return ({ vulnerable: "最近命中", safe: "最近未复现", error: "复测失败" })[value] || "尚未复测";
+  return ({ vulnerable: "Recently hit.", safe: "Not recently recreated", error: "Reaction Failed" })[value] || "Not yet recovered";
 }
 
 export function verificationResultTone(value) {

@@ -9,29 +9,29 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// SmartPoCScanner 智能PoC扫描器 - 基于指纹智能匹配PoC
-// 职责：协调指纹匹配和PoC执行流程，不直接处理匹配和执行逻辑
+// SmartPoCScanner SmartPoCScanner - It's based on a fingerprint smart match.PoC
+// Duties: - I'm gonna coordinate the fingerprint matching and--PoCImplementation process, Do not directly process matching and execute logic
 type SmartPoCScanner struct {
 	pocMatcher    *PoCMatcher
 	executor      *PoCExecutor
-	maxConcurrent int // 最大并发数
+	maxConcurrent int // Maximum number of simultaneouss
 }
 
-// NewSmartPoCScanner 创建智能PoC扫描器
+// NewSmartPoCScanner Create SmartPoCScanner
 func NewSmartPoCScanner() *SmartPoCScanner {
 	return &SmartPoCScanner{
 		pocMatcher:    NewPoCMatcher(),
 		executor:      NewPoCExecutor(),
-		maxConcurrent: 10, // 默认10个并发
+		maxConcurrent: 10, // Default10It's a couple.
 	}
 }
 
-// ScanWithFingerprints 基于指纹进行智能PoC扫描
-// 流程: 1. 获取站点 → 2. 提取指纹 → 3. 匹配PoC → 4. 并发执行 → 5. 保存结果
+// ScanWithFingerprints Use fingerprints to be smart.PoCScan
+// Process: 1. Get Sites → 2. Fingerprints. → 3. MatchPoC → 4. And then it's going to be implemented. → 5. Save Results
 func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 	ctx.Logger.Printf("=== Smart PoC Scanner Started ===")
 
-	// 1. 获取所有站点
+	// 1. Get All Sites
 	var sites []models.Site
 	if err := database.DB.Where("task_id = ?", ctx.Task.ID).Find(&sites).Error; err != nil {
 		return fmt.Errorf("failed to get sites: %w", err)
@@ -44,7 +44,7 @@ func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 
 	ctx.Logger.Printf("Found %d sites for PoC scanning", len(sites))
 
-	// 2. 并发扫描所有站点
+	// 2. And send out a scan of all sites.
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	semaphore := make(chan struct{}, sps.maxConcurrent)
@@ -52,7 +52,7 @@ func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 	scannedTargets := make(map[string]bool)
 
 	for _, site := range sites {
-		// 检查任务是否被取消
+		// Check if the task has been cancelled
 		select {
 		case <-ctx.Ctx.Done():
 			ctx.Logger.Printf("PoC scan cancelled by user")
@@ -61,7 +61,7 @@ func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 		default:
 		}
 
-		// 去重：跳过已扫描的URL
+		// - Go heavy.: Skipped ScannedURL
 		mu.Lock()
 		if scannedTargets[site.URL] {
 			mu.Unlock()
@@ -77,10 +77,10 @@ func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
 
-			// 扫描单个站点
+			// Scan individual sites
 			vulns := sps.scanSingleSite(ctx, s)
 
-			// 保存漏洞到数据库
+			// Save bugs to database
 			if len(vulns) > 0 {
 				mu.Lock()
 				for _, vuln := range vulns {
@@ -103,13 +103,13 @@ func (sps *SmartPoCScanner) ScanWithFingerprints(ctx *ScanContext) error {
 	return nil
 }
 
-// scanSingleSite 扫描单个站点（提取为独立方法，便于测试和维护）
+// scanSingleSite Scan individual sites (Extract as standalone method, Easy to test and maintain)
 func (sps *SmartPoCScanner) scanSingleSite(ctx *ScanContext, site models.Site) []*models.Vulnerability {
 	if err := ctx.ValidateNetworkTarget(site.URL); err != nil {
 		ctx.Logger.Printf("PoC target blocked by scan scope: %s", site.URL)
 		return nil
 	}
-	// 1. 提取站点指纹
+	// 1. Take the site fingerprints.
 	fingerprints := extractFingerprints(site)
 	if len(fingerprints) == 0 {
 		ctx.Logger.Printf("No fingerprints for %s, skipping", site.URL)
@@ -118,7 +118,7 @@ func (sps *SmartPoCScanner) scanSingleSite(ctx *ScanContext, site models.Site) [
 
 	ctx.Logger.Printf("Site %s fingerprints: %v", site.URL, fingerprints)
 
-	// 2. 根据指纹匹配PoC
+	// 2. It's a fingerprint match.PoC
 	matchedPoCs, err := sps.pocMatcher.MatchPoCsByFingerprints(fingerprints)
 	if err != nil {
 		ctx.Logger.Printf("Failed to match PoCs for %s: %v", site.URL, err)
@@ -132,25 +132,25 @@ func (sps *SmartPoCScanner) scanSingleSite(ctx *ScanContext, site models.Site) [
 
 	ctx.Logger.Printf("Matched %d PoCs for %s", len(matchedPoCs), site.URL)
 
-	// 3. 执行匹配的PoC
+	// 3. Execute MatchesPoC
 	return sps.executeMatchedPoCs(ctx, site.URL, matchedPoCs)
 }
 
-// executeMatchedPoCs 执行匹配的PoC列表
+// executeMatchedPoCs Execute MatchesPoCList
 func (sps *SmartPoCScanner) executeMatchedPoCs(ctx *ScanContext, target string, pocs []models.PoC) []*models.Vulnerability {
 	var vulnerabilities []*models.Vulnerability
 
 	ctx.Logger.Printf("Executing %d PoCs against %s", len(pocs), target)
 
 	for _, poc := range pocs {
-		// 检查取消
+		// Check Cancel
 		select {
 		case <-ctx.Ctx.Done():
 			return vulnerabilities
 		default:
 		}
 
-		// 跳过未启用的PoC
+		// Skip UnablePoC
 		if !poc.IsEnabled {
 			continue
 		}
@@ -161,14 +161,14 @@ func (sps *SmartPoCScanner) executeMatchedPoCs(ctx *ScanContext, target string, 
 
 		ctx.Logger.Printf("Testing PoC: %s on %s", poc.Name, target)
 
-		// 执行PoC（使用共享的executor实例）
+		// ImplementationPoC (Use sharedexecutorExample)
 		result, err := sps.executor.Execute(&poc, target)
 		if err != nil {
 			ctx.Logger.Printf("Failed to execute PoC %s: %v", poc.Name, err)
 			continue
 		}
 
-		// 发现漏洞
+		// We've got a leak.
 		if result.Vulnerable {
 			vuln := &models.Vulnerability{
 				TaskID:      ctx.Task.ID,
@@ -190,12 +190,12 @@ func (sps *SmartPoCScanner) executeMatchedPoCs(ctx *ScanContext, target string, 
 	return vulnerabilities
 }
 
-// extractFingerprints 提取站点指纹（独立函数，不依赖 scanner 实例）
+// extractFingerprints Take the site fingerprints. (Independent Functions, Not dependent scanner Example)
 func extractFingerprints(site models.Site) []string {
 	var fingerprints []string
 	seen := make(map[string]bool)
 
-	// 从多个字段提取指纹
+	// Fingerprints from multiple fields
 	sources := []string{
 		site.Fingerprint,
 		site.Server,
@@ -206,7 +206,7 @@ func extractFingerprints(site models.Site) []string {
 			continue
 		}
 
-		// 支持逗号分隔的多个指纹
+		// Multiple fingerprints supported by comma separated
 		parts := splitAndTrim(source)
 		for _, part := range parts {
 			if part != "" && !seen[part] {
@@ -216,7 +216,7 @@ func extractFingerprints(site models.Site) []string {
 		}
 	}
 
-	// 从Fingerprints数组字段提取
+	// FromFingerprintsPlural Field Extract
 	for _, fp := range site.Fingerprints {
 		if fp != "" && !seen[fp] {
 			fingerprints = append(fingerprints, fp)
@@ -224,7 +224,7 @@ func extractFingerprints(site models.Site) []string {
 		}
 	}
 
-	// 从Title提取特定关键词
+	// FromTitleExtracting a specific keyword
 	if site.Title != "" {
 		keywords := []string{"Tomcat", "WebLogic", "JBoss", "WordPress", "Joomla", "Drupal", "phpMyAdmin", "Jenkins"}
 		titleLower := strings.ToLower(site.Title)
@@ -239,7 +239,7 @@ func extractFingerprints(site models.Site) []string {
 	return fingerprints
 }
 
-// splitAndTrim 分割并清理字符串（工具函数）
+// splitAndTrim Split and clean strings (Tool Functions)
 func splitAndTrim(s string) []string {
 	if s == "" {
 		return nil
@@ -254,7 +254,7 @@ func splitAndTrim(s string) []string {
 	return result
 }
 
-// GetMatchingPoCsForSite 获取站点匹配的PoC（用于API预览）
+// GetMatchingPoCsForSite Get site matchesPoC (ForAPIPreview)
 func (sps *SmartPoCScanner) GetMatchingPoCsForSite(siteID string) ([]models.PoC, error) {
 	var site models.Site
 	if err := database.DB.First(&site, "id = ?", siteID).Error; err != nil {

@@ -1,14 +1,14 @@
 import { assetTargetURL } from "./assetWorkbench.js";
 
 export const leadStatusOptions = [
-  { value: "new", label: "新线索" },
-  { value: "investigating", label: "调查中" },
-  { value: "validated", label: "已验证" },
-  { value: "ignored", label: "已忽略" },
+  { value: "new", label: "New Thread" },
+  { value: "investigating", label: "In progress" },
+  { value: "validated", label: "Verifyed" },
+  { value: "ignored", label: "Ignored" },
 ];
 
 export function leadStatusLabel(value) {
-  return leadStatusOptions.find((option) => option.value === value)?.label || "新线索";
+  return leadStatusOptions.find((option) => option.value === value)?.label || "New Thread";
 }
 
 export function leadStatusTone(value) {
@@ -17,14 +17,14 @@ export function leadStatusTone(value) {
 
 export function leadTypeLabel(value) {
   return ({
-    confirmed_vulnerability: "确认漏洞",
-    subdomain_takeover: "接管候选",
-    sensitive_service: "敏感服务",
-    management_surface: "入口暴露",
-    poc_opportunity: "PoC 机会",
-    surface_change: "攻击面变化",
-    recent_exposure: "新增暴露",
-  })[value] || value || "线索";
+    confirmed_vulnerability: "Identification of gaps",
+    subdomain_takeover: "Subdomain takeover candidate",
+    sensitive_service: "Sensitive services",
+    management_surface: "Access is compromised.",
+    poc_opportunity: "PoC Opportunities",
+    surface_change: "Change in the attack.",
+    recent_exposure: "Add Exposure",
+  })[value] || value || "Threads";
 }
 
 export function leadQueueParams({ page = 1, status = "open", severity = "all", type = "all", query = "" } = {}) {

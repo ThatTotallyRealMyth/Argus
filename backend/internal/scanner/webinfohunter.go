@@ -13,22 +13,22 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// WebInfoHunter 扫描器
+// WebInfoHunter Scanner
 type WebInfoHunter struct {
 	binPath string
 }
 
-// NewWebInfoHunter 创建WIH扫描器
+// NewWebInfoHunter CreateWIHScanner
 func NewWebInfoHunter(binPath string) *WebInfoHunter {
 	if binPath == "" {
-		binPath = "webinfohunter" // 假设在PATH中
+		binPath = "webinfohunter" // Supposed to bePATHMedium
 	}
 	return &WebInfoHunter{
 		binPath: binPath,
 	}
 }
 
-// WIHResult WIH扫描结果
+// WIHResult WIHScan Results
 type WIHResult struct {
 	URL               string   `json:"url"`
 	Domains           []string `json:"domains"`
@@ -44,7 +44,7 @@ type WIHResult struct {
 	SuspiciousStrings []string `json:"suspicious_strings"`
 }
 
-// Scan 执行WIH扫描
+// Scan ImplementationWIHScan
 func (wih *WebInfoHunter) Scan(ctx *ScanContext, urls []string) ([]*WIHResult, error) {
 	return wih.ScanWithURLValidator(ctx, urls, nil)
 }
@@ -58,7 +58,7 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 
 	var results []*WIHResult
 
-	// 由于WIH可能不存在，我们使用爬虫提取JS信息作为替代
+	// BecauseWIHIt may not exist., We use crawler to extract.JSInformation as an alternative
 	crawler := NewCrawlerWithConfig(CrawlerConfig{MaxDepth: 3, MaxPages: 100, Timeout: 10 * time.Second, ValidateURL: validateURL})
 
 	for _, targetURL := range urls {
@@ -81,7 +81,7 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 			APIEndpoints: []string{},
 		}
 
-		// 获取页面内容
+		// Fetching Page Contents
 		resp, err := crawler.client.Get(targetURL)
 		if err != nil {
 			ctx.Logger.Printf("Failed to fetch %s: %v", targetURL, err)
@@ -97,11 +97,11 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 			continue
 		}
 
-		// 提取JS文件
+		// ExtractJSDocumentation
 		jsFiles := crawler.ExtractJSFiles(string(body), targetURL)
 		ctx.Logger.Printf("Found %d JS files in %s", len(jsFiles), targetURL)
 
-		// 分析每个JS文件
+		// Analyse eachJSDocumentation
 		for _, jsURL := range jsFiles {
 			if validateURL != nil {
 				if err := validateURL(jsURL); err != nil {
@@ -124,7 +124,7 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 
 			jsContent := string(jsBody)
 
-			// 提取信息
+			// Can not open message
 			subdomains := crawler.ExtractSubdomains(jsContent)
 			result.Subdomains = append(result.Subdomains, subdomains...)
 
@@ -148,12 +148,12 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 				result.InternalIPs = append(result.InternalIPs, ips...)
 			}
 
-			// 提取邮箱
+			// Mailbox Rip
 			emails := extractEmails(jsContent)
 			result.Emails = append(result.Emails, emails...)
 		}
 
-		// 去重
+		// - Go heavy.
 		result.Subdomains = uniqueStrings(result.Subdomains)
 		result.APIEndpoints = uniqueStrings(result.APIEndpoints)
 		result.AccessKeys = uniqueStrings(result.AccessKeys)
@@ -171,7 +171,7 @@ func (wih *WebInfoHunter) ScanWithURLValidator(ctx *ScanContext, urls []string, 
 	return results, nil
 }
 
-// ScanWithBinary 使用二进制文件扫描
+// ScanWithBinary Scan with binary files
 func (wih *WebInfoHunter) ScanWithBinary(urls []string) ([]*WIHResult, error) {
 	if !checkWIHInstalled(wih.binPath) {
 		return nil, fmt.Errorf("WebInfoHunter not installed")
@@ -205,21 +205,21 @@ func (wih *WebInfoHunter) ScanWithBinary(urls []string) ([]*WIHResult, error) {
 	return results, nil
 }
 
-// SaveResults 保存WIH结果
+// SaveResults SaveWIHOutcome
 func (wih *WebInfoHunter) SaveResults(ctx *ScanContext, results []*WIHResult) error {
-	// 获取目标域名列表
+	// Get the destination domain name list
 	targets := ctx.TargetList()
 	domainScanner := NewDomainScanner()
 
 	for _, result := range results {
-		// 保存发现的子域名（需要验证）
+		// Save discovered subdomain names (Require authentication)
 		for _, subdomain := range result.Subdomains {
 			subdomain = strings.ToLower(strings.TrimSpace(subdomain))
 			if subdomain == "" {
 				continue
 			}
 
-			// 验证域名是否属于任何一个目标域名
+			// Verify whether domain names belong to any of the target domain names
 			isValidDomain := false
 			for _, target := range targets {
 				if domainScanner.isSubdomainOf(subdomain, target) {
@@ -238,7 +238,7 @@ func (wih *WebInfoHunter) SaveResults(ctx *ScanContext, results []*WIHResult) er
 			}
 		}
 
-		// 保存API端点
+		// SaveAPIEnd
 		for _, api := range result.APIEndpoints {
 			url := &models.URL{
 				TaskID: ctx.Task.ID,
@@ -248,7 +248,7 @@ func (wih *WebInfoHunter) SaveResults(ctx *ScanContext, results []*WIHResult) er
 			ctx.DB.Create(url)
 		}
 
-		// 如果发现敏感信息，创建漏洞记录
+		// If you find sensitive information,, Create a bug record
 		if len(result.AccessKeys) > 0 || len(result.SecretKeys) > 0 || len(result.APIKeys) > 0 {
 			description := ""
 			if len(result.AccessKeys) > 0 {
@@ -269,23 +269,23 @@ func (wih *WebInfoHunter) SaveResults(ctx *ScanContext, results []*WIHResult) er
 				URL:         result.URL,
 				Type:        "sensitive_info",
 				Severity:    "high",
-				Title:       "JS中发现敏感信息",
+				Title:       "JSDiscreet information found in",
 				Description: description,
-				Solution:    "移除JavaScript中的敏感信息，使用环境变量或安全的配置管理",
+				Solution:    "RemoveJavaScriptSensitive information in the, Manage using environment variables or secure configurations",
 			}
 			ctx.DB.Create(vuln)
 		}
 
-		// 内网IP泄露
+		// IntranetIPLeak
 		if len(result.InternalIPs) > 0 {
 			vuln := &models.Vulnerability{
 				TaskID:      ctx.Task.ID,
 				URL:         result.URL,
 				Type:        "info_leak",
 				Severity:    "low",
-				Title:       "内网IP泄露",
-				Description: fmt.Sprintf("发现 %d 个内网IP地址: %s", len(result.InternalIPs), strings.Join(result.InternalIPs, ", ")),
-				Solution:    "移除JavaScript中的内网IP地址",
+				Title:       "IntranetIPLeak",
+				Description: fmt.Sprintf("Found %d I'm an insider.IPAddress: %s", len(result.InternalIPs), strings.Join(result.InternalIPs, ", ")),
+				Solution:    "RemoveJavaScriptInner Networks in the MiddleIPAddress",
 			}
 			ctx.DB.Create(vuln)
 		}
@@ -294,24 +294,24 @@ func (wih *WebInfoHunter) SaveResults(ctx *ScanContext, results []*WIHResult) er
 	return nil
 }
 
-// checkWIHInstalled 检查WIH是否已安装
+// checkWIHInstalled InspectionWIHWhether installed
 func checkWIHInstalled(binPath string) bool {
 	cmd := exec.Command(binPath, "-h")
 	err := cmd.Run()
 	return err == nil
 }
 
-// extractEmails 提取邮箱地址
+// extractEmails Mailbox Address Extracting
 func extractEmails(content string) []string {
-	// 简单的邮箱正则
+	// Simple Mailbox Regular
 	emails := []string{}
 	seen := make(map[string]bool)
 
-	// 查找邮箱格式
+	// Find Mailbox Format
 	words := strings.Fields(content)
 	for _, word := range words {
 		if strings.Contains(word, "@") && strings.Contains(word, ".") {
-			// 简单验证
+			// Simple Authentication
 			parts := strings.Split(word, "@")
 			if len(parts) == 2 && len(parts[0]) > 0 && len(parts[1]) > 0 {
 				email := strings.ToLower(strings.Trim(word, "\"',;()[]{}"))
@@ -326,7 +326,7 @@ func extractEmails(content string) []string {
 	return emails
 }
 
-// isValidEmail 简单的邮箱验证
+// isValidEmail Simple Mailbox Authentication
 func isValidEmail(email string) bool {
 	if len(email) < 5 || len(email) > 254 {
 		return false
@@ -341,7 +341,7 @@ func isValidEmail(email string) bool {
 	return true
 }
 
-// readResponseBody 读取响应body
+// readResponseBody Read Responsebody
 func readResponseBody(resp *http.Response) ([]byte, error) {
 	defer resp.Body.Close()
 	return io.ReadAll(resp.Body)

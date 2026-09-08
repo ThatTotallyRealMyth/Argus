@@ -171,7 +171,7 @@ func TestBuildAssetAttackLeadsUsesExecutablePortTarget(t *testing.T) {
 }
 
 func TestTruncateAssetLeadTextPreservesUnicodeBoundary(t *testing.T) {
-	value := truncateAssetLeadText(strings.Repeat("验", 300), 255)
+	value := truncateAssetLeadText(strings.Repeat("Test", 300), 255)
 	if len([]rune(value)) != 255 || !utf8.ValidString(value) {
 		t.Fatalf("truncated text is invalid: runes=%d valid=%t", len([]rune(value)), utf8.ValidString(value))
 	}

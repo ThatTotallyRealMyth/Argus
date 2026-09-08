@@ -144,7 +144,7 @@ func TestTaskScopePostgresLifecycle(t *testing.T) {
 	if err := SaveScanScope(db, scope); err != nil {
 		t.Fatal(err)
 	}
-	if err := service.StartTask(task.ID); err == nil || !strings.Contains(err.Error(), "目标超出授权范围") {
+	if err := service.StartTask(task.ID); err == nil || !strings.Contains(err.Error(), "Targets are beyond the scope of the mandate.") {
 		t.Fatalf("start after scope change error = %v", err)
 	}
 }

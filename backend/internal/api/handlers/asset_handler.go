@@ -12,15 +12,15 @@ import (
 	"github.com/reconmaster/backend/internal/services"
 )
 
-// AssetHandler 资产处理器
+// AssetHandler Asset processor
 type AssetHandler struct{}
 
-// NewAssetHandler 创建资产处理器
+// NewAssetHandler Create an asset processor
 func NewAssetHandler() *AssetHandler {
 	return &AssetHandler{}
 }
 
-// ListDomains 列出域名资产
+// ListDomains List domain names assets
 func (h *AssetHandler) ListDomains(c *gin.Context) {
 	taskID := c.Query("task_id")
 	page := c.DefaultQuery("page", "1")
@@ -84,7 +84,7 @@ func (h *AssetHandler) ListDomains(c *gin.Context) {
 	})
 }
 
-// ListIPs 列出IP资产
+// ListIPs ListIPAssets
 func (h *AssetHandler) ListIPs(c *gin.Context) {
 	taskID := c.Query("task_id")
 	page := c.DefaultQuery("page", "1")
@@ -143,7 +143,7 @@ func (h *AssetHandler) ListIPs(c *gin.Context) {
 	})
 }
 
-// ListPorts 列出端口资产
+// ListPorts List Port Assets
 func (h *AssetHandler) ListPorts(c *gin.Context) {
 	taskID := c.Query("task_id")
 	ipAddress := c.Query("ip")
@@ -164,7 +164,7 @@ func (h *AssetHandler) ListPorts(c *gin.Context) {
 	if pageSizeInt > 200 {
 		pageSizeInt = 200
 	}
-	// 限制单页最大数量，防止查询过多数据导致性能问题
+	// Limit maximum number of single pages, Preventing excessive data searches from causing performance problems
 	const maxPageSize = 200
 	if pageSizeInt > maxPageSize {
 		pageSizeInt = maxPageSize
@@ -180,7 +180,7 @@ func (h *AssetHandler) ListPorts(c *gin.Context) {
 		query = query.Where("ip_address = ?", ipAddress)
 	}
 
-	// 支持端口号筛选
+	// Support port number filter
 	if portStr != "" {
 		var portInt int
 		if _, err := fmt.Sscanf(portStr, "%d", &portInt); err == nil && portInt > 0 && portInt <= 65535 {
@@ -188,7 +188,7 @@ func (h *AssetHandler) ListPorts(c *gin.Context) {
 		}
 	}
 
-	// 支持服务筛选
+	// Support services filter
 	if service != "" {
 		query = query.Where("service LIKE ?", "%"+service+"%")
 	}
@@ -227,7 +227,7 @@ func (h *AssetHandler) ListPorts(c *gin.Context) {
 	})
 }
 
-// ListSites 列出站点资产
+// ListSites List site assets
 func (h *AssetHandler) ListSites(c *gin.Context) {
 	taskID := c.Query("task_id")
 	url := c.Query("url")
@@ -257,27 +257,27 @@ func (h *AssetHandler) ListSites(c *gin.Context) {
 		query = query.Where("task_id = ?", taskID)
 	}
 
-	// URL 筛选
+	// URL Filter
 	if url != "" {
 		query = query.Where("url LIKE ?", "%"+url+"%")
 	}
 
-	// 域名筛选
+	// Domain Name Filter
 	if domain != "" {
 		query = query.Where("url LIKE ?", "%"+domain+"%")
 	}
 
-	// IP 筛选
+	// IP Filter
 	if ip != "" {
 		query = query.Where("ip = ? OR url LIKE ?", ip, "%"+ip+"%")
 	}
 
-	// 端口筛选
+	// Port Filter
 	if port != "" {
 		query = query.Where("url LIKE ?", "%:"+port+"%")
 	}
 
-	// 状态码筛选
+	// Status Code Filter
 	if statusCode != "" {
 		var statusInt int
 		if _, err := fmt.Sscanf(statusCode, "%d", &statusInt); err == nil {
@@ -319,7 +319,7 @@ func (h *AssetHandler) ListSites(c *gin.Context) {
 	})
 }
 
-// ListVulnerabilities 列出漏洞信息
+// ListVulnerabilities Listing leak information
 func (h *AssetHandler) ListVulnerabilities(c *gin.Context) {
 	taskID := c.Query("task_id")
 	severity := c.Query("severity")
@@ -387,7 +387,7 @@ func parsePagination(c *gin.Context, defaultSize, maxSize int) (int, int) {
 	return page, pageSize
 }
 
-// GetAssetStats 获取资产统计信息
+// GetAssetStats Access to asset statistics
 func (h *AssetHandler) GetAssetStats(c *gin.Context) {
 	taskID := c.Query("task_id")
 
@@ -459,7 +459,7 @@ func (h *AssetHandler) GetAssetStats(c *gin.Context) {
 	c.JSON(http.StatusOK, stats)
 }
 
-// ListURLs 获取URL列表
+// ListURLs FetchURLList
 func (h *AssetHandler) ListURLs(c *gin.Context) {
 	taskID := c.Query("task_id")
 	url := c.Query("url")
@@ -489,7 +489,7 @@ func (h *AssetHandler) ListURLs(c *gin.Context) {
 	var urls []models.CrawlerResult
 	query := database.DB.Model(&models.CrawlerResult{})
 
-	// 筛选条件
+	// Filter Conditions
 	if taskID != "" {
 		query = query.Where("task_id = ?", taskID)
 	}
@@ -521,14 +521,14 @@ func (h *AssetHandler) ListURLs(c *gin.Context) {
 		return
 	}
 
-	// 计算总数
+	// Calculate total
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count URLs"})
 		return
 	}
 
-	// 分页查询
+	// Page Break Query
 	offset := (page - 1) * pageSize
 	allowedSort := map[string]bool{"created_at": true, "url": true, "status_code": true, "content_length": true, "response_time_ms": true}
 	if !allowedSort[sortBy] {
@@ -542,7 +542,7 @@ func (h *AssetHandler) ListURLs(c *gin.Context) {
 		return
 	}
 
-	// 计算总页数
+	// Calculate total number of pages
 	totalPages := int(total) / pageSize
 	if int(total)%pageSize > 0 {
 		totalPages++

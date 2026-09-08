@@ -45,16 +45,16 @@ func (w *taskLogRecorder) Write(payload []byte) (int, error) {
 		}
 		level := "info"
 		lower := strings.ToLower(message)
-		if strings.Contains(lower, "failed") || strings.Contains(lower, "error") || strings.Contains(message, "失败") || strings.Contains(message, "错误") {
+		if strings.Contains(lower, "failed") || strings.Contains(lower, "error") || strings.Contains(message, "Failed") || strings.Contains(message, "Error") {
 			level = "error"
-		} else if strings.Contains(lower, "warning") || strings.Contains(lower, "skipping") || strings.Contains(message, "警告") || strings.Contains(message, "跳过") {
+		} else if strings.Contains(lower, "warning") || strings.Contains(lower, "skipping") || strings.Contains(message, "Warning") || strings.Contains(message, "Skip") {
 			level = "warning"
 		}
 		w.sequence++
 		w.buffer = append(w.buffer, models.TaskLog{
 			TaskID: w.taskID, Sequence: w.sequence, Level: level, Message: message, CreatedAt: time.Now(),
 		})
-		forceFlush = forceFlush || strings.HasPrefix(message, "开始") || strings.HasPrefix(message, "任务")
+		forceFlush = forceFlush || strings.HasPrefix(message, "Start") || strings.HasPrefix(message, "Tasks")
 	}
 	if forceFlush || len(w.buffer) >= taskLogBatchSize {
 		w.flushLocked()

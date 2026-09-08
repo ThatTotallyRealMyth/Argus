@@ -13,22 +13,22 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// CustomScriptRunner 自定义脚本运行器
+// CustomScriptRunner Custom Script Runner
 type CustomScriptRunner struct{}
 
-// NewCustomScriptRunner 创建自定义脚本运行器
+// NewCustomScriptRunner Create a custom script operator
 func NewCustomScriptRunner() *CustomScriptRunner {
 	return &CustomScriptRunner{}
 }
 
-// ScriptResult 脚本执行结果
+// ScriptResult Script execution results
 type ScriptResult struct {
 	Vulnerabilities []VulnResult `json:"vulnerabilities"`
 	Message         string       `json:"message"`
 	Error           string       `json:"error"`
 }
 
-// VulnResult 漏洞结果
+// VulnResult Leak result
 type VulnResult struct {
 	URL         string `json:"url"`
 	VulnType    string `json:"vuln_type"`
@@ -39,7 +39,7 @@ type VulnResult struct {
 	Proof       string `json:"proof"`
 }
 
-// RunScript 运行脚本
+// RunScript Run Script
 func (csr *CustomScriptRunner) RunScript(ctx *ScanContext, scriptPath string, targets []string) ([]*models.Vulnerability, error) {
 	if len(targets) == 0 {
 		return nil, nil
@@ -47,12 +47,12 @@ func (csr *CustomScriptRunner) RunScript(ctx *ScanContext, scriptPath string, ta
 
 	ctx.Logger.Printf("Running custom script: %s on %d targets", scriptPath, len(targets))
 
-	// 检查脚本文件是否存在
+	// Check for script file exists
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("script file not found: %s", scriptPath)
 	}
 
-	// 根据文件扩展名确定执行方式
+	// Determine how to execute it by file extension
 	ext := strings.ToLower(filepath.Ext(scriptPath))
 
 	var vulnerabilities []*models.Vulnerability
@@ -77,9 +77,9 @@ func (csr *CustomScriptRunner) RunScript(ctx *ScanContext, scriptPath string, ta
 	return vulnerabilities, nil
 }
 
-// runPythonScript 运行Python脚本
+// runPythonScript RunPythonScript
 func (csr *CustomScriptRunner) runPythonScript(ctx *ScanContext, scriptPath string, targets []string) ([]*models.Vulnerability, error) {
-	// 创建临时JSON文件传递目标
+	// Create TemporaryJSONDocument transfer target
 	tmpFile, err := os.CreateTemp("", "script-targets-*.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp file: %w", err)
@@ -93,10 +93,10 @@ func (csr *CustomScriptRunner) runPythonScript(ctx *ScanContext, scriptPath stri
 	tmpFile.Write(targetsJSON)
 	tmpFile.Close()
 
-	// 执行Python脚本
+	// ImplementationPythonScript
 	cmd := exec.Command("python3", scriptPath, tmpFile.Name())
 
-	// 设置超时
+	// Set Timeout
 	cmdCtx, cancel := context.WithTimeout(ctx.Ctx, 30*time.Minute)
 	defer cancel()
 	cmd = exec.CommandContext(cmdCtx, "python3", scriptPath, tmpFile.Name())
@@ -106,18 +106,18 @@ func (csr *CustomScriptRunner) runPythonScript(ctx *ScanContext, scriptPath stri
 		return nil, fmt.Errorf("script execution failed: %w, output: %s", err, string(output))
 	}
 
-	// 解析结果
+	// Parsing Results
 	return csr.parseScriptOutput(ctx, output)
 }
 
-// runGoScript 运行Go脚本
+// runGoScript RunGoScript
 func (csr *CustomScriptRunner) runGoScript(ctx *ScanContext, scriptPath string, targets []string) ([]*models.Vulnerability, error) {
-	// Go脚本需要先编译
+	// GoScripts need to be compiled first.
 	scriptDir := filepath.Dir(scriptPath)
 	binaryPath := filepath.Join(os.TempDir(), "custom-script-"+filepath.Base(scriptPath)+".bin")
 	defer os.Remove(binaryPath)
 
-	// 编译
+	// Compile
 	ctx.Logger.Printf("Compiling Go script: %s", scriptPath)
 	compileCmd := exec.Command("go", "build", "-o", binaryPath, scriptPath)
 	compileCmd.Dir = scriptDir
@@ -125,7 +125,7 @@ func (csr *CustomScriptRunner) runGoScript(ctx *ScanContext, scriptPath string, 
 		return nil, fmt.Errorf("script compilation failed: %w, output: %s", err, string(output))
 	}
 
-	// 创建临时JSON文件传递目标
+	// Create TemporaryJSONDocument transfer target
 	tmpFile, err := os.CreateTemp("", "script-targets-*.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp file: %w", err)
@@ -139,7 +139,7 @@ func (csr *CustomScriptRunner) runGoScript(ctx *ScanContext, scriptPath string, 
 	tmpFile.Write(targetsJSON)
 	tmpFile.Close()
 
-	// 执行编译后的二进制
+	// Performed binary compilation
 	cmdCtx, cancel := context.WithTimeout(ctx.Ctx, 30*time.Minute)
 	defer cancel()
 	cmd := exec.CommandContext(cmdCtx, binaryPath, tmpFile.Name())
@@ -149,13 +149,13 @@ func (csr *CustomScriptRunner) runGoScript(ctx *ScanContext, scriptPath string, 
 		return nil, fmt.Errorf("script execution failed: %w, output: %s", err, string(output))
 	}
 
-	// 解析结果
+	// Parsing Results
 	return csr.parseScriptOutput(ctx, output)
 }
 
-// runShellScript 运行Shell脚本
+// runShellScript RunShellScript
 func (csr *CustomScriptRunner) runShellScript(ctx *ScanContext, scriptPath string, targets []string) ([]*models.Vulnerability, error) {
-	// 将目标作为参数传递
+	// Transfer of the target as a parameter
 	args := append([]string{scriptPath}, targets...)
 
 	cmdCtx, cancel := context.WithTimeout(ctx.Ctx, 30*time.Minute)
@@ -167,25 +167,25 @@ func (csr *CustomScriptRunner) runShellScript(ctx *ScanContext, scriptPath strin
 		return nil, fmt.Errorf("script execution failed: %w, output: %s", err, string(output))
 	}
 
-	// 解析结果
+	// Parsing Results
 	return csr.parseScriptOutput(ctx, output)
 }
 
-// parseScriptOutput 解析脚本输出
+// parseScriptOutput Parsing Script Output
 func (csr *CustomScriptRunner) parseScriptOutput(ctx *ScanContext, output []byte) ([]*models.Vulnerability, error) {
-	// 期望脚本输出JSON格式的结果
+	// Expecting Script OutputJSONResults of Formatting
 	var result ScriptResult
 	if err := json.Unmarshal(output, &result); err != nil {
-		// 如果解析失败，尝试按行解析
+		// If the parse fails, Try to parse by line
 		return csr.parseLineByLine(ctx, output)
 	}
 
-	// 检查是否有错误
+	// Check for errors
 	if result.Error != "" {
 		return nil, fmt.Errorf("script error: %s", result.Error)
 	}
 
-	// 转换为漏洞模型
+	// Convert to Fault Model
 	var vulnerabilities []*models.Vulnerability
 	for _, vulnResult := range result.Vulnerabilities {
 		vuln := &models.Vulnerability{
@@ -205,7 +205,7 @@ func (csr *CustomScriptRunner) parseScriptOutput(ctx *ScanContext, output []byte
 	return vulnerabilities, nil
 }
 
-// parseLineByLine 按行解析输出（每行一个JSON漏洞）
+// parseLineByLine Page output (One in every row.JSONLeaks)
 func (csr *CustomScriptRunner) parseLineByLine(ctx *ScanContext, output []byte) ([]*models.Vulnerability, error) {
 	lines := strings.Split(string(output), "\n")
 	var vulnerabilities []*models.Vulnerability
@@ -218,7 +218,7 @@ func (csr *CustomScriptRunner) parseLineByLine(ctx *ScanContext, output []byte) 
 
 		var vulnResult VulnResult
 		if err := json.Unmarshal([]byte(line), &vulnResult); err != nil {
-			// 跳过非JSON行
+			// Skipping FavourJSONOkay.
 			ctx.Logger.Printf("Skipping non-JSON line: %s", line)
 			continue
 		}

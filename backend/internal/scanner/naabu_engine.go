@@ -12,7 +12,7 @@ import (
 	"github.com/projectdiscovery/naabu/v2/pkg/runner"
 )
 
-// NaabuEngine Naabu端口扫描引擎
+// NaabuEngine NaabuPort Scan Engine
 type NaabuEngine struct {
 	rate        int
 	timeout     time.Duration
@@ -21,63 +21,63 @@ type NaabuEngine struct {
 
 func (ne *NaabuEngine) Name() string { return "naabu" }
 
-// NewNaabuEngine 创建Naabu扫描引擎
+// NewNaabuEngine CreateNaabuScan engines
 func NewNaabuEngine() *NaabuEngine {
 	return &NaabuEngine{
-		rate:        0, // 0表示自适应速率
+		rate:        0, // 0This indicates self-adaptation rate
 		timeout:     3 * time.Second,
-		concurrency: 25, // 默认25并发
+		concurrency: 25, // Default25Together.
 	}
 }
 
-// SetRate 设置扫描速率（手动指定）
+// SetRate Set Scan Rate (Manually Assign)
 func (ne *NaabuEngine) SetRate(rate int) {
 	ne.rate = rate
 }
 
-// calculateAdaptiveRate 根据扫描规模计算自适应速率
+// calculateAdaptiveRate Rate of self-adaptation based on scan size
 func (ne *NaabuEngine) calculateAdaptiveRate(targetCount, portCount int) int {
-	// 如果手动设置了速率，直接使用
+	// If the speed is set manually, Direct use
 	if ne.rate > 0 {
 		return ne.rate
 	}
 
-	// 计算总扫描量
+	// Calculate total scans
 	totalScans := targetCount * portCount
 
 	var adaptiveRate int
 
 	switch {
 	case portCount <= 100:
-		// 小范围扫描（TOP100端口）：超高速
+		// Small-scale scan (TOP100Port): Superhigh.
 		adaptiveRate = 10000
 
 	case portCount <= 1000:
-		// 中等范围扫描（TOP1000端口）：高速
+		// Medium-range scan (TOP1000Port): High speed
 		adaptiveRate = 5000
 
 	case portCount <= 10000:
-		// 大范围扫描（1-10000端口）：中速
+		// Large scan (1-10000Port): Medium Speed
 		if targetCount > 100 {
-			// C段以上：降低速率避免网络拥塞
+			// CParagraphs and above: Lower the speed to avoid cyber congestion
 			adaptiveRate = 3000
 		} else {
 			adaptiveRate = 5000
 		}
 
 	default:
-		// 全端口扫描（65535端口）：根据目标数量调整
+		// Full Port Scan (65535Port): Adjusted to target number
 		if targetCount == 1 {
-			// 单目标全端口：高速
+			// Single Target Full Port: High speed
 			adaptiveRate = 8000
 		} else if targetCount <= 10 {
-			// 少量目标全端口：中高速
+			// Small Target Full Port: Medium Highway
 			adaptiveRate = 5000
 		} else if targetCount <= 100 {
-			// C段全端口：中速
+			// CParagraph Full Port: Medium Speed
 			adaptiveRate = 3000
 		} else {
-			// 大规模全端口：保守速率
+			// Mass Full Port: Conservative Rate
 			adaptiveRate = 2000
 		}
 	}
@@ -88,19 +88,19 @@ func (ne *NaabuEngine) calculateAdaptiveRate(targetCount, portCount int) int {
 	return adaptiveRate
 }
 
-// ScanPorts 使用Naabu扫描端口
+// ScanPorts UseNaabuScan Port
 func (ne *NaabuEngine) ScanPorts(ctx context.Context, targets []string, ports []int) ([]*PortScanResult, error) {
-	// 计算自适应速率
+	// Calculate self-adaptation rate
 	adaptiveRate := ne.calculateAdaptiveRate(len(targets), len(ports))
 
 	fmt.Printf("=== Naabu Port Scanner ===\n")
 	fmt.Printf("Targets: %d | Ports: %d | Rate: %d pps\n", len(targets), len(ports), adaptiveRate)
 
-	// 用于收集结果
+	// For collecting results
 	var results []*PortScanResult
 	var resultsMutex sync.Mutex
 
-	// 创建Naabu选项（必须在创建runner之前设置好回调）
+	// CreateNaabuOptions (Must createrunnerSet backs before)
 	options := &runner.Options{
 		Host:    targets,
 		Ports:   formatPortsForNaabu(ports),
@@ -121,20 +121,20 @@ func (ne *NaabuEngine) ScanPorts(ctx context.Context, targets []string, ports []
 					Port:     port.Port,
 					Protocol: "tcp",
 					Open:     true,
-					Service:  "unknown", // Naabu不做服务识别
+					Service:  "unknown", // NaabuDo not perform service recognition
 				})
 			}
 		},
 	}
 
-	// 创建Naabu runner
+	// CreateNaabu runner
 	naabuRunner, err := runner.NewRunner(options)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create naabu runner: %w", err)
 	}
 	defer naabuRunner.Close()
 
-	// 执行扫描
+	// Execute Scan
 	fmt.Println("Starting Naabu scan...")
 	if err := naabuRunner.RunEnumeration(ctx); err != nil {
 		return nil, fmt.Errorf("naabu scan failed: %w", err)
@@ -142,7 +142,7 @@ func (ne *NaabuEngine) ScanPorts(ctx context.Context, targets []string, ports []
 
 	fmt.Printf("✓ Naabu scan complete: found %d open ports\n", len(results))
 
-	// 使用gonmap进行服务识别（纯Go实现，无需nmap二进制）
+	// UsegonmapService identification (PureGoAchieved, No need.nmapBinary)
 	if len(results) > 0 {
 		fmt.Println("🔍 Performing service detection with gonmap...")
 		detector := NewServiceDetector()
@@ -152,13 +152,13 @@ func (ne *NaabuEngine) ScanPorts(ctx context.Context, targets []string, ports []
 	return results, nil
 }
 
-// formatPortsForNaabu 将端口列表格式化为Naabu接受的字符串
+// formatPortsForNaabu Format Port List AsNaabuAccepted Strings
 func formatPortsForNaabu(ports []int) string {
 	if len(ports) == 0 {
 		return "1-65535"
 	}
 
-	// Naabu支持逗号分隔的端口列表
+	// NaabuList of ports supporting comma-separated
 	portStr := ""
 	for i, port := range ports {
 		if i > 0 {

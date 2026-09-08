@@ -25,59 +25,59 @@ const (
 )
 
 type DictionaryManagementInput struct {
-	Action      string `json:"action" jsonschema:"required,操作: list, upload, set_default, delete"`
-	ID          string `json:"id,omitempty" jsonschema:"字典 ID；set_default 和 delete 必填"`
-	Type        string `json:"type,omitempty" jsonschema:"字典类型: domain, port, file, file_leak"`
-	Name        string `json:"name,omitempty" jsonschema:"字典名称；upload 必填"`
-	Description string `json:"description,omitempty" jsonschema:"字典说明"`
-	Content     string `json:"content,omitempty" jsonschema:"UTF-8 文本字典内容，最大 700 KiB；upload 必填"`
-	Confirm     bool   `json:"confirm,omitempty" jsonschema:"upload, set_default 和 delete 必须明确设为 true"`
+	Action      string `json:"action" jsonschema:"required,Operation: list, upload, set_default, delete"`
+	ID          string `json:"id,omitempty" jsonschema:"Dictionary ID; set_default and delete Required"`
+	Type        string `json:"type,omitempty" jsonschema:"Dictionary Type: domain, port, file, file_leak"`
+	Name        string `json:"name,omitempty" jsonschema:"Dictionary Name; upload Required"`
+	Description string `json:"description,omitempty" jsonschema:"Dictionary Notes"`
+	Content     string `json:"content,omitempty" jsonschema:"UTF-8 Text dictionary contents, Max 700 KiB; upload Required"`
+	Confirm     bool   `json:"confirm,omitempty" jsonschema:"upload, set_default and delete It must be clearly defined. true"`
 }
 
 type ScannerSettingsInput struct {
-	Action   string            `json:"action" jsonschema:"required,操作: get, update"`
-	Settings map[string]string `json:"settings,omitempty" jsonschema:"扫描参数键值；update 必填，值使用字符串表示"`
-	Confirm  bool              `json:"confirm,omitempty" jsonschema:"update 必须明确设为 true"`
+	Action   string            `json:"action" jsonschema:"required,Operation: get, update"`
+	Settings map[string]string `json:"settings,omitempty" jsonschema:"Scan for parameter key values; update Required, Values use string"`
+	Confirm  bool              `json:"confirm,omitempty" jsonschema:"update It must be clearly defined. true"`
 }
 
 type ScanScopeManagementInput struct {
-	Action      string   `json:"action" jsonschema:"required,操作: create, update, set_default, delete"`
-	ID          string   `json:"id,omitempty" jsonschema:"update, set_default 和 delete 的授权范围 ID"`
-	Name        *string  `json:"name,omitempty" jsonschema:"授权范围名称；create 必填，update 可选"`
-	Description *string  `json:"description,omitempty" jsonschema:"说明；update 传空字符串可清除"`
-	AllowRules  []string `json:"allow_rules,omitempty" jsonschema:"允许规则，支持域名、通配子域、IP、CIDR；update 省略时保留"`
-	DenyRules   []string `json:"deny_rules,omitempty" jsonschema:"排除规则且优先于允许规则；update 省略时保留"`
-	IsDefault   *bool    `json:"is_default,omitempty" jsonschema:"是否作为默认范围；update 省略时保留"`
-	Confirm     bool     `json:"confirm" jsonschema:"required,授权范围变更会改变可扫描边界，必须明确设为 true"`
+	Action      string   `json:"action" jsonschema:"required,Operation: create, update, set_default, delete"`
+	ID          string   `json:"id,omitempty" jsonschema:"update, set_default and delete Mandated scope ID"`
+	Name        *string  `json:"name,omitempty" jsonschema:"Name of authorized range; create Required, update Optional"`
+	Description *string  `json:"description,omitempty" jsonschema:"Annotations; update Empty string to clear"`
+	AllowRules  []string `json:"allow_rules,omitempty" jsonschema:"Allow Rules, Support domain names, General Sub Fields, IP, CIDR; update Reservation upon omission"`
+	DenyRules   []string `json:"deny_rules,omitempty" jsonschema:"Exclusion rules and precedence over permissible rules; update Reservation upon omission"`
+	IsDefault   *bool    `json:"is_default,omitempty" jsonschema:"Whether to use as default range; update Reservation upon omission"`
+	Confirm     bool     `json:"confirm" jsonschema:"required,The change of authority will change the scanable boundary., It must be clearly defined. true"`
 }
 
 type ProxySpec struct {
-	Name     *string `json:"name,omitempty" jsonschema:"代理名称"`
-	Scheme   *string `json:"scheme,omitempty" jsonschema:"协议: http, https, socks5"`
-	Host     *string `json:"host,omitempty" jsonschema:"代理主机名或 IP"`
-	Port     *int    `json:"port,omitempty" jsonschema:"代理端口 1-65535"`
-	Username *string `json:"username,omitempty" jsonschema:"可选用户名；传空字符串可清除"`
-	Password *string `json:"password,omitempty" jsonschema:"可选密码；仅写入，永不返回"`
-	Enabled  *bool   `json:"enabled,omitempty" jsonschema:"是否启用"`
+	Name     *string `json:"name,omitempty" jsonschema:"Agent Name"`
+	Scheme   *string `json:"scheme,omitempty" jsonschema:"Agreement: http, https, socks5"`
+	Host     *string `json:"host,omitempty" jsonschema:"Agent Host Name or IP"`
+	Port     *int    `json:"port,omitempty" jsonschema:"Proxy Port 1-65535"`
+	Username *string `json:"username,omitempty" jsonschema:"Optional username; Empty string to clear"`
+	Password *string `json:"password,omitempty" jsonschema:"Optional password; Write only, Never come back"`
+	Enabled  *bool   `json:"enabled,omitempty" jsonschema:"Whether to enable"`
 }
 
 type ProxyPoolManagementInput struct {
-	Action   string      `json:"action" jsonschema:"required,操作: list, create, batch_create, update, toggle, delete, test, test_all"`
-	ID       string      `json:"id,omitempty" jsonschema:"单个代理 ID"`
-	IDs      []string    `json:"ids,omitempty" jsonschema:"批量 delete 或 test 的代理 ID，最多1000个"`
-	Proxy    ProxySpec   `json:"proxy,omitempty" jsonschema:"create 或 update 的代理字段"`
-	Proxies  []ProxySpec `json:"proxies,omitempty" jsonschema:"batch_create 的代理数组，最多100个"`
-	Status   string      `json:"status,omitempty" jsonschema:"list 状态过滤: unknown, healthy, dead"`
-	Enabled  *bool       `json:"enabled,omitempty" jsonschema:"list 启用状态过滤，或 toggle 的目标状态"`
-	Page     int         `json:"page,omitempty" jsonschema:"list 页码，默认1"`
-	PageSize int         `json:"page_size,omitempty" jsonschema:"list 每页数量，默认20，最大100"`
-	Confirm  bool        `json:"confirm,omitempty" jsonschema:"除 list 外所有操作必须明确设为 true"`
+	Action   string      `json:"action" jsonschema:"required,Operation: list, create, batch_create, update, toggle, delete, test, test_all"`
+	ID       string      `json:"id,omitempty" jsonschema:"Single Agent ID"`
+	IDs      []string    `json:"ids,omitempty" jsonschema:"Bulk delete or test Agent ID, Up to1000One."`
+	Proxy    ProxySpec   `json:"proxy,omitempty" jsonschema:"create or update proxy fields"`
+	Proxies  []ProxySpec `json:"proxies,omitempty" jsonschema:"batch_create proxy arrays, Up to100One."`
+	Status   string      `json:"status,omitempty" jsonschema:"list Status Filter: unknown, healthy, dead"`
+	Enabled  *bool       `json:"enabled,omitempty" jsonschema:"list Enable status filter, or toggle Target status"`
+	Page     int         `json:"page,omitempty" jsonschema:"list Page Number, Default1"`
+	PageSize int         `json:"page_size,omitempty" jsonschema:"list Number of pages per page, Default20, Max100"`
+	Confirm  bool        `json:"confirm,omitempty" jsonschema:"Divide list All operations outside must be clearly identified as true"`
 }
 
 func RegisterRuntimeTools(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_scan_scope",
-		Description: "创建、更新、设为默认或删除授权扫描范围。范围变更会改变所有扫描、监控和计划任务的网络边界，必须 confirm=true；保存前可先调用 validate_scan_scope 传临时规则预检。",
+		Description: "Create, Update, Set as default or delete authorized scan range.The range changes will change all scans., Network boundaries for surveillance and planning missions, Yes. confirm=true; Call before saving validate_scan_scope Sending provisional rule pre-screening.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ScanScopeManagementInput) (*mcp.CallToolResult, any, error) {
 		result, err := manageScanScope(input)
@@ -89,7 +89,7 @@ func RegisterRuntimeTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_dictionary",
-		Description: "读取、上传、设为默认或删除扫描字典。写操作必须 confirm=true；MCP 上传内容最大 700 KiB。",
+		Description: "Read, Upload, Set as Default or Remove Scan Dictionary.Write must confirm=true; MCP Maximum Upload 700 KiB.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input DictionaryManagementInput) (*mcp.CallToolResult, any, error) {
 		result, err := manageDictionary(input)
@@ -101,7 +101,7 @@ func RegisterRuntimeTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_scanner_settings",
-		Description: "读取扫描器参数定义、当前值与生效来源，或按白名单批量更新。更新必须 confirm=true，且仅影响新启动任务。",
+		Description: "Read Scanner Parameters Definition, Current value and entry source, or update by white list batch.Update must confirm=true, And only affect the start-up mission..",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), IdempotentHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ScannerSettingsInput) (*mcp.CallToolResult, any, error) {
 		result, err := manageScannerSettings(input)
@@ -113,7 +113,7 @@ func RegisterRuntimeTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_proxy_pool",
-		Description: "读取、创建、批量创建、更新、启停、删除或检测代理节点。密码永不返回；除 list 外必须 confirm=true，检测会访问外部验证服务。",
+		Description: "Read, Create, Batch Creation, Update, Stop, Remove or detect proxy nodes.Password never returns; Divide list It's a must. confirm=true, Check-out external authentication services.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ProxyPoolManagementInput) (*mcp.CallToolResult, any, error) {
 		result, err := manageProxyPool(input)

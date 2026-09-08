@@ -12,7 +12,7 @@ import (
 	"github.com/reconmaster/backend/internal/scanner"
 )
 
-// TaskService 任务服务
+// TaskService Task services
 type TaskService struct {
 	runningTasks    map[string]context.CancelFunc
 	runningTasksMux sync.RWMutex
@@ -27,7 +27,7 @@ type TaskService struct {
 	scopeGuard      *ScanScopeService
 }
 
-// NewTaskService 创建任务服务
+// NewTaskService creates a task service.
 func NewTaskService() *TaskService {
 	service := &TaskService{
 		runningTasks: make(map[string]context.CancelFunc),
@@ -41,7 +41,7 @@ func NewTaskService() *TaskService {
 	return service
 }
 
-// SetWebSocketHandler 设置WebSocket处理器
+// SetWebSocketHandler SettingsWebSocketProcessor
 func (s *TaskService) SetWebSocketHandler(handler scanner.ProgressHandler) {
 	s.wsHandlerMu.Lock()
 	defer s.wsHandlerMu.Unlock()
@@ -54,7 +54,7 @@ func (s *TaskService) webSocketHandler() scanner.ProgressHandler {
 	return s.wsHandler
 }
 
-// CancelTask 取消正在运行的任务
+// CancelTask Cancel running jobs
 func (s *TaskService) CancelTask(taskID string) error {
 	s.runningTasksMux.RLock()
 	cancelFunc, exists := s.runningTasks[taskID]
@@ -93,11 +93,11 @@ func (s *TaskService) IsTaskRunning(taskID string) bool {
 	return exists
 }
 
-// ExecuteTask 执行任务
+// ExecuteTask Tasking
 func (s *TaskService) ExecuteTask(taskID string) {
 	log.Printf("========== ExecuteTask called for task: %s ==========", taskID)
 
-	// 获取任务
+	// Get Tasks
 	var task models.Task
 	if err := database.DB.First(&task, "id = ?", taskID).Error; err != nil {
 		log.Printf("Failed to find task %s: %v", taskID, err)
@@ -118,10 +118,10 @@ func (s *TaskService) ExecuteTask(taskID string) {
 	log.Printf("Task options: EnablePortScan=%v, PortScanType=%s",
 		task.Options.EnablePortScan, task.Options.PortScanType)
 
-	// 创建可取消的context
+	// Create Cancelablecontext
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// 注册到运行任务列表
+	// Create the scan context.
 	s.runningTasksMux.Lock()
 	if _, exists := s.runningTasks[taskID]; exists {
 		s.runningTasksMux.Unlock()
@@ -132,14 +132,14 @@ func (s *TaskService) ExecuteTask(taskID string) {
 	s.runningTasks[taskID] = cancel
 	s.runningTasksMux.Unlock()
 
-	// 任务结束后清理
+	// Clean up after mission
 	defer func() {
 		s.runningTasksMux.Lock()
 		delete(s.runningTasks, taskID)
 		s.runningTasksMux.Unlock()
 	}()
 
-	// 任务可能在被 Worker 领取后、注册取消函数前遭到取消或删除。
+	// Mission may be compromised. Worker After receiving, Cancelled or deleted before registering cancellation.
 	var currentStatus models.TaskStatus
 	if err := database.DB.Model(&models.Task{}).Select("status").Where("id = ?", taskID).Scan(&currentStatus).Error; err != nil {
 		cancel()
@@ -182,31 +182,31 @@ func (s *TaskService) ExecuteTask(taskID string) {
 
 	taskLogger, taskLogRecorder := newTaskLogger(task.ID)
 	defer taskLogRecorder.Close()
-	taskLogger.Printf("任务开始：%s，目标：%s", task.Name, task.Target)
+	taskLogger.Printf("Mission begins.: %s, Objective: %s", task.Name, task.Target)
 
-	// 执行扫描
+	// Execute Scan
 	err := s.executeScanner(ctx, &task, taskLogger)
 
-	// 更新任务状态
+	// Update Task Status
 	endTime := time.Now()
 	task.EndedAt = &endTime
 
-	// 检查是否被取消
+	// Check if it's canceled
 	if ctx.Err() == context.Canceled {
 		task.Status = models.TaskStatusCancelled
 		task.ErrorMsg = "Task was cancelled by user"
 		log.Printf("Task %s was cancelled", task.ID)
-		taskLogger.Printf("任务已取消")
+		taskLogger.Printf("Task canceled")
 	} else if err != nil {
 		task.Status = models.TaskStatusFailed
 		task.ErrorMsg = publicTaskExecutionError(err)
 		log.Printf("Task %s failed: %v", task.ID, err)
-		taskLogger.Printf("任务执行失败：%s", task.ErrorMsg)
+		taskLogger.Printf("Mission execution failed: %s", task.ErrorMsg)
 	} else {
 		task.Status = models.TaskStatusCompleted
 		task.Progress = 100
 		log.Printf("Task %s completed successfully", task.ID)
-		taskLogger.Printf("任务执行完成")
+		taskLogger.Printf("Mission accomplished")
 	}
 
 	if err := s.persistTaskTerminalState(&task); err != nil {
@@ -270,7 +270,7 @@ func mirrorPersistedTaskState(task *models.Task, persisted models.Task) {
 	}
 }
 
-// executeScanner 执行扫描引擎
+// executeScanner Execute Scan Engine
 func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, taskLogger *log.Logger) error {
 	validateTarget, err := s.scopeGuard.BuildValidator(task.ScopeID)
 	if err != nil {
@@ -280,10 +280,10 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 	// A per-task engine prevents concurrent jobs from changing each other's state.
 	scanEngine := scanner.NewEngine()
 
-	// 创建进度通道
+	// Create Progress Channel
 	progressChan := make(chan *scanner.ScanProgress, 100)
 
-	// 如果有WebSocket handler，注册进度通道
+	// If there is,WebSocket handler, Register Progress Channel
 	if handler := s.webSocketHandler(); handler != nil {
 		handler.RegisterProgressChannel(task.ID, progressChan)
 		defer handler.UnregisterProgressChannel(task.ID)
@@ -293,12 +293,12 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		Task:           task,
 		DB:             database.DB,
 		Logger:         taskLogger,
-		Ctx:            ctx,          // 传递取消context
-		ProgressChan:   progressChan, // 传递进度通道
+		Ctx:            ctx,          // Transfer Cancelcontext
+		ProgressChan:   progressChan, // Pass Progress Channel
 		ValidateTarget: validateTarget,
 	}
 
-	// 检查任务是否已被取消的辅助函数
+	// Checks if the task has been cancelled
 	checkCancelled := func() error {
 		select {
 		case <-ctx.Done():
@@ -308,26 +308,26 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		}
 	}
 
-	// 0. 被动扫描（如果启用）
+	// 0. Passive Scan (If enabled)
 	if task.Options.EnablePassiveScan {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始被动扫描")
+		taskLogger.Printf("Start passive scan.")
 		if err := scanEngine.RunPassiveScan(scanCtx); err != nil {
-			taskLogger.Printf("被动扫描失败：%v", err) // 不中断任务
+			taskLogger.Printf("Passive scan failed: %v", err) // Do not interrupt the mission
 		}
 		if err := s.updateProgress(ctx, task, 10); err != nil {
 			return err
 		}
 	}
 
-	// 1. 域名发现
+	// 1. Domain name found
 	if task.Options.EnableDomainBrute || task.Options.EnableDomainPlugins {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始域名发现")
+		taskLogger.Printf("Start Domain Name Discover")
 		if err := scanEngine.DiscoverDomains(scanCtx); err != nil {
 			return fmt.Errorf("domain discovery failed: %w", err)
 		}
@@ -336,11 +336,11 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		}
 	}
 
-	// 2. IP解析
+	// 2. Resolve IP addresses.
 	if err := checkCancelled(); err != nil {
 		return err
 	}
-	taskLogger.Printf("开始 IP 解析")
+	taskLogger.Printf("Start IP Parsing")
 	if err := scanEngine.ResolveIPs(scanCtx); err != nil {
 		return fmt.Errorf("IP resolution failed: %w", err)
 	}
@@ -348,25 +348,25 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 2.5. C段扫描
+	// 2.5. CParagraph Scan
 	if task.Options.EnableCSegment {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始 C 段扫描")
+		taskLogger.Printf("Start C Paragraph Scan")
 		if err := scanEngine.ScanCSegment(scanCtx); err != nil {
-			taskLogger.Printf("C 段扫描失败：%v", err) // 不中断任务
+			taskLogger.Printf("C Paragraph scan failed: %v", err) // Do not interrupt the mission
 		}
 	}
 	if err := s.updateProgress(ctx, task, 40); err != nil {
 		return err
 	}
 
-	// 3. 端口扫描（平台核心能力，始终执行）
+	// 3. Port Scan (Platform core competencies, Always do)
 	if err := checkCancelled(); err != nil {
 		return err
 	}
-	taskLogger.Printf("开始端口扫描")
+	taskLogger.Printf("Start Port Scanning")
 	if err := scanEngine.ScanPorts(scanCtx); err != nil {
 		return fmt.Errorf("port scan failed: %w", err)
 	}
@@ -374,12 +374,12 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 4. 服务识别
+	// 4. Service recognition
 	if task.Options.EnableServiceDetect {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始服务识别")
+		taskLogger.Printf("Start Service Recognition")
 		if err := scanEngine.DetectServices(scanCtx); err != nil {
 			return fmt.Errorf("service detection failed: %w", err)
 		}
@@ -388,12 +388,12 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		}
 	}
 
-	// 5. 站点识别
+	// 5. Site recognition
 	if task.Options.EnableSiteDetect {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始站点识别")
+		taskLogger.Printf("Start site recognition")
 		if err := scanEngine.DetectSites(scanCtx); err != nil {
 			return fmt.Errorf("site detection failed: %w", err)
 		}
@@ -402,25 +402,25 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		}
 	}
 
-	// 6. 操作系统识别
+	// 6. Operational system recognition
 	if task.Options.EnableOSDetect {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始操作系统识别")
+		taskLogger.Printf("Start operating system recognition")
 		if err := scanEngine.DetectOS(scanCtx); err != nil {
-			taskLogger.Printf("操作系统识别失败：%v", err)
+			taskLogger.Printf("Operation system recognition failed: %v", err)
 		}
 	}
 
-	// 7. 站点截图
+	// 7. Site Screenshot
 	if task.Options.EnableScreenshot {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始站点截图")
+		taskLogger.Printf("Start Site Screenshot")
 		if err := scanEngine.TakeScreenshots(scanCtx); err != nil {
-			taskLogger.Printf("站点截图失败：%v", err) // 不中断任务
+			taskLogger.Printf("Site screenshot failed: %v", err) // Do not interrupt the mission
 		}
 	}
 
@@ -428,14 +428,14 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 8. 漏洞检测
+	// 8. Gap detection
 	if task.Options.EnableFileLeak {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始文件泄露检测")
+		taskLogger.Printf("Start file leak detection.")
 		if err := scanEngine.CheckFileLeaks(scanCtx); err != nil {
-			taskLogger.Printf("文件泄露检测失败：%v", err) // 不中断任务
+			taskLogger.Printf("File leak detection failed: %v", err) // Do not interrupt the mission
 		}
 	}
 
@@ -443,34 +443,34 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 9. Host碰撞检测
+	// 9. HostCollision detection
 	if task.Options.EnableHostCollision {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始 Host 碰撞检测")
+		taskLogger.Printf("Start Host Collision detection")
 		if err := scanEngine.CheckHostCollision(scanCtx); err != nil {
-			taskLogger.Printf("Host 碰撞检测失败：%v", err)
+			taskLogger.Printf("Host Collision test failed.: %v", err)
 		}
 	}
 
-	// 9.5. 子域名接管检测
+	// 9.5. Subdomain name takes over the test
 	if err := checkCancelled(); err != nil {
 		return err
 	}
-	taskLogger.Printf("开始子域名接管检测")
+	taskLogger.Printf("Start subdomain name taking over the test")
 	if err := scanEngine.CheckSubdomainTakeover(scanCtx); err != nil {
-		taskLogger.Printf("子域名接管检测失败：%v", err)
+		taskLogger.Printf("Failed to take over the subdomain name test: %v", err)
 	}
 
-	// 10. 智能PoC检测 (基于指纹匹配,替代Nuclei/XPOC/Afrog)
+	// 10. SmartPoCTest (It's based on a fingerprint match.,AlternativeNuclei/XPOC/Afrog)
 	if task.Options.EnablePoCDetection {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始智能 PoC 检测")
+		taskLogger.Printf("Start Smart PoC Test")
 		if err := scanEngine.RunPoCScanning(scanCtx); err != nil {
-			taskLogger.Printf("PoC 检测失败：%v", err) // 不中断任务
+			taskLogger.Printf("PoC Failed to detect: %v", err) // Do not interrupt the mission
 		}
 	}
 
@@ -478,7 +478,7 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 13. 自定义脚本
+	// 13. Custom Scripts
 	if task.Options.EnableCustomScript && task.Options.CustomScriptPath != "" {
 		if err := checkCancelled(); err != nil {
 			return err
@@ -486,9 +486,9 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		if validateTarget != nil {
 			return taskInputErrorf("custom scripts are disabled for scope-enforced tasks because their outbound requests cannot be constrained")
 		}
-		taskLogger.Printf("开始自定义脚本：%s", task.Options.CustomScriptPath)
+		taskLogger.Printf("Start Custom Script: %s", task.Options.CustomScriptPath)
 		if err := scanEngine.RunCustomScript(scanCtx, task.Options.CustomScriptPath); err != nil {
-			taskLogger.Printf("自定义脚本失败：%v", err) // 不中断任务
+			taskLogger.Printf("Custom Script Failed: %v", err) // Do not interrupt the mission
 		}
 	}
 
@@ -496,14 +496,14 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 14. WebInfoHunter (如果启用)
+	// 14. WebInfoHunter (If enabled)
 	if task.Options.EnableWIH {
 		if err := checkCancelled(); err != nil {
 			return err
 		}
-		taskLogger.Printf("开始 WebInfoHunter")
+		taskLogger.Printf("Start WebInfoHunter")
 		if err := s.runWebInfoHunter(scanCtx); err != nil {
-			taskLogger.Printf("WebInfoHunter 失败：%v", err)
+			taskLogger.Printf("WebInfoHunter Failed: %v", err)
 		}
 	}
 
@@ -511,13 +511,13 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 		return err
 	}
 
-	// 15. 资产测绘（最后执行，生成资产画像）
+	// 15. Asset mapping (Final implementation, Generate asset portraits)
 	if err := checkCancelled(); err != nil {
 		return err
 	}
-	taskLogger.Printf("开始生成资产画像")
+	taskLogger.Printf("Start generating asset portraits")
 	if err := scanEngine.MapAssets(scanCtx); err != nil {
-		taskLogger.Printf("资产画像生成失败：%v", err)
+		taskLogger.Printf("Failed to generate asset portraits: %v", err)
 	}
 
 	if err := s.updateProgress(ctx, task, 100); err != nil {
@@ -533,9 +533,9 @@ func publicTaskExecutionError(err error) string {
 	return "Task execution failed"
 }
 
-// runWebInfoHunter 运行WebInfoHunter
+// runWebInfoHunter RunWebInfoHunter
 func (s *TaskService) runWebInfoHunter(ctx *scanner.ScanContext) error {
-	// 获取所有站点
+	// Get All Sites
 	var sites []models.Site
 	if err := ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&sites).Error; err != nil {
 		return fmt.Errorf("load sites for WebInfoHunter: %w", err)
@@ -550,20 +550,20 @@ func (s *TaskService) runWebInfoHunter(ctx *scanner.ScanContext) error {
 		urls[i] = site.URL
 	}
 
-	// 创建WIH扫描器
+	// CreateWIHScanner
 	wih := scanner.NewWebInfoHunter("")
 
-	// 执行扫描
+	// Execute Scan
 	results, err := wih.ScanWithURLValidator(ctx, urls, ctx.ValidateTarget)
 	if err != nil {
 		return err
 	}
 
-	// 保存结果
+	// Save Results
 	return wih.SaveResults(ctx, results)
 }
 
-// updateProgress 更新任务进度
+// updateProgress Update Task Progress
 func (s *TaskService) updateProgress(ctx context.Context, task *models.Task, progress int) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -582,7 +582,7 @@ func (s *TaskService) updateProgress(ctx context.Context, task *models.Task, pro
 	}
 	task.Progress = progress
 
-	// 通过WebSocket推送进度更新
+	// ThroughWebSocket& Add Progress Update
 	if handler := s.webSocketHandler(); handler != nil {
 		handler.BroadcastProgress(task.ID, progress, fmt.Sprintf("Progress: %d%%", progress))
 	}

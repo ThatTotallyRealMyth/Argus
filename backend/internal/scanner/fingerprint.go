@@ -9,23 +9,23 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// Fingerprint 指纹信息
+// Fingerprint Fingerprint information
 type Fingerprint struct {
 	Name     string
 	Category string
 	Rules    []FingerprintRule
 }
 
-// FingerprintRule 指纹规则
+// FingerprintRule Fingerprint rules.
 type FingerprintRule struct {
 	Type    string // header, body, title, server, cookie
 	Pattern string
 	Match   *regexp.Regexp
 }
 
-// FingerprintDB 指纹数据库
+// FingerprintDB Fingerprint Database
 var FingerprintDB = []Fingerprint{
-	// Web服务器
+	// WebServers
 	{
 		Name:     "Nginx",
 		Category: "WebServer",
@@ -77,7 +77,7 @@ var FingerprintDB = []Fingerprint{
 			{Type: "body", Pattern: "Drupal.settings"},
 		},
 	},
-	// 框架
+	// Frame
 	{
 		Name:     "Laravel",
 		Category: "Framework",
@@ -118,7 +118,7 @@ var FingerprintDB = []Fingerprint{
 			{Type: "header", Pattern: "X-Powered-By.*Express"},
 		},
 	},
-	// 中间件
+	// Middle
 	{
 		Name:     "Tomcat",
 		Category: "Middleware",
@@ -178,7 +178,7 @@ var FingerprintDB = []Fingerprint{
 			{Type: "body", Pattern: "Attention Required! \\| Cloudflare"},
 		},
 	},
-	// JavaScript框架
+	// JavaScriptFrame
 	{
 		Name:     "React",
 		Category: "JavaScript",
@@ -212,7 +212,7 @@ var FingerprintDB = []Fingerprint{
 	},
 }
 
-// InitFingerprints 初始化指纹规则
+// InitFingerprints Initialization of fingerprinting rules
 func InitFingerprints() {
 	for i := range FingerprintDB {
 		for j := range FingerprintDB[i].Rules {
@@ -221,12 +221,12 @@ func InitFingerprints() {
 	}
 }
 
-// MatchFingerprints 匹配指纹（同时支持内置和数据库指纹）
+// MatchFingerprints Matching fingerprints. (Supports both the internalization and database fingerprinting)
 func MatchFingerprints(headers map[string]string, body, title string) []string {
 	matched := make(map[string]bool)
 	var fingerprints []string
 
-	// 匹配内置指纹
+	// Matching internal fingerprints
 	for _, fp := range FingerprintDB {
 		for _, rule := range fp.Rules {
 			var content string
@@ -234,7 +234,7 @@ func MatchFingerprints(headers map[string]string, body, title string) []string {
 			case "server":
 				content = headers["Server"]
 			case "header":
-				// 检查所有header
+				// Check Allheader
 				for k, v := range headers {
 					content += k + ": " + v + "\n"
 				}
@@ -256,7 +256,7 @@ func MatchFingerprints(headers map[string]string, body, title string) []string {
 		}
 	}
 
-	// 从数据库加载并匹配自定义指纹
+	// Load and match custom fingerprints from database
 	var dbFingerprints []models.Fingerprint
 	if err := database.DB.Where("is_enabled = ?", true).Find(&dbFingerprints).Error; err != nil {
 		log.Printf("Failed to load fingerprints from database: %v", err)
@@ -274,9 +274,9 @@ func MatchFingerprints(headers map[string]string, body, title string) []string {
 	return fingerprints
 }
 
-// matchDatabaseFingerprint 匹配数据库指纹
+// matchDatabaseFingerprint Match database fingerprints
 func matchDatabaseFingerprint(fp models.Fingerprint, headers map[string]string, body, title string) bool {
-	// 遍历所有 DSL 规则，任意一个匹配即可
+	// ♪ All through ♪ DSL Rules, Any match is fine.
 	for _, dslRule := range fp.DSL {
 		if matchDSLRule(dslRule, headers, body, title) {
 			return true
@@ -285,15 +285,15 @@ func matchDatabaseFingerprint(fp models.Fingerprint, headers map[string]string, 
 	return false
 }
 
-// matchDSLRule 匹配单个 DSL 规则
+// matchDSLRule Matching individual DSL Rules
 func matchDSLRule(rule string, headers map[string]string, body, title string) bool {
-	// 解析 DSL 规则，例如: contains(body, 'keyword')
+	// Parsing DSL Rules, For example...: contains(body, 'keyword')
 	rule = strings.TrimSpace(rule)
 
-	// 提取函数名和参数
+	// Extract function names and parameters
 	if strings.HasPrefix(rule, "contains(") && strings.HasSuffix(rule, ")") {
-		// 提取参数: contains(target, 'keyword')
-		params := rule[9 : len(rule)-1] // 去掉 "contains(" 和 ")"
+		// Extract Parameters: contains(target, 'keyword')
+		params := rule[9 : len(rule)-1] // Get rid of it. "contains(" and ")"
 		parts := parseParams(params)
 
 		if len(parts) != 2 {
@@ -304,7 +304,7 @@ func matchDSLRule(rule string, headers map[string]string, body, title string) bo
 		target := strings.TrimSpace(parts[0])
 		keyword := strings.Trim(strings.TrimSpace(parts[1]), "'\"")
 
-		// 获取目标内容
+		// Get Target Contents
 		var content string
 		switch target {
 		case "body":
@@ -316,22 +316,22 @@ func matchDSLRule(rule string, headers map[string]string, body, title string) bo
 				content += k + ": " + v + "\n"
 			}
 		default:
-			// 尝试作为具体的 header 字段
+			// Try as a specific header Fields
 			if headerValue, ok := headers[target]; ok {
 				content = headerValue
 			}
 		}
 
-		// 检查是否包含关键词（不区分大小写）
+		// Check whether keywords are contained (Case sensitive)
 		return strings.Contains(strings.ToLower(content), strings.ToLower(keyword))
 	}
 
-	// 其他 DSL 函数可以在这里扩展
+	// Other DSL function can be expanded here
 	log.Printf("Unsupported DSL rule: %s", rule)
 	return false
 }
 
-// parseParams 解析 DSL 参数（处理引号内的逗号）
+// parseParams Parsing DSL Parameters (Handle commas in quotation marks)
 func parseParams(params string) []string {
 	var result []string
 	var current strings.Builder
@@ -362,11 +362,11 @@ func parseParams(params string) []string {
 	return result
 }
 
-// DetectTechnology 检测技术栈
+// DetectTechnology Test Technical Repository
 func DetectTechnology(headers map[string]string, body string) map[string][]string {
 	result := make(map[string][]string)
 
-	// 按类别组织
+	// Organization by category
 	for _, fp := range FingerprintDB {
 		for _, rule := range fp.Rules {
 			var content string
@@ -390,7 +390,7 @@ func DetectTechnology(headers map[string]string, body string) map[string][]strin
 		}
 	}
 
-	// 去重
+	// - Go heavy.
 	for category, techs := range result {
 		result[category] = uniqueStrings(techs)
 	}
@@ -398,7 +398,7 @@ func DetectTechnology(headers map[string]string, body string) map[string][]strin
 	return result
 }
 
-// uniqueStrings 字符串数组去重
+// uniqueStrings String array to weigh
 func uniqueStrings(slice []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}
@@ -411,7 +411,7 @@ func uniqueStrings(slice []string) []string {
 	return list
 }
 
-// ExtractTitle 提取HTML标题
+// ExtractTitle ExtractHTMLTitle
 func ExtractTitle(body string) string {
 	titleRegex := regexp.MustCompile(`(?i)<title>(.*?)</title>`)
 	matches := titleRegex.FindStringSubmatch(body)
@@ -421,16 +421,16 @@ func ExtractTitle(body string) string {
 	return ""
 }
 
-// IsCDN 判断是否为CDN
+// IsCDN To judge whetherCDN
 func IsCDN(headers map[string]string, ip string) bool {
-	// 检查CDN特征头
+	// InspectionCDNFeature Header
 	cdnHeaders := []string{
 		"CF-RAY",              // Cloudflare
 		"X-Akamai",            // Akamai
-		"X-CDN",               // 通用CDN
-		"X-Cache",             // 缓存
-		"Via",                 // 代理
-		"X-Served-By",         // CDN服务器
+		"X-CDN",               // UniversalCDN
+		"X-Cache",             // Cache
+		"Via",                 // Agent
+		"X-Served-By",         // CDNServers
 		"X-Fastly-Request-ID", // Fastly
 	}
 
@@ -440,7 +440,7 @@ func IsCDN(headers map[string]string, ip string) bool {
 		}
 	}
 
-	// 检查Server头中的CDN标识
+	// InspectionServerIn the head.CDNMarking
 	server := strings.ToLower(headers["Server"])
 	cdnKeywords := []string{"cloudflare", "akamai", "cdn", "fastly", "cloudfront"}
 	for _, keyword := range cdnKeywords {
@@ -452,15 +452,15 @@ func IsCDN(headers map[string]string, ip string) bool {
 	return false
 }
 
-// ExtractIPFromURL 从URL中提取IP地址
+// ExtractIPFromURL FromURLDrawIPAddress
 func ExtractIPFromURL(urlStr string) string {
-	// 匹配 scheme://ip:port 格式
+	// Match scheme://ip:port Format
 	ipPortRegex := regexp.MustCompile(`^https?://([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?::[0-9]+)?`)
 	matches := ipPortRegex.FindStringSubmatch(urlStr)
 	if len(matches) > 1 {
 		return matches[1]
 	}
 
-	// 如果是域名，返回空字符串（可以后续通过DNS查询获取）
+	// If it's a domain name,, Returns empty string (It's a good way to go.DNSQuery Access)
 	return ""
 }

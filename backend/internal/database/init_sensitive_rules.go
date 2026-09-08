@@ -7,9 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// InitBuiltInSensitiveRules 初始化内置敏感信息规则
+// InitBuiltInSensitiveRules Initialization of built-in sensitive information rules
 func InitBuiltInSensitiveRules(db *gorm.DB) error {
-	// 检查是否已经初始化过
+	// Check if it's been initialized
 	var count int64
 	db.Model(&models.SensitiveRule{}).Where("is_built_in = ?", true).Count(&count)
 	if count > 0 {
@@ -19,16 +19,16 @@ func InitBuiltInSensitiveRules(db *gorm.DB) error {
 
 	log.Println("Initializing built-in sensitive rules...")
 
-	// 预设规则列表
+	// Preset Rule List
 	builtInRules := []models.SensitiveRule{
-		// ===== API 密钥类 =====
+		// ===== API Key Class =====
 		{
 			Name:        "AWS Access Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `(AKIA[0-9A-Z]{16})`,
-			Description: "检测 AWS Access Key ID",
+			Description: "Test AWS Access Key ID",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "AKIAIOSFODNN7EXAMPLE",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
@@ -37,31 +37,31 @@ func InitBuiltInSensitiveRules(db *gorm.DB) error {
 			Name:        "AWS Secret Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `aws.{0,20}?['\"][0-9a-zA-Z/+]{40}['\"]`,
-			Description: "检测 AWS Secret Access Key",
+			Description: "Test AWS Secret Access Key",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "aws_secret_key: \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "阿里云 AccessKey",
+			Name:        "Ariun. AccessKey",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `(LTAI[A-Za-z0-9]{12,20})`,
-			Description: "检测阿里云 AccessKey ID",
+			Description: "Test Aliun. AccessKey ID",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "LTAI4FnKxBpXXXXXXXXX",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "腾讯云 SecretId",
+			Name:        "Xing Xingyun SecretId",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `(AKI[A-Za-z0-9]{32,48})`,
-			Description: "检测腾讯云 SecretId",
+			Description: "Test Tung Tsing Cloud SecretId",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "AKIDxxxxxxxxxxxxxxxxxxxxxx",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
@@ -70,9 +70,9 @@ func InitBuiltInSensitiveRules(db *gorm.DB) error {
 			Name:        "GitHub Token",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `gh[pousr]_[A-Za-z0-9]{36}`,
-			Description: "检测 GitHub Personal Access Token",
+			Description: "Test GitHub Personal Access Token",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
@@ -81,155 +81,155 @@ func InitBuiltInSensitiveRules(db *gorm.DB) error {
 			Name:        "Google API Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `AIza[0-9A-Za-z\-_]{35}`,
-			Description: "检测 Google API Key",
+			Description: "Test Google API Key",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 
-		// ===== 证书和密钥类 =====
+		// ===== Certificates and Key Classes =====
 		{
-			Name:        "RSA 私钥",
+			Name:        "RSA Private Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `-----BEGIN RSA PRIVATE KEY-----`,
-			Description: "检测 RSA 私钥文件",
+			Description: "Test RSA Private key files",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "证书",
+			Category:    "Certificate",
 			Example:     "-----BEGIN RSA PRIVATE KEY-----",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "SSH 私钥",
+			Name:        "SSH Private Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `-----BEGIN (?:OPENSSH|EC|DSA) PRIVATE KEY-----`,
-			Description: "检测 SSH 私钥文件",
+			Description: "Test SSH Private key files",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "证书",
+			Category:    "Certificate",
 			Example:     "-----BEGIN OPENSSH PRIVATE KEY-----",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "PGP 私钥",
+			Name:        "PGP Private Key",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `-----BEGIN PGP PRIVATE KEY BLOCK-----`,
-			Description: "检测 PGP 私钥",
+			Description: "Test PGP Private Key",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "证书",
+			Category:    "Certificate",
 			Example:     "-----BEGIN PGP PRIVATE KEY BLOCK-----",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 
-		// ===== 数据库连接类 =====
+		// ===== Database connection class =====
 		{
-			Name:        "数据库连接字符串",
+			Name:        "Database connection string",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `(mysql|postgres|mongodb|redis)://[^\s'"]*:[^\s'"]*@[^\s'"]*`,
-			Description: "检测数据库连接字符串（包含用户名密码）",
+			Description: "Test database connection string (Include password for username)",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "数据库",
+			Category:    "Database",
 			Example:     "mysql://user:pass@localhost:3306/db",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "JDBC 连接字符串",
+			Name:        "JDBC Connect String",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `jdbc:[a-z]+://[^\s'"]+password=[^\s'";]+`,
-			Description: "检测 JDBC 数据库连接字符串",
+			Description: "Test JDBC Database connection string",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "数据库",
+			Category:    "Database",
 			Example:     "jdbc:mysql://host/db?user=root&password=secret",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 
-		// ===== JWT Token 类 =====
+		// ===== JWT Token Classes =====
 		{
 			Name:        "JWT Token",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}`,
-			Description: "检测 JWT Token",
+			Description: "Test JWT Token",
 			Severity:    models.SensitiveRuleSeverityMedium,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 
-		// ===== 个人信息类 =====
+		// ===== Personal information class =====
 		{
-			Name:        "身份证号",
+			Name:        "ID number.",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]`,
-			Description: "检测中国大陆身份证号码",
+			Description: "Check China mainland ID number",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "个人信息",
+			Category:    "Personal",
 			Example:     "110101199001011234",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "手机号码",
+			Name:        "Cell phone number.",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `1[3-9]\d{9}`,
-			Description: "检测中国大陆手机号码",
+			Description: "Check China mainland cell phone numbers.",
 			Severity:    models.SensitiveRuleSeverityMedium,
-			Category:    "个人信息",
+			Category:    "Personal",
 			Example:     "13812345678",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 		{
-			Name:        "邮箱地址",
+			Name:        "Chile",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`,
-			Description: "检测邮箱地址",
+			Description: "Check Mailbox Addresses",
 			Severity:    models.SensitiveRuleSeverityLow,
-			Category:    "个人信息",
+			Category:    "Personal",
 			Example:     "user@example.com",
-			IsEnabled:   false, // 默认禁用，避免误报
+			IsEnabled:   false, // Default Disable, Avoid misreporting
 			IsBuiltIn:   true,
 		},
 
-		// ===== 密码类 =====
+		// ===== Password class =====
 		{
-			Name:        "明文密码（关键词）",
+			Name:        "Password (Keywords)",
 			Type:        models.SensitiveRuleTypeKeyword,
 			Pattern:     "password,passwd,pwd,secret,token,api_key,apikey,access_token,auth_token",
-			Description: "检测可能包含密码的关键词",
+			Description: "Test key with possible password",
 			Severity:    models.SensitiveRuleSeverityMedium,
-			Category:    "密码",
+			Category:    "Password",
 			Example:     "password: 123456",
-			IsEnabled:   false, // 默认禁用，避免误报
+			IsEnabled:   false, // Default Disable, Avoid misreporting
 			IsBuiltIn:   true,
 		},
 
-		// ===== 配置文件类 =====
+		// ===== Profile Class =====
 		{
-			Name:        "Docker 配置泄露",
+			Name:        "Docker Configure leaks",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `"auths":\s*{[^}]*"auth":\s*"[A-Za-z0-9+/=]+"`,
-			Description: "检测 Docker 配置文件中的认证信息",
+			Description: "Test Docker Can not open message",
 			Severity:    models.SensitiveRuleSeverityHigh,
-			Category:    "配置文件",
+			Category:    "Profile",
 			Example:     `"auths": {"registry.example.com": {"auth": "dXNlcjpwYXNzd29yZA=="}}`,
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 
-		// ===== 云服务类 =====
+		// ===== Cloud services =====
 		{
 			Name:        "Slack Webhook",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `https://hooks\.slack\.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}`,
-			Description: "检测 Slack Webhook URL",
+			Description: "Test Slack Webhook URL",
 			Severity:    models.SensitiveRuleSeverityMedium,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "hooks.slack.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
@@ -238,16 +238,16 @@ func InitBuiltInSensitiveRules(db *gorm.DB) error {
 			Name:        "Telegram Bot Token",
 			Type:        models.SensitiveRuleTypeRegex,
 			Pattern:     `\d{8,10}:[A-Za-z0-9_-]{35}`,
-			Description: "检测 Telegram Bot Token",
+			Description: "Test Telegram Bot Token",
 			Severity:    models.SensitiveRuleSeverityMedium,
-			Category:    "API密钥",
+			Category:    "APIKey",
 			Example:     "123456789:ABCdefGHIjklMNOpqrsTUVwxyz-1234567890",
 			IsEnabled:   true,
 			IsBuiltIn:   true,
 		},
 	}
 
-	// 批量创建规则
+	// Batch creation rules
 	for i := range builtInRules {
 		if err := db.Create(&builtInRules[i]).Error; err != nil {
 			log.Printf("Failed to create built-in rule '%s': %v", builtInRules[i].Name, err)

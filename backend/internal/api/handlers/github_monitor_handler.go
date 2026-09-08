@@ -15,15 +15,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// GitHubMonitorHandler GitHub监控处理器
+// GitHubMonitorHandler GitHubMonitor processor
 type GitHubMonitorHandler struct{}
 
-// NewGitHubMonitorHandler 创建GitHub监控处理器
+// NewGitHubMonitorHandler CreateGitHubMonitor processor
 func NewGitHubMonitorHandler() *GitHubMonitorHandler {
 	return &GitHubMonitorHandler{}
 }
 
-// CreateGitHubMonitorRequest 创建GitHub监控请求
+// CreateGitHubMonitorRequest CreateGitHubSurveillance request
 type CreateGitHubMonitorRequest struct {
 	Name       string `json:"name" binding:"required"`
 	Keywords   string `json:"keywords" binding:"required"`
@@ -32,15 +32,15 @@ type CreateGitHubMonitorRequest struct {
 	User       string `json:"user"`
 	Repository string `json:"repository"`
 	Extension  string `json:"extension"`
-	Interval   int    `json:"interval" binding:"required,min=600"` // 最小10分钟
+	Interval   int    `json:"interval" binding:"required,min=600"` // Minimum10min
 }
 
-// ListGitHubMonitors 列出所有GitHub监控
+// ListGitHubMonitors List allGitHubSurveillance
 func (h *GitHubMonitorHandler) ListGitHubMonitors(c *gin.Context) {
 	searchType := c.Query("search_type")
 	isEnabled := c.Query("is_enabled")
 
-	// 分页参数
+	// Page Break Parameters
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "20")
 
@@ -93,7 +93,7 @@ func (h *GitHubMonitorHandler) ListGitHubMonitors(c *gin.Context) {
 	})
 }
 
-// GetGitHubMonitor 获取单个GitHub监控
+// GetGitHubMonitor Fetching individualGitHubSurveillance
 func (h *GitHubMonitorHandler) GetGitHubMonitor(c *gin.Context) {
 	id := c.Param("id")
 
@@ -110,7 +110,7 @@ func (h *GitHubMonitorHandler) GetGitHubMonitor(c *gin.Context) {
 	c.JSON(http.StatusOK, monitor)
 }
 
-// CreateGitHubMonitor 创建GitHub监控
+// CreateGitHubMonitor CreateGitHubSurveillance
 func (h *GitHubMonitorHandler) CreateGitHubMonitor(c *gin.Context) {
 	var req CreateGitHubMonitorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -118,7 +118,7 @@ func (h *GitHubMonitorHandler) CreateGitHubMonitor(c *gin.Context) {
 		return
 	}
 
-	// 验证搜索类型
+	// Authenticate Search Type
 	validSearchTypes := map[string]bool{
 		"code": true, "repository": true, "issue": true,
 	}
@@ -154,7 +154,7 @@ func (h *GitHubMonitorHandler) CreateGitHubMonitor(c *gin.Context) {
 	})
 }
 
-// UpdateGitHubMonitor 更新GitHub监控
+// UpdateGitHubMonitor UpdateGitHubSurveillance
 func (h *GitHubMonitorHandler) UpdateGitHubMonitor(c *gin.Context) {
 	id := c.Param("id")
 
@@ -174,7 +174,7 @@ func (h *GitHubMonitorHandler) UpdateGitHubMonitor(c *gin.Context) {
 		return
 	}
 
-	// 验证搜索类型
+	// Authenticate Search Type
 	validSearchTypes := map[string]bool{
 		"code": true, "repository": true, "issue": true,
 	}
@@ -183,7 +183,7 @@ func (h *GitHubMonitorHandler) UpdateGitHubMonitor(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	monitor.Name = req.Name
 	monitor.Keywords = req.Keywords
 	monitor.SearchType = req.SearchType
@@ -204,7 +204,7 @@ func (h *GitHubMonitorHandler) UpdateGitHubMonitor(c *gin.Context) {
 	})
 }
 
-// DeleteGitHubMonitor 删除GitHub监控
+// DeleteGitHubMonitor DeleteGitHubSurveillance
 func (h *GitHubMonitorHandler) DeleteGitHubMonitor(c *gin.Context) {
 	id := c.Param("id")
 
@@ -216,7 +216,7 @@ func (h *GitHubMonitorHandler) DeleteGitHubMonitor(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "GitHub monitor deleted successfully"})
 }
 
-// ToggleGitHubMonitorStatus 切换GitHub监控状态
+// ToggleGitHubMonitorStatus ToggleGitHubMonitor Status
 func (h *GitHubMonitorHandler) ToggleGitHubMonitorStatus(c *gin.Context) {
 	id := c.Param("id")
 
@@ -242,7 +242,7 @@ func (h *GitHubMonitorHandler) ToggleGitHubMonitorStatus(c *gin.Context) {
 	})
 }
 
-// ListGitHubMonitorResults 列出监控结果
+// ListGitHubMonitorResults List the results of the surveillance
 func (h *GitHubMonitorHandler) ListGitHubMonitorResults(c *gin.Context) {
 	monitorID := c.Param("id")
 	isRead := c.Query("is_read")
@@ -265,7 +265,7 @@ func (h *GitHubMonitorHandler) ListGitHubMonitorResults(c *gin.Context) {
 	})
 }
 
-// MarkResultAsRead 标记结果为已读
+// MarkResultAsRead Mark result as read
 func (h *GitHubMonitorHandler) MarkResultAsRead(c *gin.Context) {
 	resultID := c.Param("result_id")
 
@@ -279,7 +279,7 @@ func (h *GitHubMonitorHandler) MarkResultAsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Result marked as read"})
 }
 
-// GetGitHubMonitorStats 获取GitHub监控统计
+// GetGitHubMonitorStats FetchGitHubMonitoring statistics
 func (h *GitHubMonitorHandler) GetGitHubMonitorStats(c *gin.Context) {
 	var totalMonitors int64
 	var activeMonitors int64
@@ -306,7 +306,7 @@ func (h *GitHubMonitorHandler) GetGitHubMonitorStats(c *gin.Context) {
 	})
 }
 
-// RunGitHubMonitor 手动运行GitHub监控
+// RunGitHubMonitor Run ManuallyGitHubSurveillance
 func (h *GitHubMonitorHandler) RunGitHubMonitor(c *gin.Context) {
 	id := c.Param("id")
 

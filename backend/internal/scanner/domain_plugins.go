@@ -78,13 +78,13 @@ func (p *ZoomEyePlugin) Query(domain string) ([]string, error) {
 	return extractDomainsFromCustomSpaceAPIResponse(data), nil
 }
 
-// DomainPlugin 域名查询插件接口
+// DomainPlugin Domain name query plugin interface
 type DomainPlugin interface {
 	Name() string
 	Query(domain string) ([]string, error)
 }
 
-// createHTTPClient 创建HTTP客户端
+// createHTTPClient CreateHTTPClient
 func createHTTPClient(timeout time.Duration, skipTLS bool) *http.Client {
 	transport := proxypool.ConfigureTransport(&http.Transport{})
 	if skipTLS {
@@ -97,14 +97,14 @@ func createHTTPClient(timeout time.Duration, skipTLS bool) *http.Client {
 	}
 }
 
-// CrtshPlugin Certificate Transparency日志查询
+// CrtshPlugin Certificate TransparencyLog Query
 type CrtshPlugin struct {
 	client *http.Client
 }
 
 func NewCrtshPlugin() *CrtshPlugin {
 	return &CrtshPlugin{
-		client: createHTTPClient(60*time.Second, false), // 增加超时到60秒
+		client: createHTTPClient(60*time.Second, false), // Add timeout to60sec
 	}
 }
 
@@ -115,7 +115,7 @@ func (p *CrtshPlugin) Name() string {
 func (p *CrtshPlugin) Query(domain string) ([]string, error) {
 	url := fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", domain)
 
-	// 重试机制
+	// Retesting mechanism
 	var resp *http.Response
 	var err error
 	for i := 0; i < 3; i++ {
@@ -150,7 +150,7 @@ func (p *CrtshPlugin) Query(domain string) ([]string, error) {
 
 	domains := make(map[string]bool)
 	for _, r := range results {
-		// name_value可能包含多个域名，用\n分隔
+		// name_valueCould contain multiple domain names, Use\nSeparating
 		names := strings.Split(r.NameValue, "\n")
 		for _, name := range names {
 			name = strings.ToLower(strings.TrimSpace(name))
@@ -251,7 +251,7 @@ func (p *AlienVaultPlugin) Query(domain string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 
-	// 处理速率限制
+	// Processing rate limit
 	if resp.StatusCode == 429 {
 		return nil, fmt.Errorf("rate limited (429), please wait and retry later")
 	}
@@ -340,14 +340,14 @@ func (p *HackerTargetPlugin) Query(domain string) ([]string, error) {
 	return domains, nil
 }
 
-// ThreatCrowdPlugin ThreatCrowd API (跳过TLS验证因为证书问题)
+// ThreatCrowdPlugin ThreatCrowd API (SkipTLSAuthentication due to certificate problems)
 type ThreatCrowdPlugin struct {
 	client *http.Client
 }
 
 func NewThreatCrowdPlugin() *ThreatCrowdPlugin {
 	return &ThreatCrowdPlugin{
-		client: createHTTPClient(30*time.Second, true), // 跳过TLS验证
+		client: createHTTPClient(30*time.Second, true), // SkipTLSAuthentication
 	}
 }
 
@@ -384,7 +384,7 @@ func (p *ThreatCrowdPlugin) Query(domain string) ([]string, error) {
 	return result.Subdomains, nil
 }
 
-// VirusTotalPlugin VirusTotal API (需要API Key)
+// VirusTotalPlugin VirusTotal API (Yes.API Key)
 type VirusTotalPlugin struct {
 	client *http.Client
 	apiKey string
@@ -434,7 +434,7 @@ func (p *VirusTotalPlugin) Query(domain string) ([]string, error) {
 	return result.Subdomains, nil
 }
 
-// FOFAPlugin FOFA搜索引擎
+// FOFAPlugin FOFASearch engine
 type FOFAPlugin struct {
 	client *http.Client
 	email  string
@@ -458,13 +458,13 @@ func (p *FOFAPlugin) Query(domain string) ([]string, error) {
 		return nil, fmt.Errorf("FOFA API key required")
 	}
 
-	// FOFA查询语法：查询子域名
+	// FOFAQuery Syntax: Query subdomain names
 	query := fmt.Sprintf("domain=\"%s\"", domain)
 
-	// Base64编码查询语句
+	// Base64Encoding Query Statement
 	qbase64 := base64.StdEncoding.EncodeToString([]byte(query))
 
-	// 构建API URL
+	// BuildAPI URL
 	apiURL := fmt.Sprintf("https://fofa.info/api/v1/search/all?email=%s&key=%s&qbase64=%s&fields=host&size=10000",
 		p.email, p.key, qbase64)
 
@@ -479,12 +479,12 @@ func (p *FOFAPlugin) Query(domain string) ([]string, error) {
 		return nil, err
 	}
 
-	// FOFA API 响应格式
+	// FOFA API Response Format
 	var result struct {
 		Error   bool     `json:"error"`
 		ErrMsg  string   `json:"errmsg"`
 		Size    int      `json:"size"`
-		Results []string `json:"results"` // FOFA返回的是字符串数组，不是二维数组
+		Results []string `json:"results"` // FOFAReturns string arrays, Not a two-dimensional array.
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -495,11 +495,11 @@ func (p *FOFAPlugin) Query(domain string) ([]string, error) {
 		return nil, fmt.Errorf("FOFA API error: %s", result.ErrMsg)
 	}
 
-	// 提取域名并去重
+	// Draw domain names and weigh them.
 	domainSet := make(map[string]bool)
 	for _, host := range result.Results {
 		host = strings.TrimSpace(host)
-		// 移除协议和端口，只保留域名
+		// Remove protocol and port, Only keep domain names
 		host = strings.TrimPrefix(host, "http://")
 		host = strings.TrimPrefix(host, "https://")
 		if idx := strings.Index(host, ":"); idx != -1 {
@@ -521,7 +521,7 @@ func (p *FOFAPlugin) Query(domain string) ([]string, error) {
 	return domains, nil
 }
 
-// HunterPlugin 鹰图平台（Hunter）
+// HunterPlugin Eagle Map Platform (Hunter)
 type HunterPlugin struct {
 	client *http.Client
 	apiKey string
@@ -543,12 +543,12 @@ func (p *HunterPlugin) Query(domain string) ([]string, error) {
 		return nil, fmt.Errorf("Hunter API key required")
 	}
 
-	// Hunter API 查询语法
-	// 使用 domain 字段搜索子域名
+	// Hunter API Query Syntax
+	// Use domain Field Search Subdomain Name
 	query := fmt.Sprintf("domain=\"%s\"", domain)
 	encodedQuery := url.QueryEscape(query)
 
-	// Hunter API 端点
+	// Hunter API End
 	apiURL := fmt.Sprintf("https://hunter.qianxin.com/openApi/search?api-key=%s&search=%s&page=1&page_size=100&is_web=1",
 		p.apiKey, encodedQuery)
 
@@ -557,7 +557,7 @@ func (p *HunterPlugin) Query(domain string) ([]string, error) {
 		return nil, err
 	}
 
-	// 设置 User-Agent
+	// Settings User-Agent
 	req.Header.Set("User-Agent", "ReconMaster/1.0")
 
 	resp, err := p.client.Do(req)
@@ -596,7 +596,7 @@ func (p *HunterPlugin) Query(domain string) ([]string, error) {
 		return nil, fmt.Errorf("Hunter API error: %s", result.Message)
 	}
 
-	// 提取域名并去重
+	// Draw domain names and weigh them.
 	domainSet := make(map[string]bool)
 	for _, item := range result.Data.Arr {
 		if item.Domain != "" {
@@ -731,7 +731,7 @@ func walkCustomSpaceAPIJSON(value any, add func(string)) {
 	}
 }
 
-// GetAvailablePlugins 获取可用的插件列表
+// GetAvailablePlugins Get a list of available plugins
 func GetAvailablePlugins(apiKeys map[string]string) []DomainPlugin {
 	plugins := []DomainPlugin{
 		NewCrtshPlugin(),
@@ -741,7 +741,7 @@ func GetAvailablePlugins(apiKeys map[string]string) []DomainPlugin {
 		NewThreatCrowdPlugin(),
 	}
 
-	// 添加需要API Key的插件
+	// Add NeedsAPI KeyPlugins
 	if apiProviderEnabled(apiKeys, "virustotal") {
 		if key := firstNonEmpty(apiKeys, "virustotal", "virustotal_api_key"); key != "" {
 			plugins = append(plugins, NewVirusTotalPlugin(key))

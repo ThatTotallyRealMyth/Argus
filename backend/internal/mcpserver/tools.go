@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Deps MCP 工具依赖的内部服务
+// Deps MCP Internal services on which the tools depend
 type Deps struct {
 	TaskService       *services.TaskService
 	EnterpriseService *services.EnterpriseService
@@ -32,92 +32,92 @@ type ScheduledTaskManager interface {
 	Delete(string) error
 }
 
-// --- 工具输入/输出类型 ---
+// --- Tool Input/Output Type ---
 
 type CreateTaskInput struct {
-	Target            string             `json:"target" jsonschema:"required,扫描目标，支持域名/IP/CIDR/URL，多个用逗号分隔"`
-	Name              string             `json:"name" jsonschema:"任务名称"`
-	PolicyID          string             `json:"policy_id" jsonschema:"可选扫描策略 ID"`
-	ScopeID           string             `json:"scope_id" jsonschema:"可选授权扫描范围 ID；空值使用默认范围"`
-	Options           models.TaskOptions `json:"options" jsonschema:"完整扫描选项；端口扫描始终开启"`
-	EnablePortScan    bool               `json:"enable_port_scan" jsonschema:"兼容旧客户端；端口扫描始终开启"`
-	PortScanType      string             `json:"port_scan_type" jsonschema:"端口扫描类型: test, top100, top1000, all"`
-	EnableDomainBrute bool               `json:"enable_domain_brute" jsonschema:"是否启用域名爆破"`
-	EnablePassiveScan bool               `json:"enable_passive_scan" jsonschema:"是否启用被动扫描(第三方API)"`
-	EnablePoCDetect   bool               `json:"enable_poc_detect" jsonschema:"是否启用PoC漏洞检测"`
-	EnableScreenshot  bool               `json:"enable_screenshot" jsonschema:"是否对站点截图"`
-	Confirm           bool               `json:"confirm" jsonschema:"required,发起外部网络扫描，必须明确设为 true"`
+	Target            string             `json:"target" jsonschema:"required,Scan target, Support domain names/IP/CIDR/URL, Multiple Comma Separated"`
+	Name              string             `json:"name" jsonschema:"Task Name"`
+	PolicyID          string             `json:"policy_id" jsonschema:"Optional Scan Policy ID"`
+	ScopeID           string             `json:"scope_id" jsonschema:"Optional authorized scan range ID; Empty values use default range"`
+	Options           models.TaskOptions `json:"options" jsonschema:"Full Scan Options; Port scans are open at all times."`
+	EnablePortScan    bool               `json:"enable_port_scan" jsonschema:"Compatible with Old Client; Port scans are open at all times."`
+	PortScanType      string             `json:"port_scan_type" jsonschema:"Port Scan Type: test, top100, top1000, all"`
+	EnableDomainBrute bool               `json:"enable_domain_brute" jsonschema:"Whether subdomain brute force is enabled"`
+	EnablePassiveScan bool               `json:"enable_passive_scan" jsonschema:"Whether passive scans are enabled(Third partiesAPI)"`
+	EnablePoCDetect   bool               `json:"enable_poc_detect" jsonschema:"Whether to enable PoC-based finding validation"`
+	EnableScreenshot  bool               `json:"enable_screenshot" jsonschema:"Whether to screenshot of site"`
+	Confirm           bool               `json:"confirm" jsonschema:"required,Launch external network scan, It must be clearly defined. true"`
 }
 
 type TaskIDInput struct {
-	TaskID string `json:"task_id" jsonschema:"required,任务 ID"`
+	TaskID string `json:"task_id" jsonschema:"required,Tasks ID"`
 }
 
 type StartTaskInput struct {
-	TaskID  string `json:"task_id" jsonschema:"required,任务 ID"`
-	Confirm bool   `json:"confirm" jsonschema:"required,发起外部网络扫描，必须明确设为 true"`
+	TaskID  string `json:"task_id" jsonschema:"required,Tasks ID"`
+	Confirm bool   `json:"confirm" jsonschema:"required,Launch external network scan, It must be clearly defined. true"`
 }
 
 type ValidateScanScopeInput struct {
-	ScopeID    string   `json:"scope_id,omitempty" jsonschema:"授权扫描范围 ID；空值使用默认范围"`
-	Name       string   `json:"name,omitempty" jsonschema:"临时规则预检名称"`
-	AllowRules []string `json:"allow_rules,omitempty" jsonschema:"临时允许规则；不能与 scope_id 同时使用"`
-	DenyRules  []string `json:"deny_rules,omitempty" jsonschema:"临时排除规则；不能与 scope_id 同时使用"`
-	Target     string   `json:"target" jsonschema:"required,待预检的域名、IP、CIDR或URL，多个用逗号分隔"`
+	ScopeID    string   `json:"scope_id,omitempty" jsonschema:"Authorized scan range ID; Empty values use default range"`
+	Name       string   `json:"name,omitempty" jsonschema:"Provisional rule pre-screen name"`
+	AllowRules []string `json:"allow_rules,omitempty" jsonschema:"Provisional rules on permission; Can't be with scope_id Use simultaneously"`
+	DenyRules  []string `json:"deny_rules,omitempty" jsonschema:"Provisional exclusion rules; Can't be with scope_id Use simultaneously"`
+	Target     string   `json:"target" jsonschema:"required,Domain name, IP, CIDR, or URL to validate; separate multiple targets with commas"`
 }
 
 type DeleteTaskInput struct {
-	TaskID  string `json:"task_id" jsonschema:"required,任务 ID"`
-	Confirm bool   `json:"confirm" jsonschema:"required,必须明确设为 true"`
+	TaskID  string `json:"task_id" jsonschema:"required,Tasks ID"`
+	Confirm bool   `json:"confirm" jsonschema:"required,It must be clearly defined. true"`
 }
 
 type RetryTaskInput struct {
-	TaskID  string `json:"task_id" jsonschema:"required,已完成、失败或已取消的任务 ID"`
-	Confirm bool   `json:"confirm" jsonschema:"required,重新发起网络扫描，必须明确设为 true"`
+	TaskID  string `json:"task_id" jsonschema:"required,Completed, Failed or cancelled tasks ID"`
+	Confirm bool   `json:"confirm" jsonschema:"required,Relaunch Network Scan, It must be clearly defined. true"`
 }
 
 type ListAssetsInput struct {
-	AssetType   string `json:"asset_type" jsonschema:"required,资产类型: domains, ips, ports, sites, urls, vulnerabilities"`
-	TaskID      string `json:"task_id" jsonschema:"按任务 ID 过滤"`
-	Limit       int    `json:"limit" jsonschema:"返回数量上限，默认50"`
-	Page        int    `json:"page" jsonschema:"页码，默认1"`
-	Search      string `json:"search" jsonschema:"按资产关键字段模糊搜索"`
-	StatusCode  int    `json:"status_code" jsonschema:"URL响应状态码过滤"`
-	ContentType string `json:"content_type" jsonschema:"URL响应Content-Type过滤"`
-	MinLength   int64  `json:"min_length" jsonschema:"URL最小响应长度"`
-	MaxLength   int64  `json:"max_length" jsonschema:"URL最大响应长度，0表示不限制"`
-	SortBy      string `json:"sort_by" jsonschema:"URL排序字段: created_at,status_code,content_length,response_time_ms,url"`
-	SortOrder   string `json:"sort_order" jsonschema:"排序方向: asc或desc"`
+	AssetType   string `json:"asset_type" jsonschema:"required,Asset type: domains, ips, ports, sites, urls, vulnerabilities"`
+	TaskID      string `json:"task_id" jsonschema:"By Task ID Filter"`
+	Limit       int    `json:"limit" jsonschema:"Returns the maximum quantity, Default50"`
+	Page        int    `json:"page" jsonschema:"Page Number, Default1"`
+	Search      string `json:"search" jsonschema:"Search with asset key fields"`
+	StatusCode  int    `json:"status_code" jsonschema:"URLResponse State Code Filter"`
+	ContentType string `json:"content_type" jsonschema:"URLResponseContent-TypeFilter"`
+	MinLength   int64  `json:"min_length" jsonschema:"URLMinimum Response Length"`
+	MaxLength   int64  `json:"max_length" jsonschema:"URLMaximum Response Length, 0Expressing unlimited"`
+	SortBy      string `json:"sort_by" jsonschema:"URLSort Fields: created_at,status_code,content_length,response_time_ms,url"`
+	SortOrder   string `json:"sort_order" jsonschema:"Sort Direction: ascordesc"`
 }
 
 type ListTasksInput struct {
-	Page     int    `json:"page" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size" jsonschema:"每页数量，默认20，最大100"`
-	Status   string `json:"status" jsonschema:"状态过滤: pending, queued, running, completed, failed, cancelled"`
+	Page     int    `json:"page" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size" jsonschema:"Number of pages per page, Default20, Max100"`
+	Status   string `json:"status" jsonschema:"Status Filter: pending, queued, running, completed, failed, cancelled"`
 }
 
 type ExportInput struct {
-	TaskID string `json:"task_id" jsonschema:"required,任务 ID"`
-	Format string `json:"format" jsonschema:"导出格式: json, csv, html, all"`
+	TaskID string `json:"task_id" jsonschema:"required,Tasks ID"`
+	Format string `json:"format" jsonschema:"Export Format: json, csv, html, all"`
 }
 
-// RegisterTools 注册 MCP 工具到 server，使用内部服务
+// RegisterTools Registration MCP Tools to server, Use of internal services
 func RegisterTools(server *mcp.Server, deps *Deps) {
-	// 1. 服务器状态
+	// 1. Server status
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "server_status",
-		Description: "检查望月塔资产侦察平台服务器状态",
+		Description: "Check the status of the platform server for the observation tower asset reconnaissance",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		var count int64
 		if err := database.DB.Model(&models.Task{}).Count(&count).Error; err != nil {
 			return errResult(fmt.Errorf("load server status failed: %w", err)), nil, nil
 		}
-		return textResult(fmt.Sprintf("服务器在线，共 %d 个任务", count)), nil, nil
+		return textResult(fmt.Sprintf("Server online, Total %d One task", count)), nil, nil
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_scan_scopes",
-		Description: "列出授权扫描范围；排除规则优先，默认范围会自动用于未指定 scope_id 的任务",
+		Description: "List authorized scan range; Exclusion rule first, Default range will automatically be used without a specification scope_id Tasks",
 		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		var scopes []models.ScanScope
@@ -129,7 +129,7 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "validate_scan_scope",
-		Description: "在创建扫描前预检目标是否位于指定或默认授权范围内；不会发起网络请求",
+		Description: "Precheck if the target is within the specified or default authorization before creating the scan; No network requests launched",
 		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ValidateScanScopeInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(input.ScopeID) != "" && (len(input.AllowRules) > 0 || len(input.DenyRules) > 0) {
@@ -152,7 +152,7 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "delete_task", Description: "删除任务及其全部关联资产；必须 confirm=true",
+		Name: "delete_task", Description: "Remove Tasks and All Associated Assets; Yes. confirm=true",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input DeleteTaskInput) (*mcp.CallToolResult, any, error) {
 		if !input.Confirm {
@@ -161,15 +161,15 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		if err := deps.TaskService.DeleteTask(input.TaskID); err != nil {
 			return errResult(err), nil, nil
 		}
-		return textResult(fmt.Sprintf("任务 %s 及关联数据已删除", input.TaskID)), nil, nil
+		return textResult(fmt.Sprintf("Tasks %s & Associated Data Deleted", input.TaskID)), nil, nil
 	})
 
-	// 2. 创建扫描任务
+	// 2. Create Scan Task
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "create_scan_task",
-		Description: "创建一个新的资产侦察扫描任务并立即启动，必须 confirm=true。" +
-			"支持子域名爆破、端口扫描、服务识别、PoC漏洞检测、站点截图等。" +
-			"目标可以是域名、IP、CIDR网段或URL，多个用逗号分隔。",
+		Description: "Create a new asset reconnaissance scan and start immediately., Yes. confirm=true." +
+			"Supports subdomain discovery, port scanning, service detection, PoC-based validation, and site screenshots. " +
+			"The target could be a domain name., IP, CIDRNetwork segment orURL, Multiple Comma Separated.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input CreateTaskInput) (*mcp.CallToolResult, any, error) {
 		if !input.Confirm {
@@ -188,9 +188,9 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		task, err := deps.TaskService.CreateQueuedTaskInScopeWithOrigin(orDefault(input.Name, "MCP-"+input.Target), input.Target, input.PolicyID, input.ScopeID, options, models.TaskOrigin{Source: models.TaskTriggerMCP})
 		if err != nil {
 			if services.IsTaskInputError(err) {
-				return errResult(fmt.Errorf("创建任务失败: %w", err)), nil, nil
+				return errResult(fmt.Errorf("invalid task input: %w", err)), nil, nil
 			}
-			return errResult(fmt.Errorf("创建任务失败")), nil, nil
+			return errResult(fmt.Errorf("could not create task: %w", err)), nil, nil
 		}
 
 		result := map[string]any{
@@ -198,16 +198,16 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 			"name":    task.Name,
 			"target":  task.Target,
 			"status":  "queued",
-			"message": fmt.Sprintf("任务已创建并进入队列: %s", task.ID),
+			"message": fmt.Sprintf("Task created and in Queue: %s", task.ID),
 		}
 		jsonBytes, _ := json.MarshalIndent(result, "", "  ")
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 3. 列出任务
+	// 3. List Tasks
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_tasks",
-		Description: "列出最近的扫描任务及其状态",
+		Description: "List the most recent scans and their status",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ListTasksInput) (*mcp.CallToolResult, any, error) {
 		page, pageSize := normalizePage(input.Page, input.PageSize)
 		query := database.DB.Model(&models.Task{})
@@ -241,14 +241,14 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 4. 获取任务详情
+	// 4. Get Task Details
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_task",
-		Description: "获取指定任务的详细信息",
+		Description: "Get details of the given task",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input TaskIDInput) (*mcp.CallToolResult, any, error) {
 		var task models.Task
 		if err := database.DB.First(&task, "id = ?", input.TaskID).Error; err != nil {
-			return errResult(fmt.Errorf("任务不存在: %s", input.TaskID)), nil, nil
+			return errResult(fmt.Errorf("Mission does not exist: %s", input.TaskID)), nil, nil
 		}
 
 		result := map[string]any{
@@ -269,10 +269,10 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 5b. 启动待执行任务
+	// 5b. Start of pending tasks
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "start_task",
-		Description: "将一个 pending 状态的扫描任务加入执行队列，必须 confirm=true",
+		Description: "♪ Will one ♪ pending Scan Tasks in Status Add to Implementation Queue, Yes. confirm=true",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input StartTaskInput) (*mcp.CallToolResult, any, error) {
 		if !input.Confirm {
@@ -282,14 +282,14 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 			if services.IsTaskInputError(err) {
 				return errResult(err), nil, nil
 			}
-			return errResult(fmt.Errorf("启动任务失败")), nil, nil
+			return errResult(fmt.Errorf("Failed to start task")), nil, nil
 		}
-		return textResult(fmt.Sprintf("任务 %s 已进入执行队列", input.TaskID)), nil, nil
+		return textResult(fmt.Sprintf("Tasks %s Entered the execution queue", input.TaskID)), nil, nil
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "retry_task",
-		Description: "按终态任务的目标与配置创建一个全新的扫描任务并加入队列；保留原任务及其资产，必须 confirm=true",
+		Description: "Create a new scan task and join the queue by the destination and configuration of the terminal task; Retain original tasks and their assets, Yes. confirm=true",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input RetryTaskInput) (*mcp.CallToolResult, any, error) {
 		if !input.Confirm {
@@ -303,26 +303,26 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 			if services.IsTaskInputError(err) {
 				return errResult(err), nil, nil
 			}
-			return errResult(fmt.Errorf("重新运行任务失败")), nil, nil
+			return errResult(fmt.Errorf("Rerun failed")), nil, nil
 		}
 		return jsonResult(map[string]any{"action": "queued", "source_task_id": input.TaskID, "task": task})
 	})
 
-	// 5. 取消任务
+	// 5. Cancel Task
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cancel_task",
-		Description: "取消一个正在运行的扫描任务",
+		Description: "Cancel a running scan task",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input TaskIDInput) (*mcp.CallToolResult, any, error) {
 		if err := deps.TaskService.CancelTask(input.TaskID); err != nil {
 			return errResult(err), nil, nil
 		}
-		return textResult(fmt.Sprintf("任务 %s 已取消", input.TaskID)), nil, nil
+		return textResult(fmt.Sprintf("Tasks %s Cancelled", input.TaskID)), nil, nil
 	})
 
-	// 6. 列出资产
+	// 6. List assets
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_assets",
-		Description: "列出已发现资产。asset_type: domains(域名), ips(IP), ports(端口), sites(站点), urls(URL), vulnerabilities(漏洞)",
+		Description: "List of assets found.asset_type: domains(Domain name), ips(IP), ports(Port), sites(Site), urls(URL), vulnerabilities(Leaks)",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ListAssetsInput) (*mcp.CallToolResult, any, error) {
 		if input.Limit <= 0 {
 			input.Limit = 50
@@ -400,7 +400,7 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 			}
 			result, err = pagedAssetResult(query, &data, input.Page, input.Limit, offset, "vulnerabilities")
 		default:
-			return errResult(fmt.Errorf("不支持的资产类型: %s (可选: domains, ips, ports, sites, urls, vulnerabilities)", input.AssetType)), nil, nil
+			return errResult(fmt.Errorf("Types of assets not supported: %s (Optional: domains, ips, ports, sites, urls, vulnerabilities)", input.AssetType)), nil, nil
 		}
 		if err != nil {
 			return errResult(fmt.Errorf("list %s failed: %w", input.AssetType, err)), nil, nil
@@ -410,10 +410,10 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 7. 资产统计
+	// 7. Asset statistics
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_asset_stats",
-		Description: "获取资产统计概览：各类型数量及漏洞分布",
+		Description: "Overview of acquisition statistics: Number of types and distribution of gaps",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		var domains, ips, ports, sites, urls, vulns int64
 		counts := []struct {
@@ -446,10 +446,10 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 8. 资产关系图
+	// 8. Asset relationship chart
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_asset_graph",
-		Description: "按任务获取资产节点-边关系图：域名→IP→端口→站点链路",
+		Description: "Get asset nodes by task-Border Relationship Map: Domain name→IP→Port→Site Link",
 		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input TaskIDInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(input.TaskID) == "" {
@@ -533,15 +533,15 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 		return textResult(string(jsonBytes)), graph, nil
 	})
 
-	// 9. 导出结果
+	// 9. Export Results
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "export_results",
-		Description: "导出扫描任务结果。format: json(完整JSON), csv(CSV), html(HTML报告), all(全部格式)",
+		Description: "Export Scan Results.format: json(CompleteJSON), csv(CSV), html(HTMLReport), all(All Format)",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ExportInput) (*mcp.CallToolResult, any, error) {
 		var task models.Task
 		if err := database.DB.First(&task, "id = ?", input.TaskID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errResult(fmt.Errorf("任务不存在: %s", input.TaskID)), nil, nil
+				return errResult(fmt.Errorf("Mission does not exist: %s", input.TaskID)), nil, nil
 			}
 			return errResult(fmt.Errorf("load export task failed: %w", err)), nil, nil
 		}
@@ -620,17 +620,17 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 			files["html"] = html
 			result["files"] = files
 		default:
-			return errResult(fmt.Errorf("不支持的导出格式: %s", format)), nil, nil
+			return errResult(fmt.Errorf("Unsupported Export Format: %s", format)), nil, nil
 		}
 
 		jsonBytes, _ := json.MarshalIndent(result, "", "  ")
 		return textResult(string(jsonBytes)), result, nil
 	})
 
-	// 10. 扫描策略列表
+	// 10. Scan Policy List
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_policies",
-		Description: "列出可用的扫描策略配置",
+		Description: "List available scan policy configurations",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		var policies []models.Policy
 		if err := database.DB.Order("created_at DESC").Limit(100).Find(&policies).Error; err != nil {
@@ -645,7 +645,7 @@ func RegisterTools(server *mcp.Server, deps *Deps) {
 	RegisterRuntimeTools(server)
 }
 
-// --- 辅助 ---
+// --- Auxiliary ---
 
 func textResult(text string) *mcp.CallToolResult {
 	return &mcp.CallToolResult{

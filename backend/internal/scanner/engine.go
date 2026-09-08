@@ -13,14 +13,14 @@ import (
 	"gorm.io/gorm"
 )
 
-// ScanContext 扫描上下文
+// ScanContext Scan context
 type ScanContext struct {
 	Task           *models.Task
 	DB             *gorm.DB
 	Logger         *log.Logger
-	Ctx            context.Context    // 用于取消任务
-	ProgressChan   chan *ScanProgress // WebSocket 进度推送通道
-	ValidateTarget func(string) error // 主动网络目标的授权范围校验
+	Ctx            context.Context    // Scan lifecycle context.
+	ProgressChan   chan *ScanProgress // WebSocket Progress Send Channel
+	ValidateTarget func(string) error // Authorisation of active network target verification
 }
 
 // ValidateNetworkTarget applies the task authorization boundary. A nil
@@ -32,8 +32,8 @@ func (ctx *ScanContext) ValidateNetworkTarget(target string) error {
 	return ctx.ValidateTarget(target)
 }
 
-// TargetList 返回任务的原始、去空白目标列表。CIDR 不在这里展开，避免
-// 被动收集和域名阶段把每个 IP 当成独立互联网目标。
+// TargetList Return to original task, Go to the blank target list.CIDR Not here to expand, Avoid
+// Passive collection and domain name phases take each IP As a stand-alone Internet target..
 func (ctx *ScanContext) TargetList() []string {
 	if ctx == nil || ctx.Task == nil {
 		return nil
@@ -55,7 +55,7 @@ func (ctx *ScanContext) TargetList() []string {
 	return targets
 }
 
-// Engine 扫描引擎
+// Engine Scan engines
 type Engine struct {
 	domainScanner      *DomainScanner
 	portScanner        *PortScanner
@@ -68,10 +68,10 @@ type Engine struct {
 	passiveScanner     *PassiveScanner
 	takeoverScanner    *SubdomainTakeoverScanner
 	assetMapper        *AssetMapper
-	smartPoCScanner    *SmartPoCScanner // 智能PoC扫描器(替代Nuclei/XPOC/Afrog)
+	smartPoCScanner    *SmartPoCScanner // SmartPoCScanner(AlternativeNuclei/XPOC/Afrog)
 }
 
-// NewEngine 创建扫描引擎
+// NewEngine Create Scan Engine
 func NewEngine() *Engine {
 	return &Engine{
 		domainScanner:      NewDomainScanner(),
@@ -85,19 +85,19 @@ func NewEngine() *Engine {
 		passiveScanner:     NewPassiveScanner(),
 		takeoverScanner:    NewSubdomainTakeoverScanner(),
 		assetMapper:        NewAssetMapper(),
-		smartPoCScanner:    NewSmartPoCScanner(), // 智能PoC扫描器
+		smartPoCScanner:    NewSmartPoCScanner(), // SmartPoCScanner
 	}
 }
 
-// DiscoverDomains 域名发现
+// DiscoverDomains Domain name found
 func (e *Engine) DiscoverDomains(ctx *ScanContext) error {
 	return e.domainScanner.Scan(ctx)
 }
 
-// ResolveIPs IP解析（已在域名扫描中完成，保留此方法以保持兼容性）
+// ResolveIPs IPParsing (Scanning for domain names completed, Keep this method to keep compatibility)
 func (e *Engine) ResolveIPs(ctx *ScanContext) error {
-	// IP解析已经在域名扫描过程中自动完成
-	// 这里处理直接输入的IP或CIDR格式
+	// IPParsing already done automatically during domain name scan
+	// This is where you process the direct input.IPorCIDRFormat
 
 	if ctx == nil || ctx.Task == nil {
 		return fmt.Errorf("scan context and task are required")
@@ -107,7 +107,7 @@ func (e *Engine) ResolveIPs(ctx *ScanContext) error {
 		scanContext = context.Background()
 	}
 
-	// 获取目标列表；CIDR 由可取消的统一解析器展开。
+	// Get Target List; CIDR By Unable to Undo Parser.
 	targets := ctx.TargetList()
 
 	for _, target := range targets {
@@ -117,7 +117,7 @@ func (e *Engine) ResolveIPs(ctx *ScanContext) error {
 		default:
 		}
 
-		// 只有 IP 前缀的斜杠目标才是 CIDR；URL 中的路径斜杠不能进入 IP 探测。
+		// Only IP The slash target is the prefix. CIDR; URL The path slash cannot be entered IP Detection.
 		if isIPCIDRTarget(target) {
 			ctx.Logger.Printf("Parsing CIDR target: %s", target)
 			ips, err := utils.ParseTargetContext(scanContext, target)
@@ -131,13 +131,13 @@ func (e *Engine) ResolveIPs(ctx *ScanContext) error {
 
 			ctx.Logger.Printf("Generated %d IPs from CIDR %s, checking liveness...", len(ips), target)
 
-			// 🆕 存活性检测：只保存存活的IP
+			// 🆕 Survival tests: Only the ones that survive.IP
 			aliveIPs, err := e.checkCIDRAlive(scanContext, ips)
 			if err != nil {
 				return err
 			}
 
-			// 保存存活的IP
+			// Save the living.IP
 			aliveCount := 0
 			for _, aliveIP := range aliveIPs {
 				ipModel := &models.IP{
@@ -155,7 +155,7 @@ func (e *Engine) ResolveIPs(ctx *ScanContext) error {
 
 			ctx.Logger.Printf("CIDR %s: scanned %d IPs, found %d alive", target, len(ips), aliveCount)
 		} else if net.ParseIP(target) != nil {
-			// 单个IP地址
+			// SingleIPAddress
 			ctx.Logger.Printf("Parsing single IP: %s", target)
 			ipModel := &models.IP{
 				TaskID:    ctx.Task.ID,
@@ -236,48 +236,48 @@ func (e *Engine) checkCIDRAlive(ctx context.Context, ips []string) ([]string, er
 	return result, nil
 }
 
-// ScanCSegment C段扫描
+// ScanCSegment CParagraph Scan
 func (e *Engine) ScanCSegment(ctx *ScanContext) error {
 	return e.cSegmentScanner.Scan(ctx)
 }
 
-// ScanPorts 端口扫描
+// ScanPorts Port Scan
 func (e *Engine) ScanPorts(ctx *ScanContext) error {
 	return e.portScanner.Scan(ctx)
 }
 
-// DetectServices 服务识别
+// DetectServices Service recognition
 func (e *Engine) DetectServices(ctx *ScanContext) error {
 	return e.serviceScanner.Detect(ctx)
 }
 
-// DetectSites 站点识别
+// DetectSites Site recognition
 func (e *Engine) DetectSites(ctx *ScanContext) error {
 	return e.siteScanner.Detect(ctx)
 }
 
-// TakeScreenshots 站点截图
+// TakeScreenshots Site Screenshot
 func (e *Engine) TakeScreenshots(ctx *ScanContext) error {
 	return e.siteScanner.TakeScreenshots(ctx)
 }
 
-// CheckFileLeaks 文件泄露检测
+// CheckFileLeaks File leak detection
 func (e *Engine) CheckFileLeaks(ctx *ScanContext) error {
 	return e.siteScanner.CheckFileLeaks(ctx)
 }
 
-// RunPoCScanning 运行智能PoC扫描 - 基于指纹匹配(替代Nuclei/XPOC/Afrog)
+// RunPoCScanning Run SmartPoCScan - It's based on a fingerprint match.(AlternativeNuclei/XPOC/Afrog)
 func (e *Engine) RunPoCScanning(ctx *ScanContext) error {
 	ctx.Logger.Printf("Starting smart PoC scanning with fingerprint matching...")
 	return e.smartPoCScanner.ScanWithFingerprints(ctx)
 }
 
-// CheckHostCollision 检测Host碰撞
+// CheckHostCollision TestHostCollision
 func (e *Engine) CheckHostCollision(ctx *ScanContext) error {
 	return e.hostCollision.Scan(ctx)
 }
 
-// DetectOS 检测操作系统
+// DetectOS Test operating system
 func (e *Engine) DetectOS(ctx *ScanContext) error {
 	if ctx == nil || ctx.Task == nil || ctx.DB == nil {
 		return fmt.Errorf("scan context, task, and database are required")
@@ -309,7 +309,7 @@ func (e *Engine) DetectOS(ctx *ScanContext) error {
 			ctx.Logger.Printf("OS detection target blocked by scan scope: %s", ip.IPAddress)
 			continue
 		}
-		// 获取该IP的开放端口
+		// Get thatIPOpen port
 		var ports []models.Port
 		if err := db.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, ip.IPAddress).Find(&ports).Error; err != nil {
 			return fmt.Errorf("load ports for OS detection on %s: %w", ip.IPAddress, err)
@@ -324,7 +324,7 @@ func (e *Engine) DetectOS(ctx *ScanContext) error {
 			openPorts[i] = p.Port
 		}
 
-		// 检测OS
+		// TestOS
 		os := e.osDetector.Detect(ip.IPAddress, openPorts)
 		if os != "" && os != "Unknown" {
 			result := db.Model(&models.IP{}).
@@ -343,9 +343,9 @@ func (e *Engine) DetectOS(ctx *ScanContext) error {
 	return nil
 }
 
-// RunCustomScript 运行自定义脚本
+// RunCustomScript Run Custom Scripts
 func (e *Engine) RunCustomScript(ctx *ScanContext, scriptPath string) error {
-	// 获取所有站点作为目标
+	// Get all sites as targets
 	var sites []models.Site
 	ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&sites)
 
@@ -356,19 +356,19 @@ func (e *Engine) RunCustomScript(ctx *ScanContext, scriptPath string) error {
 
 	ctx.Logger.Printf("Running custom script: %s for %d sites", scriptPath, len(sites))
 
-	// 提取目标URLs
+	// Target extractionURLs
 	var targets []string
 	for _, site := range sites {
 		targets = append(targets, site.URL)
 	}
 
-	// 执行脚本
+	// Execute Script
 	vulns, err := e.customScriptRunner.RunScript(ctx, scriptPath, targets)
 	if err != nil {
 		return err
 	}
 
-	// 保存漏洞
+	// Save the bug
 	for _, vuln := range vulns {
 		ctx.DB.Create(vuln)
 	}
@@ -377,17 +377,17 @@ func (e *Engine) RunCustomScript(ctx *ScanContext, scriptPath string) error {
 	return nil
 }
 
-// RunPassiveScan 运行被动扫描
+// RunPassiveScan Run Passive Scan
 func (e *Engine) RunPassiveScan(ctx *ScanContext) error {
 	return e.passiveScanner.Scan(ctx)
 }
 
-// CheckSubdomainTakeover 子域名接管检测
+// CheckSubdomainTakeover Subdomain name takes over the test
 func (e *Engine) CheckSubdomainTakeover(ctx *ScanContext) error {
 	return e.takeoverScanner.Scan(ctx)
 }
 
-// MapAssets 资产测绘
+// MapAssets Asset mapping
 func (e *Engine) MapAssets(ctx *ScanContext) error {
 	return e.assetMapper.MapAssets(ctx)
 }

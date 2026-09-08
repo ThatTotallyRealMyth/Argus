@@ -16,12 +16,12 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// Exporter 数据导出器
+// Exporter Data Exporter
 type Exporter struct {
 	outputDir string
 }
 
-// NewExporter 创建导出器
+// NewExporter Create Exporter
 func NewExporter(outputDir string) *Exporter {
 	if outputDir == "" {
 		outputDir = "./exports"
@@ -32,7 +32,7 @@ func NewExporter(outputDir string) *Exporter {
 	}
 }
 
-// ExportData 导出数据结构
+// ExportData Export Data Structure
 type ExportData struct {
 	Task             *models.Task             `json:"task"`
 	Domains          []models.Domain          `json:"domains"`
@@ -85,7 +85,7 @@ func (e *Exporter) ExportIPsToCSV(ips []models.IP, taskID string) (string, error
 	defer file.Close()
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 	writer := csv.NewWriter(file)
-	if err := writeCSVRecord(writer, []string{"IP地址", "关联域名", "来源", "操作系统", "位置", "CDN", "创建时间"}); err != nil {
+	if err := writeCSVRecord(writer, []string{"IPAddress", "Associate domain name", "Source", "Operating system", "Location", "CDN", "Created"}); err != nil {
 		return "", err
 	}
 	for _, item := range ips {
@@ -99,7 +99,7 @@ func (e *Exporter) ExportIPsToCSV(ips []models.IP, taskID string) (string, error
 	return filename, nil
 }
 
-// ExportToJSON 导出为JSON
+// ExportToJSON Export AsJSON
 func (e *Exporter) ExportToJSON(data *ExportData) (string, error) {
 	filename := fmt.Sprintf("%s/task_%s_%s.json",
 		e.outputDir,
@@ -122,7 +122,7 @@ func (e *Exporter) ExportToJSON(data *ExportData) (string, error) {
 	return filename, nil
 }
 
-// ExportDomainsToCSV 导出域名为CSV
+// ExportDomainsToCSV Export domain nameCSV
 func (e *Exporter) ExportDomainsToCSV(domains []models.Domain, taskID string) (string, error) {
 	filename := fmt.Sprintf("%s/domains_%s_%s.csv",
 		e.outputDir,
@@ -135,18 +135,18 @@ func (e *Exporter) ExportDomainsToCSV(domains []models.Domain, taskID string) (s
 	}
 	defer file.Close()
 
-	// 🆕 写入UTF-8 BOM，让Excel正确识别中文
+	// 🆕 WriteUTF-8 BOM, Jean.ExcelCorrect recognition in Chinese
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(file)
 
-	// 写入表头
-	headers := []string{"域名", "IP地址", "来源", "CDN", "创建时间"}
+	// Write to table header
+	headers := []string{"Domain name", "IPAddress", "Source", "CDN", "Created"}
 	if err := writeCSVRecord(writer, headers); err != nil {
 		return "", err
 	}
 
-	// 写入数据
+	// Writing Data
 	for _, domain := range domains {
 		record := []string{
 			domain.Domain,
@@ -166,7 +166,7 @@ func (e *Exporter) ExportDomainsToCSV(domains []models.Domain, taskID string) (s
 	return filename, nil
 }
 
-// ExportPortsToCSV 导出端口为CSV
+// ExportPortsToCSV Export Port AsCSV
 func (e *Exporter) ExportPortsToCSV(ports []models.Port, taskID string) (string, error) {
 	filename := fmt.Sprintf("%s/ports_%s_%s.csv",
 		e.outputDir,
@@ -179,18 +179,18 @@ func (e *Exporter) ExportPortsToCSV(ports []models.Port, taskID string) (string,
 	}
 	defer file.Close()
 
-	// 🆕 写入UTF-8 BOM
+	// 🆕 WriteUTF-8 BOM
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(file)
 
-	// 写入表头
-	headers := []string{"IP地址", "端口", "协议", "服务", "版本", "Banner"}
+	// Write to table header
+	headers := []string{"IPAddress", "Port", "Agreement", "Services", "Version", "Banner"}
 	if err := writeCSVRecord(writer, headers); err != nil {
 		return "", err
 	}
 
-	// 写入数据
+	// Writing Data
 	for _, port := range ports {
 		record := []string{
 			port.IPAddress,
@@ -211,7 +211,7 @@ func (e *Exporter) ExportPortsToCSV(ports []models.Port, taskID string) (string,
 	return filename, nil
 }
 
-// ExportSitesToCSV 导出站点为CSV
+// ExportSitesToCSV Export Site AsCSV
 func (e *Exporter) ExportSitesToCSV(sites []models.Site, taskID string) (string, error) {
 	filename := fmt.Sprintf("%s/sites_%s_%s.csv",
 		e.outputDir,
@@ -224,18 +224,18 @@ func (e *Exporter) ExportSitesToCSV(sites []models.Site, taskID string) (string,
 	}
 	defer file.Close()
 
-	// 🆕 写入UTF-8 BOM
+	// 🆕 WriteUTF-8 BOM
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(file)
 
-	// 写入表头
-	headers := []string{"URL", "标题", "状态码", "Server", "指纹", "截图"}
+	// Write to table header
+	headers := []string{"URL", "Title", "Status Code", "Server", "Fingerprints", "Screenshot"}
 	if err := writeCSVRecord(writer, headers); err != nil {
 		return "", err
 	}
 
-	// 写入数据
+	// Writing Data
 	for _, site := range sites {
 		fingerprints := ""
 		if len(site.Fingerprints) > 0 {
@@ -262,7 +262,7 @@ func (e *Exporter) ExportSitesToCSV(sites []models.Site, taskID string) (string,
 	return filename, nil
 }
 
-// ExportVulnerabilitiesToCSV 导出漏洞为CSV
+// ExportVulnerabilitiesToCSV Export bugs asCSV
 func (e *Exporter) ExportVulnerabilitiesToCSV(vulns []models.Vulnerability, taskID string) (string, error) {
 	filename := fmt.Sprintf("%s/vulnerabilities_%s_%s.csv",
 		e.outputDir,
@@ -275,18 +275,18 @@ func (e *Exporter) ExportVulnerabilitiesToCSV(vulns []models.Vulnerability, task
 	}
 	defer file.Close()
 
-	// 🆕 写入UTF-8 BOM
+	// 🆕 WriteUTF-8 BOM
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(file)
 
-	// 写入表头
-	headers := []string{"URL", "类型", "严重性", "状态", "标题", "来源", "最近复测", "最近复测时间", "描述", "Payload", "Proof", "研判笔记", "解决方案"}
+	// Write to table header
+	headers := []string{"URL", "Type", "Severity", "Status", "Title", "Source", "Latest retest result", "Latest retest time", "Description", "Payload", "Proof", "Triage notes", "Solutions"}
 	if err := writeCSVRecord(writer, headers); err != nil {
 		return "", err
 	}
 
-	// 写入数据
+	// Writing Data
 	for _, vuln := range vulns {
 		record := []string{
 			vuln.URL,
@@ -324,7 +324,7 @@ func (e *Exporter) ExportURLsToCSV(urls []models.CrawlerResult, taskID string) (
 	defer file.Close()
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 	writer := csv.NewWriter(file)
-	if err := writeCSVRecord(writer, []string{"URL", "方法", "状态码", "Content-Type", "响应长度", "来源", "创建时间"}); err != nil {
+	if err := writeCSVRecord(writer, []string{"URL", "Methodology", "Status Code", "Content-Type", "Response Length", "Source", "Created"}); err != nil {
 		return "", err
 	}
 	for _, item := range urls {
@@ -348,7 +348,7 @@ func (e *Exporter) ExportHTTPTransactionsToCSV(items []models.HTTPTransaction, t
 	defer file.Close()
 	file.Write([]byte{0xEF, 0xBB, 0xBF})
 	writer := csv.NewWriter(file)
-	if err := writeCSVRecord(writer, []string{"URL", "方法", "状态码", "Content-Type", "响应长度", "响应耗时(ms)", "来源", "创建时间"}); err != nil {
+	if err := writeCSVRecord(writer, []string{"URL", "Methodology", "Status Code", "Content-Type", "Response Length", "Response time-consuming(ms)", "Source", "Created"}); err != nil {
 		return "", err
 	}
 	for _, item := range items {
@@ -362,7 +362,7 @@ func (e *Exporter) ExportHTTPTransactionsToCSV(items []models.HTTPTransaction, t
 	return filename, nil
 }
 
-// ExportAll 导出所有数据
+// ExportAll Export All Data
 func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 	results := make(map[string]string)
 
@@ -372,7 +372,7 @@ func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 		results["json"] = jsonFile
 	}
 
-	// 域名CSV
+	// Domain nameCSV
 	if len(data.Domains) > 0 {
 		csvFile, err := e.ExportDomainsToCSV(data.Domains, data.Task.ID)
 		if err == nil {
@@ -386,7 +386,7 @@ func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 		}
 	}
 
-	// 端口CSV
+	// PortCSV
 	if len(data.Ports) > 0 {
 		csvFile, err := e.ExportPortsToCSV(data.Ports, data.Task.ID)
 		if err == nil {
@@ -394,7 +394,7 @@ func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 		}
 	}
 
-	// 站点CSV
+	// SiteCSV
 	if len(data.Sites) > 0 {
 		csvFile, err := e.ExportSitesToCSV(data.Sites, data.Task.ID)
 		if err == nil {
@@ -414,7 +414,7 @@ func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 		}
 	}
 
-	// 漏洞CSV
+	// LeaksCSV
 	if len(data.Vulnerabilities) > 0 {
 		csvFile, err := e.ExportVulnerabilitiesToCSV(data.Vulnerabilities, data.Task.ID)
 		if err == nil {
@@ -425,7 +425,7 @@ func (e *Exporter) ExportAll(data *ExportData) (map[string]string, error) {
 	return results, nil
 }
 
-// truncateString 截断字符串
+// truncateString Cut String
 func truncateString(s string, maxLen int) string {
 	if maxLen < 0 {
 		return ""
@@ -437,7 +437,7 @@ func truncateString(s string, maxLen int) string {
 	return string(runes[:maxLen]) + "..."
 }
 
-// GenerateReport 生成报告
+// GenerateReport Generate Report
 func (e *Exporter) GenerateReport(data *ExportData) (string, error) {
 	if data == nil || data.Task == nil {
 		return "", fmt.Errorf("report task is required")
@@ -471,7 +471,7 @@ var reportTemplate = template.Must(template.New("eclipse-report").Funcs(template
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
-    <title>Eclipse Recon 侦察报告 - {{.Task.ID}}</title>
+    <title>Eclipse Recon Reconnaissance report - {{.Task.ID}}</title>
     <style>
         :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         * { box-sizing: border-box; }
@@ -511,32 +511,32 @@ var reportTemplate = template.Must(template.New("eclipse-report").Funcs(template
 </head>
 <body>
     <div class="container">
-        <header><div><p class="eyebrow">Eclipse Recon / Authorized Reconnaissance</p><h1>资产侦察报告</h1></div><div class="report-id">TASK {{.Task.ID}}</div></header>
+        <header><div><p class="eyebrow">Eclipse Recon / Authorized Reconnaissance</p><h1>Asset detection reports</h1></div><div class="report-id">TASK {{.Task.ID}}</div></header>
         <div class="info">
-            <div><span>任务名称</span><strong>{{.Task.Name}}</strong></div>
-            <div><span>授权目标</span><strong>{{.Task.Target}}</strong></div>
-            <div><span>创建时间</span><strong>{{.Task.CreatedAt.Format "2006-01-02 15:04:05"}}</strong></div>
-            <div><span>导出时间</span><strong>{{.ExportTime.Format "2006-01-02 15:04:05"}}</strong></div>
+            <div><span>Task Name</span><strong>{{.Task.Name}}</strong></div>
+            <div><span>Mandated objectives</span><strong>{{.Task.Target}}</strong></div>
+            <div><span>Created</span><strong>{{.Task.CreatedAt.Format "2006-01-02 15:04:05"}}</strong></div>
+            <div><span>Export Time</span><strong>{{.ExportTime.Format "2006-01-02 15:04:05"}}</strong></div>
         </div>
 
-        <h2>资产统计</h2>
+        <h2>Asset statistics</h2>
         <div class="stats">
-            <div class="stat-card"><span>域名</span><strong>{{len .Domains}}</strong></div>
+            <div class="stat-card"><span>Domain name</span><strong>{{len .Domains}}</strong></div>
             <div class="stat-card"><span>IP</span><strong>{{len .IPs}}</strong></div>
-            <div class="stat-card"><span>开放端口</span><strong>{{len .Ports}}</strong></div>
-            <div class="stat-card"><span>站点</span><strong>{{len .Sites}}</strong></div>
-            <div class="stat-card"><span>有效风险</span><strong>{{activeFindingCount .Vulnerabilities}}</strong></div>
+            <div class="stat-card"><span>Open Port</span><strong>{{len .Ports}}</strong></div>
+            <div class="stat-card"><span>Site</span><strong>{{len .Sites}}</strong></div>
+            <div class="stat-card"><span>Effective risk</span><strong>{{activeFindingCount .Vulnerabilities}}</strong></div>
         </div>
 
-        <h2>漏洞证据与研判</h2>
-        {{if .Vulnerabilities}}<div class="table-wrap"><table><thead><tr><th>级别</th><th>状态 / 最近复测</th><th>标题与证据</th><th>目标</th><th>类型 / 来源</th></tr></thead><tbody>{{range .Vulnerabilities}}<tr><td class="severity-{{severityClass .Severity}}">{{.Severity}}</td><td><strong>{{findingStatus .Status}}</strong><br>{{verificationResult .LastVerificationResult}}{{with .LastVerifiedAt}}<br>{{optionalTime .}}{{end}}</td><td><strong>{{.Title}}</strong>{{if or .Description .Payload .Proof .TriageNote .Solution .Reference}}<details><summary>查看完整证据</summary><div class="evidence">{{with .Description}}<section><span>描述</span><pre>{{.}}</pre></section>{{end}}{{with .Payload}}<section><span>Payload</span><pre>{{.}}</pre></section>{{end}}{{with .Proof}}<section><span>Proof</span><pre>{{.}}</pre></section>{{end}}{{with .TriageNote}}<section><span>研判笔记</span><pre>{{.}}</pre></section>{{end}}{{with .Solution}}<section><span>修复建议</span><pre>{{.}}</pre></section>{{end}}{{with .Reference}}<section><span>参考</span><pre>{{.}}</pre></section>{{end}}</div></details>{{end}}</td><td>{{.URL}}</td><td>{{.Type}}{{with .Source}} / {{.}}{{end}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">暂无漏洞证据</p>{{end}}
+        <h2>Plugging evidence and sentencing</h2>
+        {{if .Vulnerabilities}}<div class="table-wrap"><table><thead><tr><th>Level</th><th>Status / Latest retest result</th><th>Title and evidence</th><th>Objective</th><th>Type / Source</th></tr></thead><tbody>{{range .Vulnerabilities}}<tr><td class="severity-{{severityClass .Severity}}">{{.Severity}}</td><td><strong>{{findingStatus .Status}}</strong><br>{{verificationResult .LastVerificationResult}}{{with .LastVerifiedAt}}<br>{{optionalTime .}}{{end}}</td><td><strong>{{.Title}}</strong>{{if or .Description .Payload .Proof .TriageNote .Solution .Reference}}<details><summary>View complete evidence</summary><div class="evidence">{{with .Description}}<section><span>Description</span><pre>{{.}}</pre></section>{{end}}{{with .Payload}}<section><span>Payload</span><pre>{{.}}</pre></section>{{end}}{{with .Proof}}<section><span>Proof</span><pre>{{.}}</pre></section>{{end}}{{with .TriageNote}}<section><span>Triage notes</span><pre>{{.}}</pre></section>{{end}}{{with .Solution}}<section><span>Remediation guidance</span><pre>{{.}}</pre></section>{{end}}{{with .Reference}}<section><span>References</span><pre>{{.}}</pre></section>{{end}}</div></details>{{end}}</td><td>{{.URL}}</td><td>{{.Type}}{{with .Source}} / {{.}}{{end}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">No findings were recorded.</p>{{end}}
 
-        <h2>域名</h2>
-        {{if .Domains}}<div class="table-wrap"><table><thead><tr><th>域名</th><th>IP 地址</th><th>来源</th></tr></thead><tbody>{{range .Domains}}<tr><td>{{.Domain}}</td><td>{{.IPAddress}}</td><td>{{.Source}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">未发现域名</p>{{end}}
+        <h2>Domain name</h2>
+        {{if .Domains}}<div class="table-wrap"><table><thead><tr><th>Domain name</th><th>IP Address</th><th>Source</th></tr></thead><tbody>{{range .Domains}}<tr><td>{{.Domain}}</td><td>{{.IPAddress}}</td><td>{{.Source}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">No domain name found</p>{{end}}
 
-        <h2>站点</h2>
-        {{if .Sites}}<div class="table-wrap"><table><thead><tr><th>URL</th><th>标题</th><th>状态码</th><th>Server</th></tr></thead><tbody>{{range .Sites}}{{$site := .}}<tr><td>{{with safeURL .URL}}<a href="{{.}}" target="_blank" rel="noopener noreferrer">{{$site.URL}}</a>{{else}}{{$site.URL}}{{end}}</td><td>{{.Title}}</td><td>{{.StatusCode}}</td><td>{{.Server}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">未发现站点</p>{{end}}
-        <footer>本报告由 Eclipse Recon 生成。报告内容来自授权范围内的扫描证据，请在提交前人工复核。</footer>
+        <h2>Site</h2>
+        {{if .Sites}}<div class="table-wrap"><table><thead><tr><th>URL</th><th>Title</th><th>Status Code</th><th>Server</th></tr></thead><tbody>{{range .Sites}}{{$site := .}}<tr><td>{{with safeURL .URL}}<a href="{{.}}" target="_blank" rel="noopener noreferrer">{{$site.URL}}</a>{{else}}{{$site.URL}}{{end}}</td><td>{{.Title}}</td><td>{{.StatusCode}}</td><td>{{.Server}}</td></tr>{{end}}</tbody></table></div>{{else}}<p class="empty">No site found</p>{{end}}
+        <footer>Summary of the report Eclipse Recon Generate.The report was based on scanned evidence within the scope of the mandate, Please review manually before submitting.</footer>
     </div>
 </body>
 </html>`))
@@ -579,30 +579,30 @@ func reportSeverityClass(value string) string {
 func findingStatusLabel(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case models.VulnerabilityStatusValidated:
-		return "已验证"
+		return "Verifyed"
 	case models.VulnerabilityStatusSubmitted:
-		return "已提交"
+		return "Submitted"
 	case models.VulnerabilityStatusResolved:
-		return "已解决"
+		return "Resolved"
 	case models.VulnerabilityStatusFalsePositive:
-		return "误报"
+		return "Misreporting"
 	case models.VulnerabilityStatusRegressed:
-		return "复发"
+		return "Relapsing"
 	default:
-		return "新发现"
+		return "New Discovery"
 	}
 }
 
 func verificationResultLabel(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "vulnerable":
-		return "最近命中"
+		return "Recently hit."
 	case "safe":
-		return "最近未复现"
+		return "Not recently recreated"
 	case "error":
-		return "复测失败"
+		return "Reaction Failed"
 	default:
-		return "尚未复测"
+		return "Not yet recovered"
 	}
 }
 
@@ -624,7 +624,7 @@ func activeFindingCount(findings []models.Vulnerability) int {
 	return count
 }
 
-// CleanupOldExports 清理超过指定时长的导出文件
+// CleanupOldExports Clean out export files that exceed the specified length
 func (e *Exporter) CleanupOldExports(maxAge time.Duration) (int, error) {
 	var deleted int
 	err := filepath.Walk(e.outputDir, func(path string, info os.FileInfo, err error) error {
@@ -641,7 +641,7 @@ func (e *Exporter) CleanupOldExports(maxAge time.Duration) (int, error) {
 	return deleted, err
 }
 
-// StartPeriodicCleanup 启动定期清理任务
+// StartPeriodicCleanup Start of regular clean-up missions
 func (e *Exporter) StartPeriodicCleanup(interval, maxAge time.Duration) {
 	go func() {
 		ticker := time.NewTicker(interval)

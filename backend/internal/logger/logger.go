@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Logger 日志记录器
+// Logger Log Log Recorder
 type Logger struct {
 	infoLogger  *log.Logger
 	errorLogger *log.Logger
@@ -18,15 +18,15 @@ type Logger struct {
 
 var GlobalLogger *Logger
 
-// InitLogger 初始化日志
+// InitLogger Initialization log
 func InitLogger(logPath string, level string) error {
-	// 创建日志目录
+	// Create Log Directory
 	logDir := filepath.Dir(logPath)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		return fmt.Errorf("failed to create log directory: %w", err)
 	}
 
-	// 打开日志文件
+	// Open Log File
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
@@ -39,7 +39,7 @@ func InitLogger(logPath string, level string) error {
 		logFile:     logFile,
 	}
 
-	// 同时输出到控制台
+	// Output simultaneously to Console
 	if level == "debug" {
 		GlobalLogger.infoLogger.SetOutput(os.Stdout)
 		GlobalLogger.errorLogger.SetOutput(os.Stderr)
@@ -49,22 +49,22 @@ func InitLogger(logPath string, level string) error {
 	return nil
 }
 
-// Info 记录info日志
+// Info RecordsinfoLog
 func (l *Logger) Info(format string, v ...interface{}) {
 	l.infoLogger.Printf(format, v...)
 }
 
-// Error 记录error日志
+// Error RecordserrorLog
 func (l *Logger) Error(format string, v ...interface{}) {
 	l.errorLogger.Printf(format, v...)
 }
 
-// Debug 记录debug日志
+// Debug RecordsdebugLog
 func (l *Logger) Debug(format string, v ...interface{}) {
 	l.debugLogger.Printf(format, v...)
 }
 
-// Close 关闭日志文件
+// Close Close Log File
 func (l *Logger) Close() error {
 	if l.logFile != nil {
 		return l.logFile.Close()
@@ -72,19 +72,19 @@ func (l *Logger) Close() error {
 	return nil
 }
 
-// RotateLog 日志轮转
+// RotateLog Log rotation
 func (l *Logger) RotateLog(logPath string) error {
-	// 简单的日志轮转实现
+	// Simple log rotation
 	if l.logFile != nil {
 		l.logFile.Close()
 	}
 
-	// 重命名旧文件
+	// Rename Old File
 	timestamp := time.Now().Format("20060102_150405")
 	oldPath := logPath + "." + timestamp
 	os.Rename(logPath, oldPath)
 
-	// 创建新文件
+	// Create New File
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (l *Logger) RotateLog(logPath string) error {
 	return nil
 }
 
-// 便捷函数
+// Easy function
 func Info(format string, v ...interface{}) {
 	if GlobalLogger != nil {
 		GlobalLogger.Info(format, v...)

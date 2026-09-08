@@ -9,21 +9,21 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// CSegmentScanner C段扫描器
+// CSegmentScanner CParagraph Scanner
 type CSegmentScanner struct{}
 
-// NewCSegmentScanner 创建C段扫描器
+// NewCSegmentScanner CreateCParagraph Scanner
 func NewCSegmentScanner() *CSegmentScanner {
 	return &CSegmentScanner{}
 }
 
-// Scan 扫描C段IP（带存活性检测）
+// Scan ScanCParagraphIP (With a survival test.)
 func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 	if !ctx.Task.Options.EnableCSegment {
 		return nil
 	}
 
-	// 获取所有已解析的IP
+	// Fetch all parsedIP
 	var ips []models.IP
 	ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&ips)
 
@@ -34,25 +34,25 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 
 	ctx.Logger.Printf("Starting C segment scanning for %d IPs", len(ips))
 
-	// 用于去重
+	// For weight-decomposition
 	existingIPs := make(map[string]bool)
 	for _, ip := range ips {
 		existingIPs[ip.IPAddress] = true
 	}
 
-	// 生成C段IP
+	// GenerateCParagraphIP
 	cSegmentIPs := make(map[string]bool)
 	for _, ip := range ips {
-		// 跳过CDN IP
+		// SkipCDN IP
 		if ip.CDN {
 			ctx.Logger.Printf("Skipping CDN IP for C segment: %s", ip.IPAddress)
 			continue
 		}
 
-		// 生成该IP的C段
+		// Generate theIPIt's...CParagraph
 		segment := cs.generateCSegment(ip.IPAddress)
 		for _, segmentIP := range segment {
-			// 跳过已存在的IP
+			// Skip ExistingIP
 			if !existingIPs[segmentIP] && !cSegmentIPs[segmentIP] {
 				cSegmentIPs[segmentIP] = true
 			}
@@ -61,33 +61,33 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 
 	ctx.Logger.Printf("Generated %d C segment IPs, checking liveness...", len(cSegmentIPs))
 
-	// 存活性检测并保存（使用快速端口探测）
+	// Survival detection and preservation (Use fast port detection)
 	count := 0
 	aliveCount := 0
 
-	// 转换为切片用于并发处理
+	// Convert to slice for commoprocessing
 	ipList, blockedCount := authorizedNetworkTargets(ctx, cSegmentIPs)
 	if blockedCount > 0 {
 		ctx.Logger.Printf("C segment authorization blocked %d out-of-scope IPs", blockedCount)
 	}
 
-	// 并发探测存活IP
+	// And we're gonna have to test and survive.IP
 	aliveChan := make(chan string, len(ipList))
-	semaphore := make(chan struct{}, 50) // 并发50个
+	semaphore := make(chan struct{}, 50) // Together.50One.
 
 	for _, segmentIP := range ipList {
 		semaphore <- struct{}{}
 		go func(ip string) {
 			defer func() { <-semaphore }()
 
-			// 快速检测：尝试连接常用端口
+			// Quick Test: Try connecting to common ports
 			if cs.IsAlive(ip) {
 				aliveChan <- ip
 			}
 		}(segmentIP)
 	}
 
-	// 等待所有探测完成
+	// Waiting for all detections to be completed
 	go func() {
 		for i := 0; i < 50; i++ {
 			semaphore <- struct{}{}
@@ -95,7 +95,7 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 		close(aliveChan)
 	}()
 
-	// 保存存活的IP
+	// Save the living.IP
 	for aliveIP := range aliveChan {
 		ipModel := &models.IP{
 			TaskID:    ctx.Task.ID,
@@ -103,7 +103,7 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 			Source:    "c_segment",
 		}
 
-		// 使用FirstOrCreate避免重复
+		// UseFirstOrCreateAvoidance of duplication
 		if err := ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, aliveIP).
 			FirstOrCreate(ipModel).Error; err != nil {
 			ctx.Logger.Printf("Failed to save C segment IP %s: %v", aliveIP, err)
@@ -135,33 +135,33 @@ func authorizedNetworkTargets(ctx *ScanContext, candidates map[string]bool) ([]s
 	return result, blocked
 }
 
-// generateCSegment 生成C段IP列表
+// generateCSegment GenerateCParagraphIPList
 func (cs *CSegmentScanner) generateCSegment(ipAddr string) []string {
 	var result []string
 
-	// 解析IP地址
+	// ParsingIPAddress
 	ip := net.ParseIP(ipAddr)
 	if ip == nil {
 		return result
 	}
 
-	// 只处理IPv4
+	// Only handleIPv4
 	ip = ip.To4()
 	if ip == nil {
 		return result
 	}
 
-	// 提取前三段
+	// Extracting the first three paragraphs
 	parts := strings.Split(ipAddr, ".")
 	if len(parts) != 4 {
 		return result
 	}
 
-	// 生成C段：xxx.xxx.xxx.1-254
+	// GenerateCParagraph: xxx.xxx.xxx.1-254
 	prefix := fmt.Sprintf("%s.%s.%s", parts[0], parts[1], parts[2])
 	for i := 1; i <= 254; i++ {
 		segmentIP := fmt.Sprintf("%s.%d", prefix, i)
-		// 跳过原始IP
+		// Skip OriginalIP
 		if segmentIP != ipAddr {
 			result = append(result, segmentIP)
 		}
@@ -170,19 +170,19 @@ func (cs *CSegmentScanner) generateCSegment(ipAddr string) []string {
 	return result
 }
 
-// IsAlive 快速检测IP是否存活（探测常用端口）
+// IsAlive Quick TestIPAlive or not? (Detection of common ports)
 func (cs *CSegmentScanner) IsAlive(ip string) bool {
-	// 常用端口列表（快速探测）
+	// List of common ports (Rapid detection)
 	commonPorts := []int{80, 443, 22, 3389, 8080, 8443}
 
-	timeout := 500 // 500ms超时
+	timeout := 500 // 500msTimeout
 
 	for _, port := range commonPorts {
 		address := net.JoinHostPort(ip, fmt.Sprintf("%d", port))
 		conn, err := net.DialTimeout("tcp", address, time.Duration(timeout)*time.Millisecond)
 		if err == nil {
 			conn.Close()
-			return true // 有任一端口开放，认为存活
+			return true // Any port open, Thinking of survival.
 		}
 	}
 

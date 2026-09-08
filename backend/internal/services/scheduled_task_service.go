@@ -198,7 +198,7 @@ func (s *ScheduledTaskService) RunNow(id string) (*models.Task, error) {
 	}
 	startTime := s.currentTime()
 	task, err := s.taskService.CreateUniqueTriggeredQueuedTask(
-		fmt.Sprintf("%s (手动运行)", scheduledTask.Name), scheduledTask.TaskOptions.Target,
+		fmt.Sprintf("%s (Run Manually)", scheduledTask.Name), scheduledTask.TaskOptions.Target,
 		scheduledTask.PolicyID, scheduledTask.ScopeID, scheduledTask.TaskOptions,
 		models.TaskOrigin{Source: models.TaskTriggerSchedule, ID: scheduledTask.ID, ActorID: scheduledTask.CreatedBy},
 	)

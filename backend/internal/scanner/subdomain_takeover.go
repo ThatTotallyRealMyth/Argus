@@ -14,7 +14,7 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// SubdomainTakeoverScanner 子域名接管检测器
+// SubdomainTakeoverScanner Subdomain name takes over the detector
 type SubdomainTakeoverScanner struct {
 	client       *http.Client
 	dnsTimeout   time.Duration
@@ -22,17 +22,17 @@ type SubdomainTakeoverScanner struct {
 	fingerprints []TakeoverFingerprint
 }
 
-// TakeoverFingerprint 接管指纹
+// TakeoverFingerprint describes a service-specific takeover signature.
 type TakeoverFingerprint struct {
-	Service      string   // 服务名称 (如: GitHub Pages, AWS S3, Heroku)
-	CNAMEPattern []string // CNAME 匹配模式
-	ResponseCode []int    // HTTP 状态码
-	BodyKeywords []string // 响应体关键字
-	Description  string   // 描述信息
-	Severity     string   // 严重程度: high, medium, low
+	Service      string   // Service name (Like: GitHub Pages, AWS S3, Heroku)
+	CNAMEPattern []string // CNAME Match Mode
+	ResponseCode []int    // HTTP Status Code
+	BodyKeywords []string // Response Keywords
+	Description  string   // Synchronising folder
+	Severity     string   // Extent: high, medium, low
 }
 
-// TakeoverResult 接管检测结果
+// TakeoverResult records the outcome of a subdomain-takeover check.
 type TakeoverResult struct {
 	Domain      string
 	Vulnerable  bool
@@ -43,14 +43,14 @@ type TakeoverResult struct {
 	Description string
 }
 
-// NewSubdomainTakeoverScanner 创建子域名接管检测器
+// NewSubdomainTakeoverScanner Create sub-domain name to take over the detector
 func NewSubdomainTakeoverScanner() *SubdomainTakeoverScanner {
 	return &SubdomainTakeoverScanner{
 		client: &http.Client{
 			Timeout:   10 * time.Second,
 			Transport: proxypool.ConfigureTransport(&http.Transport{}),
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse // 不跟随重定向
+				return http.ErrUseLastResponse // Do not follow redirection
 			},
 		},
 		dnsTimeout:   5 * time.Second,
@@ -59,7 +59,7 @@ func NewSubdomainTakeoverScanner() *SubdomainTakeoverScanner {
 	}
 }
 
-// initTakeoverFingerprints 初始化接管指纹库
+// initTakeoverFingerprints Initialization of the fingerprint collection.
 func initTakeoverFingerprints() []TakeoverFingerprint {
 	return []TakeoverFingerprint{
 		// GitHub Pages
@@ -71,7 +71,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"There isn't a GitHub Pages site here",
 				"For root URLs (like http://example.com/) you must provide an index.html file",
 			},
-			Description: "子域名CNAME指向GitHub Pages但页面不存在",
+			Description: "Subdomain NameCNAMEPointGitHub PagesBut the page does not exist",
 			Severity:    "high",
 		},
 		// AWS S3
@@ -83,7 +83,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"NoSuchBucket",
 				"The specified bucket does not exist",
 			},
-			Description: "S3存储桶已被删除或不存在",
+			Description: "S3Storage drums have been deleted or do not exist",
 			Severity:    "high",
 		},
 		// Heroku
@@ -95,7 +95,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"No such app",
 				"There's nothing here, yet",
 			},
-			Description: "Heroku应用不存在",
+			Description: "HerokuApplication does not exist",
 			Severity:    "high",
 		},
 		// Azure
@@ -107,7 +107,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"404 Web Site not found",
 				"Error 404",
 			},
-			Description: "Azure服务不存在",
+			Description: "AzureService does not exist",
 			Severity:    "high",
 		},
 		// Shopify
@@ -119,7 +119,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"Sorry, this shop is currently unavailable",
 				"Only one step left!",
 			},
-			Description: "Shopify店铺不存在",
+			Description: "ShopifyThe store doesn't exist.",
 			Severity:    "medium",
 		},
 		// Fastly
@@ -130,7 +130,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"Fastly error: unknown domain",
 			},
-			Description: "Fastly CDN配置错误",
+			Description: "Fastly CDNConfiguration error",
 			Severity:    "medium",
 		},
 		// Ghost
@@ -141,7 +141,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"The thing you were looking for is no longer here",
 			},
-			Description: "Ghost博客不存在",
+			Description: "GhostBlog does not exist",
 			Severity:    "medium",
 		},
 		// Pantheon
@@ -152,7 +152,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"404 error unknown site!",
 			},
-			Description: "Pantheon站点不存在",
+			Description: "PantheonSite does not exist",
 			Severity:    "high",
 		},
 		// Tumblr
@@ -164,7 +164,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"Whatever you were looking for doesn't currently exist at this address",
 				"There's nothing here.",
 			},
-			Description: "Tumblr博客不存在",
+			Description: "TumblrBlog does not exist",
 			Severity:    "low",
 		},
 		// WordPress.com
@@ -175,7 +175,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"Do you want to register",
 			},
-			Description: "WordPress站点不存在",
+			Description: "WordPressSite does not exist",
 			Severity:    "low",
 		},
 		// Bitbucket
@@ -186,7 +186,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"Repository not found",
 			},
-			Description: "Bitbucket仓库不存在",
+			Description: "Bitbucketrepository does not exist",
 			Severity:    "medium",
 		},
 		// Cargo
@@ -197,7 +197,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"404 Not Found",
 			},
-			Description: "Cargo站点不存在",
+			Description: "CargoSite does not exist",
 			Severity:    "low",
 		},
 		// Feedpress
@@ -208,7 +208,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"The feed has not been found",
 			},
-			Description: "Feedpress订阅不存在",
+			Description: "FeedpressSynchronising folder failed: %s: %s",
 			Severity:    "low",
 		},
 		// StatusPage
@@ -220,7 +220,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"You are being",
 				"redirected",
 			},
-			Description: "StatusPage页面不存在",
+			Description: "StatusPagePage does not exist",
 			Severity:    "medium",
 		},
 		// Unbounce
@@ -231,7 +231,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"The requested URL was not found on this server",
 			},
-			Description: "Unbounce页面不存在",
+			Description: "UnbouncePage does not exist",
 			Severity:    "medium",
 		},
 		// Surge.sh
@@ -242,7 +242,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"project not found",
 			},
-			Description: "Surge项目不存在",
+			Description: "SurgeProject does not exist",
 			Severity:    "high",
 		},
 		// Vercel
@@ -254,7 +254,7 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 				"The deployment could not be found on Vercel",
 				"DEPLOYMENT_NOT_FOUND",
 			},
-			Description: "Vercel部署不存在",
+			Description: "VercelDeployment does not exist",
 			Severity:    "high",
 		},
 		// Netlify
@@ -265,15 +265,15 @@ func initTakeoverFingerprints() []TakeoverFingerprint {
 			BodyKeywords: []string{
 				"Not Found - Request ID:",
 			},
-			Description: "Netlify站点不存在",
+			Description: "NetlifySite does not exist",
 			Severity:    "high",
 		},
 	}
 }
 
-// Scan 执行子域名接管检测
+// Scan Execute subdomain name takeover detection
 func (s *SubdomainTakeoverScanner) Scan(ctx *ScanContext) error {
-	// 🆕 加载扫描器配置
+	// 🆕 Load Scanner Configuration
 	scannerConfig := LoadScannerConfig(ctx)
 
 	var domains []models.Domain
@@ -282,7 +282,7 @@ func (s *SubdomainTakeoverScanner) Scan(ctx *ScanContext) error {
 	ctx.Logger.Printf("=== Subdomain Takeover Scan Started ===")
 	ctx.Logger.Printf("Checking %d domains for potential takeover vulnerabilities", len(domains))
 
-	// 🆕 使用配置的并发数
+	// 🆕 Use configured co-mingled numbers
 	concurrency := scannerConfig.SubdomainTakeoverConcurrency
 	ctx.Logger.Printf("[Config] Subdomain takeover scanner: concurrency=%d", concurrency)
 
@@ -308,13 +308,13 @@ func (s *SubdomainTakeoverScanner) Scan(ctx *ScanContext) error {
 		}(domain)
 	}
 
-	// 等待所有检测完成
+	// Waiting for all tests to be completed
 	go func() {
 		wg.Wait()
 		close(resultChan)
 	}()
 
-	// 保存结果
+	// Save Results
 	vulnerableCount := 0
 	for result := range resultChan {
 		if result.Vulnerable {
@@ -328,18 +328,18 @@ func (s *SubdomainTakeoverScanner) Scan(ctx *ScanContext) error {
 	return nil
 }
 
-// checkDomain 检查单个域名是否存在接管风险
+// checkDomain Check if there is a takeover risk for a single domain name
 func (s *SubdomainTakeoverScanner) checkDomain(domain string) *TakeoverResult {
-	// 1. 检查CNAME记录
+	// 1. InspectionCNAMERecords
 	cname, err := s.getCNAME(domain)
 	if err != nil || cname == "" {
-		return nil // 没有CNAME，跳过
+		return nil // Nothing.CNAME, Skip
 	}
 
-	// 2. 匹配指纹
+	// 2. Matching fingerprints.
 	for _, fp := range s.fingerprints {
 		if s.matchCNAME(cname, fp.CNAMEPattern) {
-			// 3. HTTP请求验证
+			// 3. HTTPRequest Authentication
 			if s.verifyTakeover(domain, &fp) {
 				return &TakeoverResult{
 					Domain:      domain,
@@ -357,7 +357,7 @@ func (s *SubdomainTakeoverScanner) checkDomain(domain string) *TakeoverResult {
 	return nil
 }
 
-// getCNAME 获取域名的CNAME记录
+// getCNAME returns the CNAME records for a domain.
 func (s *SubdomainTakeoverScanner) getCNAME(domain string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.dnsTimeout)
 	defer cancel()
@@ -367,10 +367,10 @@ func (s *SubdomainTakeoverScanner) getCNAME(domain string) (string, error) {
 		return "", err
 	}
 
-	// 去掉末尾的点
+	// Remove the end point.
 	cname = strings.TrimSuffix(cname, ".")
 
-	// 如果CNAME和域名相同，说明没有CNAME记录
+	// IfCNAMESame as domain name, No, it's not.CNAMERecords
 	if cname == domain {
 		return "", nil
 	}
@@ -378,7 +378,7 @@ func (s *SubdomainTakeoverScanner) getCNAME(domain string) (string, error) {
 	return cname, nil
 }
 
-// matchCNAME 检查CNAME是否匹配指纹模式
+// matchCNAME InspectionCNAMEMatching fingerprint mode
 func (s *SubdomainTakeoverScanner) matchCNAME(cname string, patterns []string) bool {
 	cnameLower := strings.ToLower(cname)
 	for _, pattern := range patterns {
@@ -389,9 +389,9 @@ func (s *SubdomainTakeoverScanner) matchCNAME(cname string, patterns []string) b
 	return false
 }
 
-// verifyTakeover 通过HTTP请求验证是否存在接管风险
+// verifyTakeover ThroughHTTPRequest for verification of taking over risk
 func (s *SubdomainTakeoverScanner) verifyTakeover(domain string, fp *TakeoverFingerprint) bool {
-	// 尝试HTTP和HTTPS
+	// TryHTTPandHTTPS
 	schemes := []string{"https", "http"}
 
 	for _, scheme := range schemes {
@@ -403,7 +403,7 @@ func (s *SubdomainTakeoverScanner) verifyTakeover(domain string, fp *TakeoverFin
 		}
 		defer resp.Body.Close()
 
-		// 检查状态码
+		// Check the status code
 		codeMatch := false
 		for _, code := range fp.ResponseCode {
 			if resp.StatusCode == code {
@@ -416,7 +416,7 @@ func (s *SubdomainTakeoverScanner) verifyTakeover(domain string, fp *TakeoverFin
 			continue
 		}
 
-		// 检查响应体关键字
+		// Check for response keywords
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			continue
@@ -433,9 +433,9 @@ func (s *SubdomainTakeoverScanner) verifyTakeover(domain string, fp *TakeoverFin
 	return false
 }
 
-// saveResult 保存检测结果到数据库
+// saveResult Save detection results to database
 func (s *SubdomainTakeoverScanner) saveResult(ctx *ScanContext, result *TakeoverResult) {
-	// 更新域名记录，添加接管标记
+	// Update domain name records, Add the takeover mark
 	ctx.DB.Model(&models.Domain{}).
 		Where("task_id = ? AND domain = ?", ctx.Task.ID, result.Domain).
 		Updates(map[string]interface{}{
@@ -445,7 +445,7 @@ func (s *SubdomainTakeoverScanner) saveResult(ctx *ScanContext, result *Takeover
 			"takeover_severity":   result.Severity,
 		})
 
-	// 可选：创建单独的漏洞记录表
+	// Optional: Create a separate bug log
 	// vulnerability := &models.Vulnerability{
 	// 	TaskID:      ctx.Task.ID,
 	// 	Type:        "subdomain_takeover",

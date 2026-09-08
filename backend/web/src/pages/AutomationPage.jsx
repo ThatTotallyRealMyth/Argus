@@ -21,7 +21,7 @@ function MonitorHistoryItem({ item }) {
       <span>{item.message || item.description || "-"}</span>
       <time>{formatDate(item.created_at || item.start_time)}</time>
     </div>
-    {findings.length > 0 && <details className="monitor-evidence"><summary>确认凭据泄露证据 {findings.length}</summary><div className="monitor-evidence-list">{findings.map((finding) => <div className="monitor-evidence-row" key={finding.fingerprint || `${finding.repository}:${finding.path}`}><Badge tone={finding.severity === "critical" ? "danger" : "warn"}>{finding.severity || "high"}</Badge><div><strong>{finding.repository || "未知仓库"}</strong><code>{finding.path || "-"}</code><span>{finding.evidence || "confirmed"}</span></div>{finding.url ? <a className="icon-button" title="在 GitHub 查看证据" aria-label={`查看 ${finding.repository || "GitHub"} 证据`} href={finding.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /></a> : <span className="selection-placeholder">-</span>}</div>)}</div></details>}
+    {findings.length > 0 && <details className="monitor-evidence"><summary>Confirm evidence leaking. {findings.length}</summary><div className="monitor-evidence-list">{findings.map((finding) => <div className="monitor-evidence-row" key={finding.fingerprint || `${finding.repository}:${finding.path}`}><Badge tone={finding.severity === "critical" ? "danger" : "warn"}>{finding.severity || "high"}</Badge><div><strong>{finding.repository || "Unknown repository"}</strong><code>{finding.path || "-"}</code><span>{finding.evidence || "confirmed"}</span></div>{finding.url ? <a className="icon-button" title="Yes. GitHub View Evidence" aria-label={`View ${finding.repository || "GitHub"} Evidence`} href={finding.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /></a> : <span className="selection-placeholder">-</span>}</div>)}</div></details>}
   </div>;
 }
 
@@ -57,13 +57,13 @@ export default function AutomationPage() {
   const scopedMonitorTypes = ["domain", "ip", "site", "wih"];
   const monitorTargetPlaceholder = (type) =>
     ({
-      domain: "例如：example.com",
-      ip: "例如：192.168.1.10",
-      site: "例如：https://example.com",
-      github: "例如：org/repo 或敏感关键词",
-      wih: "例如：https://example.com",
-      cve: "例如：nginx, grafana, apache http server",
-    })[type] || "请输入监控目标";
+      domain: "For example: example.com",
+      ip: "For example: 192.168.1.10",
+      site: "For example: https://example.com",
+      github: "For example: org/repo Or sensitive keywords.",
+      wih: "For example: https://example.com",
+      cve: "For example: nginx, grafana, apache http server",
+    })[type] || "Please enter the surveillance target.";
   function blankMonitor() {
     return {
       kind: "monitor",
@@ -149,24 +149,24 @@ export default function AutomationPage() {
           }),
         });
       setEditor(null);
-      setMessage("自动化配置已保存");
+      setMessage("Automation Configuration Saved");
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`保存失败：${error.message}`);
+      setMessage(`Save failed: ${error.message}`);
     } finally {
       setSaving(false);
     }
   }
   async function remove(item) {
-    if (!window.confirm(`确认删除“${item.name}”？`)) return;
+    if (!window.confirm(`Confirm Delete"${item.name}"?`)) return;
     const base = tab === "monitors" ? "/monitors" : "/scheduled-tasks";
     try {
       await api(`${base}/${item.id}`, { method: "DELETE" });
-      setMessage("记录已删除");
+      setMessage("Record deleted");
       setSelectedIDs((current) => current.filter((id) => id !== item.id));
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`删除失败：${error.message}`);
+      setMessage(`Delete failed: ${error.message}`);
     }
   }
   async function toggle(item) {
@@ -185,13 +185,13 @@ export default function AutomationPage() {
         });
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`状态更新失败：${error.message}`);
+      setMessage(`State update failed: ${error.message}`);
     }
   }
   async function batchDelete() {
     if (
       !selectedIDs.length ||
-      !window.confirm(`确认删除选中的 ${selectedIDs.length} 条记录？`)
+      !window.confirm(`Delete the ${selectedIDs.length} selected records?`)
     )
       return;
     const endpoint =
@@ -202,11 +202,11 @@ export default function AutomationPage() {
       tab === "monitors" ? { monitor_ids: selectedIDs } : { ids: selectedIDs };
     try {
       await api(endpoint, { method: "POST", body: JSON.stringify(payload) });
-      setMessage(`已删除 ${selectedIDs.length} 条记录`);
+      setMessage(`Deleted ${selectedIDs.length} Record`);
       setSelectedIDs([]);
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`批量删除失败：${error.message}`);
+      setMessage(`Batch deletion failed: ${error.message}`);
     }
   }
   async function batchToggle(isEnabled) {
@@ -217,12 +217,12 @@ export default function AutomationPage() {
         body: JSON.stringify({ ids: selectedIDs, is_enabled: isEnabled }),
       });
       setMessage(
-        `已${isEnabled ? "启用" : "停用"} ${selectedIDs.length} 条计划任务`,
+        `Already${isEnabled ? "Enable" : "Disable"} ${selectedIDs.length} Planned tasks`,
       );
       setSelectedIDs([]);
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`批量更新失败：${error.message}`);
+      setMessage(`Batch update failed: ${error.message}`);
     }
   }
   async function runNow(item) {
@@ -231,10 +231,10 @@ export default function AutomationPage() {
         method: "POST",
         body: "{}",
       });
-      setMessage(tab === "monitors" ? "监控已进入执行队列" : "已创建一次扫描任务");
+      setMessage(tab === "monitors" ? "Control's in the execution queue." : "Created a scan task");
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`执行失败：${error.message}`);
+      setMessage(`Execution failed: ${error.message}`);
     }
   }
   async function openDetail(item) {
@@ -249,7 +249,7 @@ export default function AutomationPage() {
         items: result.results || result.logs || [],
       });
     } catch (error) {
-      setMessage(`加载记录失败：${error.message}`);
+      setMessage(`Failed to load records: ${error.message}`);
     }
   }
   const groupName = (id) =>
@@ -280,17 +280,17 @@ export default function AutomationPage() {
     });
   const scanScopes = scopeData?.scopes || [];
   const defaultScope = scanScopes.find((scope) => scope.is_default);
-  const scopeName = (id) => scanScopes.find((scope) => scope.id === id)?.name || (id ? id.slice(0, 8) : "兼容模式");
-  const monitorTypeLabels = { domain: "域名", ip: "IP", site: "站点", github: "GitHub 泄露", wih: "WIH", cve: "CVE 情报" };
+  const scopeName = (id) => scanScopes.find((scope) => scope.id === id)?.name || (id ? id.slice(0, 8) : "Compatibility Mode");
+  const monitorTypeLabels = { domain: "Domain name", ip: "IP", site: "Site", github: "GitHub Leak", wih: "WIH", cve: "CVE Intelligence" };
   const records =
     tab === "monitors" ? data?.monitors || [] : data?.scheduled_tasks || [];
   const visibleIDs = records.map((item) => item.id);
-  const rowSelection = (item) => (
+  const rowSelect = (item) => (
     <input
       key="select"
       className="row-check"
       type="checkbox"
-      aria-label={`选择 ${item.name}`}
+      aria-label={`Select ${item.name}`}
       checked={selectedIDs.includes(item.id)}
       onChange={() =>
         setSelectedIDs((current) =>
@@ -306,34 +306,34 @@ export default function AutomationPage() {
     item.name,
     monitorTypeLabels[item.type] || item.type,
     item.asset_group_id
-      ? `分组：${groupName(item.asset_group_id)}`
+      ? `Group: ${groupName(item.asset_group_id)}`
       : item.target,
-    scopedMonitorTypes.includes(item.type) ? (item.scope_id ? <Badge key="scope" tone="ok">{scopeName(item.scope_id)}</Badge> : <Badge key="scope">兼容模式</Badge>) : <span key="scope" className="muted">外部情报</span>,
-    `${Math.round(item.interval / 3600)} 小时`,
+    scopedMonitorTypes.includes(item.type) ? (item.scope_id ? <Badge key="scope" tone="ok">{scopeName(item.scope_id)}</Badge> : <Badge key="scope">Compatibility Mode</Badge>) : <span key="scope" className="muted">External information</span>,
+    `${Math.round(item.interval / 3600)} Hours`,
     <Badge key="status" tone={item.status === "active" ? "ok" : "muted"}>
       {item.status}
     </Badge>,
     item.run_count || 0,
     <div className="row-actions" key="actions">
       <button className="ghost-button compact" onClick={() => runNow(item)}>
-        执行
+        Implementation
       </button>
       <button className="ghost-button compact" onClick={() => openDetail(item)}>
-        记录
+        Records
       </button>
       <button className="ghost-button compact" onClick={() => toggle(item)}>
-        {item.status === "active" ? "暂停" : "恢复"}
+        {item.status === "active" ? "Pause" : "Restore"}
       </button>
       <button
         className="icon-button"
-        title="编辑"
+        title="Edit"
         onClick={() => editMonitor(item)}
       >
         <Edit3 size={14} />
       </button>
       <button
         className="icon-button danger"
-        title="删除"
+        title="Delete"
         onClick={() => remove(item)}
       >
         <Trash2 size={14} />
@@ -345,32 +345,32 @@ export default function AutomationPage() {
     item.name,
     item.cron_type,
     item.task_options?.target || "-",
-    item.scope_id ? <Badge key="scope" tone="ok">{scopeName(item.scope_id)}</Badge> : <Badge key="scope">兼容模式</Badge>,
+    item.scope_id ? <Badge key="scope" tone="ok">{scopeName(item.scope_id)}</Badge> : <Badge key="scope">Compatibility Mode</Badge>,
     formatDate(item.next_run_at),
     item.is_enabled ? (
       <Badge key="on" tone="ok">
-        启用
+        Enable
       </Badge>
     ) : (
-      <Badge key="off">停用</Badge>
+      <Badge key="off">Disable</Badge>
     ),
     `${item.run_count || 0} / ${item.fail_count || 0}`,
     <div className="row-actions" key="actions">
       <button className="ghost-button compact" onClick={() => runNow(item)}>
-        立即运行
+        Run now.
       </button>
       <button className="ghost-button compact" onClick={() => openDetail(item)}>
-        日志
+        Log
       </button>
       <button className="ghost-button compact" onClick={() => toggle(item)}>
-        {item.is_enabled ? "停用" : "启用"}
+        {item.is_enabled ? "Disable" : "Enable"}
       </button>
-      <button className="icon-button" title="编辑" onClick={() => editSchedule(item)}>
+      <button className="icon-button" title="Edit" onClick={() => editSchedule(item)}>
         <Edit3 size={14} />
       </button>
       <button
         className="icon-button danger"
-        title="删除"
+        title="Delete"
         onClick={() => remove(item)}
       >
         <Trash2 size={14} />
@@ -379,7 +379,7 @@ export default function AutomationPage() {
   ]);
   return (
     <Panel
-      title="自动化任务"
+      title="Automate tasks"
       icon={<Activity size={17} />}
       action={
         <button
@@ -389,7 +389,7 @@ export default function AutomationPage() {
           }
         >
           <Plus size={15} />
-          新增{tab === "monitors" ? "监控" : "计划"}
+          Add{tab === "monitors" ? "Surveillance" : "Planned"}
         </button>
       }
     >
@@ -402,7 +402,7 @@ export default function AutomationPage() {
             setSelectedIDs([]);
           }}
           items={["monitors", "schedules"]}
-          labels={{ monitors: "资产监控", schedules: "计划任务" }}
+          labels={{ monitors: "Asset monitoring", schedules: "Planned tasks" }}
         />
         <div className="row-actions task-batch-actions">
           {tab === "schedules" && (
@@ -412,14 +412,14 @@ export default function AutomationPage() {
                 disabled={!selectedIDs.length}
                 onClick={() => batchToggle(true)}
               >
-                批量启用
+                Batch Enable
               </button>
               <button
                 className="ghost-button"
                 disabled={!selectedIDs.length}
                 onClick={() => batchToggle(false)}
               >
-                批量停用
+                Bulk Disable
               </button>
             </>
           )}
@@ -428,13 +428,13 @@ export default function AutomationPage() {
             disabled={!selectedIDs.length}
             onClick={batchDelete}
           >
-            批量删除
+            Batch Delete
           </button>
         </div>
       </div>
-      {error && <div className="error-box">加载失败：{error}</div>}
+      {error && <div className="error-box">Failed to load: {error}</div>}
       {message && (
-        <div className={message.includes("失败") ? "error-box" : "success-box"}>
+        <div className={message.includes("Failed") ? "error-box" : "success-box"}>
           {message}
         </div>
       )}
@@ -444,26 +444,26 @@ export default function AutomationPage() {
         columns={
           tab === "monitors"
             ? [
-                "选择",
-                "名称",
-                "类型",
-                "目标",
-                "授权范围",
-                "周期",
-                "状态",
-                "运行次数",
-                "操作",
+                "Selection",
+                "Name",
+                "Type",
+                "Objective",
+                "Authorization scope",
+                "Cycle",
+                "Status",
+                "Runs",
+                "Operation",
               ]
             : [
-                "选择",
-                "名称",
-                "周期",
-                "目标",
-                "授权范围",
-                "下次运行",
-                "状态",
-                "成功 / 失败",
-                "操作",
+                "Selection",
+                "Name",
+                "Cycle",
+                "Objective",
+                "Authorization scope",
+                "Next run",
+                "Status",
+                "Success / Failed",
+                "Operation",
               ]
         }
         rows={tab === "monitors" ? monitorRows : scheduleRows}
@@ -473,12 +473,12 @@ export default function AutomationPage() {
               ids={visibleIDs}
               selectedIDs={selectedIDs}
               setSelectedIDs={setSelectedIDs}
-              label={tab === "monitors" ? "全部资产监控" : "全部计划任务"}
+              label={tab === "monitors" ? "All asset monitoring" : "All planned tasks"}
             />
           ),
         }}
         selectionColumn
-        empty={tab === "monitors" ? "暂无资产监控" : "暂无计划任务"}
+        empty={tab === "monitors" ? "No asset monitoring for the moment." : "Unscheduled task"}
       />
       <Modal open={Boolean(editor)}>
         {editor && (
@@ -489,17 +489,17 @@ export default function AutomationPage() {
                 <h3>
                   {editor.kind === "monitor"
                     ? editor.id
-                      ? "编辑资产监控"
-                      : "新增资产监控"
+                      ? "Edit asset monitoring"
+                      : "Add asset monitoring"
                     : editor.id
-                      ? "编辑计划任务"
-                      : "新增计划任务"}
+                      ? "Edit Schedule Tasks"
+                      : "Add Planned Tasks"}
                 </h3>
               </div>
               <button
                 type="button"
                 className="icon-button"
-                title="关闭"
+                title="Close"
                 onClick={() => setEditor(null)}
               >
                 <X size={16} />
@@ -509,19 +509,19 @@ export default function AutomationPage() {
               <>
                 <div className="editor-grid">
                   <label>
-                    名称
+                    Name
                     <input
                       name="monitor_name"
                       required
                       value={editor.name}
-                      placeholder="例如：生产域名巡检"
+                      placeholder="For example: Production domain name inspection"
                       onChange={(e) =>
                         setEditor({ ...editor, name: e.target.value })
                       }
                     />
                   </label>
                   <label>
-                    监控类型
+                    Type of monitoring
                     <select
                       name="monitor_type"
                       value={editor.type}
@@ -537,16 +537,16 @@ export default function AutomationPage() {
                         })
                       }
                     >
-                      <option value="domain">域名</option>
+                      <option value="domain">Domain name</option>
                       <option value="ip">IP</option>
-                      <option value="site">站点</option>
+                      <option value="site">Site</option>
                       <option value="github">GitHub</option>
                       <option value="wih">WIH</option>
                       <option value="cve">CVE</option>
                     </select>
                   </label>
                   <label>
-                    目标来源
+                    Target source
                     <select
                       name="monitor_source"
                       value={editor.source}
@@ -554,33 +554,33 @@ export default function AutomationPage() {
                         setEditor({ ...editor, source: e.target.value })
                       }
                     >
-                      <option value="target">单个目标</option>
+                      <option value="target">Single objectives</option>
                       {!["github", "wih", "cve"].includes(editor.type) && (
                         <option
                           value="group"
                           disabled={!groupsForType(editor.type).length}
                         >
-                          资产分组
+                          Asset group
                           {groupsForType(editor.type).length
                             ? ""
-                            : "（暂无匹配资产）"}
+                            : " (No matching assets yet)"}
                         </option>
                       )}
                     </select>
                   </label>
                   {scopedMonitorTypes.includes(editor.type) && <label>
-                    授权范围
+                    Authorization scope
                     <select
                       name="monitor_scope"
                       value={editor.scope_id}
                       onChange={(e) => setEditor({ ...editor, scope_id: e.target.value })}
                     >
-                      <option value="">{defaultScope ? `默认：${defaultScope.name}` : "兼容模式（未配置默认范围）"}</option>
+                      <option value="">{defaultScope ? `Default: ${defaultScope.name}` : "Compatibility Mode (No default scope configured)"}</option>
                       {scanScopes.filter((scope) => !scope.is_default).map((scope) => <option key={scope.id} value={scope.id}>{scope.name}</option>)}
                     </select>
                   </label>}
                   <label>
-                    运行间隔（小时）
+                    Run interval (Hours)
                     <input
                       name="monitor_interval"
                       type="number"
@@ -594,7 +594,7 @@ export default function AutomationPage() {
                   </label>
                   {editor.source === "group" ? (
                     <label className="field-span-2">
-                      资产分组
+                      Asset group
                       <select
                         name="asset_group_id"
                         required
@@ -606,19 +606,19 @@ export default function AutomationPage() {
                           })
                         }
                       >
-                        <option value="">选择包含对应资产类型的分组</option>
+                        <option value="">Select a group that contains the asset type</option>
                         {groupsForType(editor.type).map((group) => (
                           <option key={group.id} value={group.id}>
-                            {group.name}（
-                            {group.asset_counts?.[editor.type] || 0} 个
-                            {editor.type}资产）
+                            {group.name} (
+                            {group.asset_counts?.[editor.type] || 0} One.
+                            {editor.type}Assets)
                           </option>
                         ))}
                       </select>
                     </label>
                   ) : (
                     <label className="field-span-2">
-                      目标
+                      Objective
                       <textarea
                         name="monitor_target"
                         required
@@ -634,11 +634,11 @@ export default function AutomationPage() {
                 </div>
                 {!["github", "wih", "cve"].includes(editor.type) && <div className="plugin-grid automation-flags">
                   {Object.entries({
-                    enable_domain_brute: "域名爆破",
-                    enable_port_scan: "端口扫描",
-                    enable_site_detect: "站点识别",
-                    enable_screenshot: "站点截图",
-                    enable_poc_scan: "PoC 检测",
+                    enable_domain_brute: "Subdomain brute force",
+                    enable_port_scan: "Port Scan",
+                    enable_site_detect: "Site detection",
+                    enable_screenshot: "Site Screenshot",
+                    enable_poc_scan: "PoC validation",
                   }).map(([key, label]) => (
                     <label className="feature-toggle" key={key}>
                       <input
@@ -662,13 +662,13 @@ export default function AutomationPage() {
                 <section className="editor-section monitor-notification-section">
                   <div className="editor-section-head">
                     <span>02</span>
-                    <strong>通知通道</strong>
+                    <strong>Call Channel</strong>
                   </div>
                   <div className="plugin-grid automation-flags">
                     {Object.entries({
-                      enable_webhook: "通用 Webhook",
-                      enable_dingding: "钉钉",
-                      enable_feishu: "飞书",
+                      enable_webhook: "Universal Webhook",
+                      enable_dingding: "Nails.",
+                      enable_feishu: "Flying books.",
                     }).map(([key, label]) => (
                       <label className="feature-toggle" key={key}>
                         <input
@@ -694,19 +694,19 @@ export default function AutomationPage() {
             ) : (<>
               <div className="editor-grid">
                 <label>
-                  名称
+                  Name
                   <input
                     name="schedule_name"
                     required
                     value={editor.name}
-                    placeholder="例如：每日外网资产巡检"
+                    placeholder="For example: Daily outnet asset inspection"
                     onChange={(e) =>
                       setEditor({ ...editor, name: e.target.value })
                     }
                   />
                 </label>
                 <label>
-                  扫描策略
+                  Scan Policy
                   <select
                     name="schedule_policy"
                     value={editor.policy_id}
@@ -714,7 +714,7 @@ export default function AutomationPage() {
                       setEditor({ ...editor, policy_id: e.target.value })
                     }
                   >
-                    <option value="">基础扫描</option>
+                    <option value="">Basic Scan</option>
                     {(policyData?.policies || []).map((policy) => (
                       <option key={policy.id} value={policy.id}>
                         {policy.name}
@@ -723,7 +723,7 @@ export default function AutomationPage() {
                   </select>
                 </label>
                 <label>
-                  授权范围
+                  Authorization scope
                   <select
                     name="schedule_scope"
                     value={editor.scope_id}
@@ -731,27 +731,27 @@ export default function AutomationPage() {
                       setEditor({ ...editor, scope_id: e.target.value })
                     }
                   >
-                    <option value="">{defaultScope ? `默认：${defaultScope.name}` : "兼容模式（未配置默认范围）"}</option>
+                    <option value="">{defaultScope ? `Default: ${defaultScope.name}` : "Compatibility Mode (No default scope configured)"}</option>
                     {scanScopes.filter((scope) => !scope.is_default).map((scope) => (
                       <option key={scope.id} value={scope.id}>{scope.name}</option>
                     ))}
                   </select>
                 </label>
                 <label className="field-span-2">
-                  目标
+                  Objective
                   <textarea
                     name="schedule_target"
                     required
                     rows="4"
                     value={editor.target}
-                    placeholder="例如：example.com, 192.168.1.10/24（多个目标用逗号分隔）"
+                    placeholder="For example: example.com, 192.168.1.10/24 (Multiple targets separated by commas)"
                     onChange={(e) =>
                       setEditor({ ...editor, target: e.target.value })
                     }
                   />
                 </label>
                 <label>
-                  运行周期
+                  Run cycle
                   <select
                     name="schedule_cron_type"
                     value={editor.cron_type}
@@ -759,16 +759,16 @@ export default function AutomationPage() {
                       setEditor({ ...editor, cron_type: e.target.value })
                     }
                   >
-                    <option value="once">一次</option>
-                    <option value="daily">每天 02:00</option>
-                    <option value="weekly">每周一 02:00</option>
-                    <option value="monthly">每月 1 日 02:00</option>
-                    <option value="custom">自定义 Cron</option>
+                    <option value="once">Once.</option>
+                    <option value="daily">Every day 02:00</option>
+                    <option value="weekly">Monday 02:00</option>
+                    <option value="monthly">Monthly 1 Day 02:00</option>
+                    <option value="custom">Custom Cron</option>
                   </select>
                 </label>
                 {editor.cron_type === "custom" && (
                   <label>
-                    Cron（秒 分 时 日 月 周）
+                    Cron (sec min Hour Day Month Week)
                     <input
                       name="schedule_cron_expr"
                       required
@@ -780,11 +780,11 @@ export default function AutomationPage() {
                   </label>
                 )}
                 <label className="field-span-2">
-                  说明
+                  Description
                   <input
                     name="schedule_description"
                     value={editor.description}
-                    placeholder="例如：工作日凌晨执行"
+                    placeholder="For example: Execution during dawn of working day"
                     onChange={(e) =>
                       setEditor({ ...editor, description: e.target.value })
                     }
@@ -793,9 +793,9 @@ export default function AutomationPage() {
               </div>
               <div className="plugin-grid automation-flags">
                 {Object.entries({
-                  enable_crawler: "站点路径爬取",
-                  enable_file_leak: "敏感路径探测",
-                  enable_poc_detection: "PoC 漏洞验证",
+                  enable_crawler: "Site Path Crawling",
+                  enable_file_leak: "Sensitive path detection",
+                  enable_poc_detection: "PoC Label Validation",
                 }).map(([key, label]) => <label className="feature-toggle" key={key}><input name={`schedule_${key}`} type="checkbox" checked={Boolean(editor.options[key])} onChange={() => setEditor({ ...editor, options: { ...editor.options, [key]: !editor.options[key] } })} /><span>{label}</span></label>)}
               </div>
             </>)}
@@ -805,10 +805,10 @@ export default function AutomationPage() {
                 className="ghost-button"
                 onClick={() => setEditor(null)}
               >
-                取消
+                Cancel
               </button>
               <button className="primary-button" disabled={saving}>
-                {saving ? "保存中..." : "保存"}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </form>
@@ -825,7 +825,7 @@ export default function AutomationPage() {
               <button
                 type="button"
                 className="icon-button"
-                title="关闭"
+                title="Close"
                 onClick={() => setDetail(null)}
               >
                 <X size={16} />
@@ -834,7 +834,7 @@ export default function AutomationPage() {
             {detail.items.length ? (
               detail.items.map((item) => <MonitorHistoryItem item={item} key={item.id} />)
             ) : (
-              <EmptyState text="暂无执行记录" />
+              <EmptyState text="No record of execution at present" />
             )}
           </div>
         )}

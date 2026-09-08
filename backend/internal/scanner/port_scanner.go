@@ -7,13 +7,13 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// PortScanner 端口扫描器 - 使用优化的混合扫描策略
+// PortScanner Port Scanner - Use optimized mix scanning policy
 type PortScanner struct {
 	portSets map[string][]int
 	scanner  *AdvancedPortScanner
 }
 
-// NewPortScanner 创建端口扫描器
+// NewPortScanner Create Port Scanner
 func NewPortScanner() *PortScanner {
 	ps := &PortScanner{
 		portSets: map[string][]int{
@@ -31,12 +31,12 @@ func NewPortScanner() *PortScanner {
 	return ps
 }
 
-// Scan 执行端口扫描
+// Scan Execute Port Scan
 func (ps *PortScanner) Scan(ctx *ScanContext) error {
-	// 🆕 加载扫描器配置
+	// 🆕 Load Scanner Configuration
 	scannerConfig := LoadScannerConfig(ctx)
 
-	// 获取所有IP
+	// Get AllIP
 	var ips []models.IP
 	ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&ips)
 
@@ -50,7 +50,7 @@ func (ps *PortScanner) Scan(ctx *ScanContext) error {
 		return nil
 	}
 
-	// 获取端口列表
+	// Fetch Port List
 	portScanType := ctx.Task.Options.PortScanType
 	if portScanType == "" {
 		portScanType = "top100"
@@ -61,7 +61,7 @@ func (ps *PortScanner) Scan(ctx *ScanContext) error {
 		return fmt.Errorf("unknown port scan type: %s", portScanType)
 	}
 
-	// 根据端口数量选择扫描模式
+	// Scanning mode selected according to number of ports
 	scanMode := "normal"
 	if len(ports) <= 100 {
 		scanMode = "fast"
@@ -72,7 +72,7 @@ func (ps *PortScanner) Scan(ctx *ScanContext) error {
 	ctx.Logger.Printf("Starting port scan with mode: %s", scanMode)
 	ps.scanner.SetScanMode(scanMode)
 
-	// 🆕 应用配置
+	// 🆕 Apply Configuration
 	ps.scanner.ApplyConfig(scannerConfig, len(ports))
 	ctx.Logger.Printf("[Config] Port scanner: using Masscan + Nmap for %d ports", len(ports))
 
@@ -93,18 +93,18 @@ func authorizedPortScanIPs(ctx *ScanContext, ips []models.IP) []models.IP {
 	return result
 }
 
-// scanWithScanner 执行端口扫描
+// scanWithScanner Execute Port Scan
 func (ps *PortScanner) scanWithScanner(ctx *ScanContext, ips []models.IP, ports []int) error {
 	startTime := time.Now()
 	results, err := ps.scanner.ScanWithProgress(ctx, ips, ports)
 	if err != nil {
 		return fmt.Errorf("port scan failed: %v", err)
 	}
-	// 🆕 端口结果已在扫描过程中实时保存，这里只输出统计信息
+	// 🆕 Port results are stored in real time during scanning, Only statistical information is exported here.
 	return ps.logScanSummary(ctx, results, ips, ports, startTime)
 }
 
-// logScanSummary 输出扫描统计信息（结果已在扫描过程中实时保存）
+// logScanSummary Output Scan Statistical Information (The results were saved in real time during the scan.)
 func (ps *PortScanner) logScanSummary(ctx *ScanContext, results []*PortScanResult, ips []models.IP, ports []int, startTime time.Time) error {
 	elapsed := time.Since(startTime)
 	ctx.Logger.Printf("=== Port Scan Summary ===")
@@ -117,46 +117,46 @@ func (ps *PortScanner) logScanSummary(ctx *ScanContext, results []*PortScanResul
 	return nil
 }
 
-// generateTop100Ports 生成TOP100端口列表
+// generateTop100Ports GenerateTOP100Port List
 func generateTop100Ports() []int {
 	return []int{
-		// Web服务
+		// WebServices
 		80, 443, 8080, 8443, 8000, 8008, 8081, 8088, 8888, 9000,
-		// 数据库
+		// Database
 		3306, 5432, 1433, 1521, 27017, 6379, 11211, 9200, 9300,
-		// 远程访问
+		// Remote access
 		22, 23, 3389, 5900, 5901,
-		// 邮件
+		// Mail
 		25, 110, 143, 465, 587, 993, 995,
-		// 文件服务
+		// Documentation services
 		21, 20, 69, 139, 445, 2049,
-		// DNS和目录
+		// DNSand Directory
 		53, 389, 636,
-		// 中间件
+		// Middle
 		8009, 8161, 9043, 7001, 7002, 9080, 9090,
-		// 消息队列
+		// Message Queue
 		5672, 61616, 9092,
-		// 容器
+		// Containers
 		2375, 2376, 6443, 10250,
-		// 其他常用
+		// Other common
 		111, 135, 161, 162, 514, 873, 1080, 1723, 1883,
 		3000, 3128, 4848, 5000, 5984, 6000, 7000, 7070,
 		8001, 8060, 8069, 8083, 8086, 8087, 8089, 8091,
 		9001, 9002, 9060, 9081, 9091, 9999, 10000,
 		50000, 50070, 50030, 50060, 50075,
-		// 额外的Web端口
+		// ExtraWebPort
 		81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
 	}
 }
 
-// generateTop1000Ports 生成TOP1000端口列表
+// generateTop1000Ports GenerateTOP1000Port List
 func generateTop1000Ports() []int {
 	ports := make([]int, 0, 1000)
 
-	// 先添加Top100
+	// Add firstTop100
 	ports = append(ports, generateTop100Ports()...)
 
-	// 添加1-1024范围内的其他端口
+	// Add1-1024Other ports within range
 	commonExclude := make(map[int]bool)
 	for _, p := range ports {
 		commonExclude[p] = true
@@ -168,7 +168,7 @@ func generateTop1000Ports() []int {
 		}
 	}
 
-	// 添加一些高端口常用服务
+	// Add some high port common services
 	highPorts := []int{
 		1025, 1026, 1027, 1028, 1029, 1030,
 		1080, 1194, 1337, 1433, 1434, 1521, 1723, 1755,
@@ -213,7 +213,7 @@ func generateTop1000Ports() []int {
 	return ports
 }
 
-// generateAllPorts 生成全端口列表 (1-65535)
+// generateAllPorts Generate full port list (1-65535)
 func generateAllPorts() []int {
 	ports := make([]int, 65535)
 	for i := 0; i < 65535; i++ {

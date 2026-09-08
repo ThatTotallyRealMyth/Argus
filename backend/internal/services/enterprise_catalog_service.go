@@ -200,7 +200,7 @@ func resolveEnterpriseSyncGroup(tx *gorm.DB, groupID, newGroupName string) (*mod
 	if result.RowsAffected == 1 {
 		return &group, nil
 	}
-	group = models.AssetGroup{Name: newGroupName, Description: "由企业资产发现同步创建"}
+	group = models.AssetGroup{Name: newGroupName, Description: "Created by Enterprise Asset Discovery"}
 	if err := tx.Create(&group).Error; err != nil {
 		return nil, err
 	}

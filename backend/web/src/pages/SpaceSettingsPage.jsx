@@ -8,7 +8,7 @@ import { hasConfiguredSetting, normalizeSettingState } from "../lib/settings.js"
 
 function SettingsMessage({ message, onClose }) {
   const reduceMotion = useReducedMotion();
-  const failed = message.includes("失败");
+  const failed = message.includes("Failed");
   return (
     <AnimatePresence initial={false} mode="wait">
       {message && (
@@ -29,8 +29,8 @@ function SettingsMessage({ message, onClose }) {
           <button
             type="button"
             className="settings-message-close"
-            title="关闭消息"
-            aria-label="关闭消息"
+            title="Close Message"
+            aria-label="Close Message"
             onClick={onClose}
           >
             <X size={14} />
@@ -52,8 +52,8 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     {
       id: "fofa",
       name: "FOFA",
-      region: "国内",
-      plan: "免费额度 / 会员",
+      region: "National",
+      plan: "Free amount / Members",
       fields: [
         ["fofa_email", "Email", false],
         ["fofa_key", "API Key", true],
@@ -62,91 +62,91 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     {
       id: "hunter",
       name: "Hunter",
-      region: "国内",
-      plan: "积分套餐",
+      region: "National",
+      plan: "A full set.",
       fields: [["hunter_api_key", "API Key", true]],
     },
     {
       id: "quake",
       name: "360 Quake",
-      region: "国内",
-      plan: "免费额度 / 会员",
+      region: "National",
+      plan: "Free amount / Members",
       fields: [["quake_api_key", "API Key", true]],
     },
     {
       id: "zoomeye",
       name: "ZoomEye",
-      region: "国内",
-      plan: "免费额度 / 订阅",
+      region: "National",
+      plan: "Free amount / Subscriptions",
       fields: [["zoomeye_api_key", "API Key", true]],
     },
     {
       id: "shodan",
       name: "Shodan",
-      region: "海外",
-      plan: "订阅套餐",
+      region: "Overseas",
+      plan: "Subscribe Package",
       fields: [["shodan_api_key", "API Key", true]],
     },
     {
       id: "virustotal",
       name: "VirusTotal",
-      region: "海外",
-      plan: "免费额度 / 企业",
+      region: "Overseas",
+      plan: "Free amount / Enterprise",
       fields: [["virustotal_api_key", "API Key", true]],
     },
     {
       id: "github",
       name: "GitHub",
-      region: "海外",
-      plan: "免费额度 / Token",
+      region: "Overseas",
+      plan: "Free amount / Token",
       fields: [["github_token", "Personal Access Token", true]],
     },
     {
       id: "custom_space_api",
-      name: "自定义接口",
-      region: "自定义",
-      plan: "按接口方计费",
+      name: "Custom interface",
+      region: "Custom",
+      plan: "Cost by interface",
       validate: false,
       requiredFields: ["custom_space_api_url"],
       fields: [
-        ["custom_space_api_url", "查询 URL", true],
-        ["custom_space_api_headers", "请求头 JSON", true],
+        ["custom_space_api_url", "Query URL", true],
+        ["custom_space_api_headers", "Request JSON", true],
       ],
     },
     {
       id: "enterprise_icp",
       name: "ICP_Query",
-      region: "企业资产",
-      plan: "自托管 / 兼容接口",
+      region: "Enterprise assets",
+      plan: "From Trust / Compatibility Interface",
       validate: false,
       requiredFields: ["enterprise_icp_api_url"],
       fields: [
-        ["enterprise_icp_api_url", "接口地址", true],
-        ["enterprise_icp_api_headers", "请求头 JSON（可选）", true],
+        ["enterprise_icp_api_url", "Interface Address", true],
+        ["enterprise_icp_api_headers", "Request JSON (Optional)", true],
       ],
     },
   ];
   const scannerKeys = [
-    ["domain_concurrency", "域名并发", false, "50"],
-    ["domain_timeout", "域名超时（秒）", false, "3"],
-    ["domain_retry", "域名重试", false, "2"],
-    ["subdomain_takeover_concurrency", "子域接管检测并发", false, "20"],
-    ["port_concurrency_small", "小端口集并发", false, "100"],
-    ["port_concurrency_medium", "中端口集并发", false, "300"],
-    ["port_concurrency_large", "全端口并发", false, "500"],
-    ["port_timeout", "端口超时（秒）", false, "1.5"],
-    ["site_concurrency", "站点探测并发", false, "30"],
-    ["site_timeout", "站点超时（秒）", false, "5"],
-    ["crawler_max_depth", "爬虫深度", false, "3"],
-    ["crawler_max_pages", "爬虫最大页面", false, "500"],
-    ["service_timeout", "服务识别超时（秒）", false, "3"],
-    ["banner_max_length", "Banner 最大长度", false, "2048"],
-    ["file_leak_concurrency", "目录枚举并发", false, "20"],
-    ["file_leak_rate_limit", "目录枚举速率（请求/秒，0 不限速）", false, "0"],
-    ["proxy_auto_check_enabled", "代理自动健康检查", false, "true"],
-    ["proxy_check_interval_seconds", "代理检查间隔（秒）", false, "30"],
-    ["proxy_rotation_enabled", "代理自动轮换", false, "true"],
-    ["proxy_rotation_interval_seconds", "代理轮换间隔（秒）", false, "30"],
+    ["domain_concurrency", "Concurrent domain requests", false, "50"],
+    ["domain_timeout", "Domain timeout (seconds)", false, "3"],
+    ["domain_retry", "Domain retries", false, "2"],
+    ["subdomain_takeover_concurrency", "Concurrent subdomain-takeover checks", false, "20"],
+    ["port_concurrency_small", "Small Port Collection and Distribution", false, "100"],
+    ["port_concurrency_medium", "Medium Port Collection and Distribution", false, "300"],
+    ["port_concurrency_large", "Full port and send", false, "500"],
+    ["port_timeout", "Port timeout (sec)", false, "1.5"],
+    ["site_concurrency", "Site detection and distribution", false, "30"],
+    ["site_timeout", "Post timeout (sec)", false, "5"],
+    ["crawler_max_depth", "Crawling depth", false, "3"],
+    ["crawler_max_pages", "Maximum crawl pages", false, "500"],
+    ["service_timeout", "Service detection timed out (sec)", false, "3"],
+    ["banner_max_length", "Banner Maximum length", false, "2048"],
+    ["file_leak_concurrency", "List of contents", false, "20"],
+    ["file_leak_rate_limit", "Catalogue count rate (Request/sec, 0 No speed limit.)", false, "0"],
+    ["proxy_auto_check_enabled", "Proxy automatic health check-ups", false, "true"],
+    ["proxy_check_interval_seconds", "Proxy Check Interval (sec)", false, "30"],
+    ["proxy_rotation_enabled", "Proxy Auto Rotation", false, "true"],
+    ["proxy_rotation_interval_seconds", "Proxy Rotation (sec)", false, "30"],
   ];
   const scannerLimits = {
     domain_concurrency: [1, 1000, 1],
@@ -171,7 +171,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
   const notificationChannels = [
     {
       id: "webhook",
-      name: "通用 Webhook",
+      name: "Universal Webhook",
       enabledKey: "webhook_enabled",
       urlKey: "webhook_url",
       secretKey: "webhook_secret",
@@ -179,7 +179,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     },
     {
       id: "dingtalk",
-      name: "钉钉",
+      name: "Nails.",
       enabledKey: "dingding_enabled",
       urlKey: "dingding_webhook",
       secretKey: "dingding_secret",
@@ -187,7 +187,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     },
     {
       id: "feishu",
-      name: "飞书",
+      name: "Flying books.",
       enabledKey: "feishu_enabled",
       urlKey: "feishu_webhook",
       secretKey: "feishu_secret",
@@ -233,9 +233,9 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           ),
         }),
       });
-      setMessage("参数已保存");
+      setMessage("Parameters saved");
     } catch (error) {
-      setMessage(`保存失败：${error.message}`);
+      setMessage(`Save failed: ${error.message}`);
     }
   }
 
@@ -251,21 +251,21 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
               values[channel.enabledKey] === true ||
                 values[channel.enabledKey] === "true",
             ),
-            description: `${channel.name} 启用状态`,
+            description: `${channel.name} Enable Status`,
             is_encrypted: false,
           },
           {
             category: "notification",
             key: channel.urlKey,
             value: values[channel.urlKey] || "",
-            description: `${channel.name} 地址`,
+            description: `${channel.name} Address`,
             is_encrypted: true,
           },
           {
             category: "notification",
             key: channel.secretKey,
             value: values[channel.secretKey] || "",
-            description: `${channel.name} 签名密钥`,
+            description: `${channel.name} Sign Key`,
             is_encrypted: true,
           },
         ]),
@@ -277,10 +277,10 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     event.preventDefault();
     try {
       await persistNotificationSettings();
-      setMessage("通知配置已保存");
+      setMessage("Notification Configuration Saved");
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`保存失败：${error.message}`);
+      setMessage(`Save failed: ${error.message}`);
     }
   }
 
@@ -293,10 +293,10 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
         method: "POST",
         body: "{}",
       });
-      setMessage(`${channel.name} 测试消息已发送`);
+      setMessage(`${channel.name} Test message sent`);
       setRefresh((x) => x + 1);
     } catch (error) {
-      setMessage(`${channel.name} 测试失败：${error.message}`);
+      setMessage(`${channel.name} Test Failed: ${error.message}`);
     } finally {
       setTestingChannel("");
     }
@@ -321,18 +321,18 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
             endpoint.password
           )
             throw new Error(
-              "协议必须是 HTTP 或 HTTPS，且 URL 不能包含账号密码",
+              "The URL must use HTTP or HTTPS and must not include a path",
             );
         } else if (!configuredKeys.has("enterprise_icp_api_url")) {
-          throw new Error("接口地址不能为空");
+          throw new Error("Interface address cannot be empty");
         }
         const rawHeaders = credentials.enterprise_icp_api_headers.trim();
         if (rawHeaders) {
           const parsedHeaders = JSON.parse(rawHeaders);
-          if (!parsedHeaders || Array.isArray(parsedHeaders) || typeof parsedHeaders !== "object" || Object.values(parsedHeaders).some((value) => typeof value !== "string")) throw new Error("请求头必须是字符串键值的 JSON 对象");
+          if (!parsedHeaders || Array.isArray(parsedHeaders) || typeof parsedHeaders !== "object" || Object.values(parsedHeaders).some((value) => typeof value !== "string")) throw new Error("The request header must be for string keys JSON Object");
         }
       } catch (error) {
-        setProviderEditor((current) => ({ ...current, validation: `配置无效：${error.message}` }));
+        setProviderEditor((current) => ({ ...current, validation: `Configuration invalid: ${error.message}` }));
         return;
       }
     }
@@ -350,13 +350,13 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           })),
         }),
       });
-      setMessage(`${provider.name} 凭据已保存`);
+      setMessage(`${provider.name} File saved`);
       setProviderEditor(null);
       setRefresh((x) => x + 1);
     } catch (error) {
       setProviderEditor((current) => ({
         ...current,
-        validation: `保存失败：${error.message}`,
+        validation: `Save failed: ${error.message}`,
       }));
     }
   }
@@ -371,7 +371,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     useSaved = false,
   ) {
     if (provider.validate === false)
-      throw new Error("自定义接口需要保存后通过任务实际请求验证");
+      throw new Error("Custom interfaces need to be saved and authenticated by task");
     return api(`/settings/validate/${provider.id}`, {
       method: "POST",
       body: JSON.stringify({
@@ -387,16 +387,16 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     if (provider.validate === false) {
       setProviderEditor((current) => ({
         ...current,
-        validation: "自定义接口需要保存后通过任务实际请求验证",
+        validation: "Custom interfaces need to be saved and authenticated by task",
       }));
       return;
     }
-    setProviderEditor((current) => ({ ...current, validation: "验证中..." }));
+    setProviderEditor((current) => ({ ...current, validation: "Validation..." }));
     try {
       await requestProviderValidation(provider, credentials);
       setProviderEditor((current) => ({
         ...current,
-        validation: "凭据有效，接口连接成功",
+        validation: "The evidence is valid., Interface connection successfully",
       }));
     } catch (error) {
       setProviderEditor((current) => ({
@@ -410,9 +410,9 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
     setMessage("");
     try {
       await requestProviderValidation(provider, {}, true);
-      setMessage(`${provider.name} 凭据验证通过`);
+      setMessage(`${provider.name} Validation`);
     } catch (error) {
-      setMessage(`${provider.name} 验证失败：${error.message}`);
+      setMessage(`${provider.name} Validation failed: ${error.message}`);
     } finally {
       setValidatingProvider("");
     }
@@ -440,14 +440,14 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           category: "api",
           key,
           value: String(enabled),
-          description: `${provider.name} 启用状态`,
+          description: `${provider.name} Enable Status`,
           is_encrypted: false,
         }),
       });
       setValues((current) => ({ ...current, [key]: String(enabled) }));
-      setMessage(`${provider.name} 已${enabled ? "启用" : "停用"}`);
+      setMessage(`${provider.name} Already${enabled ? "Enable" : "Disable"}`);
     } catch (error) {
-      setMessage(`${provider.name} 切换失败：${error.message}`);
+      setMessage(`${provider.name} Toggle Failed: ${error.message}`);
     } finally {
       setTogglingProvider("");
     }
@@ -467,7 +467,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
       provider.region,
       provider.plan,
       <Badge key="status" tone={configured ? "ok" : "muted"}>
-        {configured ? "已配置" : "未配置"}
+        {configured ? "Configured" : "Not configured"}
       </Badge>,
       <button
         type="button"
@@ -476,18 +476,18 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
         aria-label={
           configured
             ? enabled
-              ? `停用 ${provider.name}`
-              : `启用 ${provider.name}`
-            : `${provider.name} 未配置`
+              ? `Disable ${provider.name}`
+              : `Enable ${provider.name}`
+            : `${provider.name} Not configured`
         }
         className={`provider-toggle ${enabled ? "active" : ""}`}
         disabled={!configured || Boolean(togglingProvider)}
         title={
           configured
             ? enabled
-              ? `停用 ${provider.name}`
-              : `启用 ${provider.name}`
-            : "请先配置凭据"
+              ? `Disable ${provider.name}`
+              : `Enable ${provider.name}`
+            : "Please configure the documents first."
         }
         onClick={() => toggleProvider(provider, configured)}
       >
@@ -495,7 +495,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           <span />
         </span>
         <span className="provider-toggle-label">
-          {toggling ? "保存中" : enabled ? "已启用" : "已停用"}
+          {toggling ? "Saving" : enabled ? "Enabled" : "Disabled"}
         </span>
       </button>,
       <div className="row-actions" key="actions">
@@ -504,22 +504,22 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           onClick={() => editProvider(provider)}
         >
           <Edit3 size={13} />
-          编辑
+          Edit
         </button>
         <button
           className="ghost-button compact"
           disabled={!canValidate || validating}
           title={
             provider.validate === false
-              ? "自定义接口需通过任务实际请求验证"
+              ? "Custom interfaces need to be validated by actual request for task"
               : configured
-                ? "验证已保存凭据"
-                : "请先配置凭据"
+                ? "Validation saved"
+                : "Please configure the documents first."
           }
           onClick={() => validateSavedProvider(provider)}
         >
           <RefreshCw size={13} />
-          {validating ? "验证中..." : "验证"}
+          {validating ? "Validation..." : "Validation"}
         </button>
       </div>,
     ];
@@ -527,7 +527,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
 
   return (
     <Panel
-      title={category === "api" ? "测绘数据源" : "系统设置"}
+      title={category === "api" ? "Intelligence providers" : "System Settings"}
       icon={
         category === "notification" ? (
           <BellRing size={17} />
@@ -545,7 +545,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
               setMessage("");
             }}
             items={["scanner", "notification"]}
-            labels={{ scanner: "扫描引擎", notification: "通知" }}
+            labels={{ scanner: "Scan engines", notification: "Announcements" }}
           />
         </div>
       )}
@@ -553,14 +553,14 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
         <>
           <div className="provider-intro">
             <span>SPACE SEARCH PROVIDERS</span>
-            <p>逐条配置、验证并启用供应商，验证请求同样遵循已启用的代理池。</p>
+            <p>Configure each provider, Validate and activate suppliers, Validation request also follows an enabled proxy pool.</p>
           </div>
           <DataTable
             storageKey="settings-providers"
             loading={loading}
-            columns={["供应商", "区域", "套餐", "配置", "启用", "操作"]}
+            columns={["Vendors", "Regional", "The package.", "Configuration", "Enable", "Actions"]}
             rows={providerRows}
-            empty="暂无供应商"
+            empty="No vendor at present"
           />
         </>
       ) : category === "scanner" ? (
@@ -583,7 +583,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                       setValues({ ...values, [key]: String(e.target.checked) })
                     }
                   />
-                  <span>启用</span>
+                  <span>Enable</span>
                 </span>
               ) : (
                 <input
@@ -607,14 +607,14 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
             </label>
           ))}
           <div className="hint">
-            代理请求按健康节点轮询实现负载均衡；开启自动轮换后，轮询起点按间隔换位。修改后仅影响新启动的任务。并发值过高可能触发目标限速或耗尽本机连接。
+            Requests are balanced across healthy proxy nodes. Automatic rotation selects a new egress node for each request and applies only to newly started tasks. High concurrency may trigger target rate limits or exhaust local connections.
           </div>
-          {loading && <div className="hint">加载中...</div>}
-          {error && <div className="error-box">加载失败：{error}</div>}
+          {loading && <div className="hint">Loading...</div>}
+          {error && <div className="error-box">Failed to load: {error}</div>}
           <SettingsMessage message={message} onClose={() => setMessage("")} />
           <button className="primary-button">
             <KeyRound size={16} />
-            保存参数
+            Save Parameters
           </button>
         </form>
       ) : (
@@ -625,7 +625,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
           <div className="provider-intro">
             <span>ALERT DELIVERY</span>
             <p>
-              监控发现新增、变化或执行失败时，通过启用的通道发送告警。每个监控仍可单独关闭某个通道。
+              Send alerts through enabled channels when monitors find additions, changes, or execution failures. Individual monitors can disable a channel.
             </p>
           </div>
           {notificationChannels.map((channel) => {
@@ -641,13 +641,13 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                 <div className="notification-channel-head">
                   <div>
                     <strong>{channel.name}</strong>
-                    <span>{enabled ? "已启用" : "未启用"}</span>
+                    <span>{enabled ? "Enabled" : "Not enabled"}</span>
                   </div>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={enabled}
-                    aria-label={`${enabled ? "停用" : "启用"}${channel.name}`}
+                    aria-label={`${enabled ? "Disable" : "Enable"}${channel.name}`}
                     className={`provider-toggle ${enabled ? "active" : ""}`}
                     onClick={() =>
                       setValues((current) => ({
@@ -663,7 +663,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                 </div>
                 <div className="editor-grid">
                   <label>
-                    Webhook 地址
+                    Webhook Address
                     <input
                       name={channel.urlKey}
                       type="password"
@@ -671,7 +671,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                       value={values[channel.urlKey] || ""}
                       placeholder={
                         configuredKeys.has(channel.urlKey)
-                          ? "已保存，留空保持不变"
+                          ? "Saved, Leave the space unchanged."
                           : channel.urlPlaceholder
                       }
                       onChange={(event) =>
@@ -683,7 +683,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                     />
                   </label>
                   <label>
-                    签名密钥（可选）
+                    Sign Key (Optional)
                     <input
                       name={channel.secretKey}
                       type="password"
@@ -691,8 +691,8 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                       value={values[channel.secretKey] || ""}
                       placeholder={
                         configuredKeys.has(channel.secretKey)
-                          ? "已保存，留空保持不变"
-                          : "未配置时发送无签名请求"
+                          ? "Saved, Leave the space unchanged."
+                          : "Send no signature request when not configured"
                       }
                       onChange={(event) =>
                         setValues((current) => ({
@@ -710,26 +710,26 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                     disabled={!canTest}
                     title={
                       !enabled
-                        ? "请先启用该通道"
+                        ? "Please enable the passage first."
                         : !values[channel.urlKey]
-                          ? "请先填写 Webhook 地址"
-                          : "保存当前配置并发送测试消息"
+                          ? "Please fill in first. Webhook Address"
+                          : "Save the current configuration and send test messages"
                     }
                     onClick={() => testNotification(channel)}
                   >
                     <Send size={13} />
-                    {testingChannel === channel.id ? "发送中..." : "保存并测试"}
+                    {testingChannel === channel.id ? "Sending..." : "Save and Test"}
                   </button>
                 </div>
               </section>
             );
           })}
-          {loading && <div className="hint">加载中...</div>}
-          {error && <div className="error-box">加载失败：{error}</div>}
+          {loading && <div className="hint">Loading...</div>}
+          {error && <div className="error-box">Failed to load: {error}</div>}
           <SettingsMessage message={message} onClose={() => setMessage("")} />
           <button className="primary-button">
             <BellRing size={16} />
-            保存通知配置
+            Save Notification Configuration
           </button>
         </form>
       )}
@@ -747,8 +747,8 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
               <button
                 type="button"
                 className="icon-button"
-                title="关闭配置"
-                aria-label="关闭配置"
+                title="Close Configuration"
+                aria-label="Close Configuration"
                 onClick={() => setProviderEditor(null)}
               >
                 <X size={16} />
@@ -764,7 +764,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                   value={providerEditor.credentials[key] || ""}
                   placeholder={
                     encrypted && configuredKeys.has(key)
-                      ? "已保存，留空保持不变"
+                      ? "Saved, Leave the space unchanged."
                       : ""
                   }
                   onChange={(e) =>
@@ -783,7 +783,7 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
             {providerEditor.validation && (
               <div
                 className={
-                  providerEditor.validation.startsWith("凭据有效")
+                  providerEditor.validation.startsWith("The evidence is valid.")
                     ? "success-box"
                     : "hint"
                 }
@@ -798,14 +798,14 @@ export default function SpaceSettingsPage({ mode = "mapping" }) {
                 onClick={validateProvider}
               >
                 <RefreshCw size={14} />
-                验证凭据
+                Validation of the certificate
               </button>
               <button
                 type="button"
                 className="primary-button"
                 onClick={saveProvider}
               >
-                保存配置
+                Save Configuration
               </button>
             </div>
           </div>

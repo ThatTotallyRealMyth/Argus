@@ -17,10 +17,10 @@ type MonitorRunner interface {
 	RunMonitorNow(string) error
 }
 
-// MonitorHandler 监控处理器
+// MonitorHandler Monitor processor
 type MonitorHandler struct{ runner MonitorRunner }
 
-// NewMonitorHandler 创建监控处理器
+// NewMonitorHandler Create Monitor Processor
 func NewMonitorHandler(runners ...MonitorRunner) *MonitorHandler {
 	handler := &MonitorHandler{}
 	if len(runners) > 0 {
@@ -41,19 +41,19 @@ func (h *MonitorHandler) RunNow(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "Monitor execution queued"})
 }
 
-// CreateMonitorRequest 创建监控请求
+// CreateMonitorRequest Create a request for surveillance
 type CreateMonitorRequest struct {
 	Name               string                     `json:"name" binding:"required"`
 	Type               models.MonitorType         `json:"type"`
 	Target             string                     `json:"target"`
-	Interval           int                        `json:"interval" binding:"required,min=1"` // 单位：小时
+	Interval           int                        `json:"interval" binding:"required,min=1"` // Units: Hours
 	AssetGroupID       string                     `json:"asset_group_id"`
 	ScopeID            string                     `json:"scope_id"`
 	Options            *models.MonitorOptions     `json:"options"`
 	NotificationConfig *models.NotificationConfig `json:"notification_config"`
 }
 
-// UpdateMonitorRequest 更新监控请求
+// UpdateMonitorRequest Update Control Request
 type UpdateMonitorRequest struct {
 	Name               string                     `json:"name"`
 	Type               models.MonitorType         `json:"type"`
@@ -65,7 +65,7 @@ type UpdateMonitorRequest struct {
 	NotificationConfig *models.NotificationConfig `json:"notification_config"`
 }
 
-// CreateMonitor 创建监控任务
+// CreateMonitor Create a monitoring task
 func (h *MonitorHandler) CreateMonitor(c *gin.Context) {
 	var req CreateMonitorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,21 +73,21 @@ func (h *MonitorHandler) CreateMonitor(c *gin.Context) {
 		return
 	}
 
-	// 如果没有指定类型，默认为domain
+	// No Type Specified, Default Asdomain
 	if req.Type == "" {
 		req.Type = models.MonitorTypeDomain
 	}
-	// 转换interval：前端是小时，后端存储为秒
+	// Convertinterval: The front is an hour., Backend storage as seconds
 	intervalInSeconds := req.Interval * 3600
 
-	// 序列化options
+	// Sequenceoptions
 	var optionsJSON string
 	if req.Options != nil {
 		optionsBytes, _ := json.Marshal(req.Options)
 		optionsJSON = string(optionsBytes)
 	}
 
-	// 序列化notification config
+	// Sequencenotification config
 	var notificationJSON string
 	if req.NotificationConfig != nil {
 		notificationBytes, _ := json.Marshal(req.NotificationConfig)
@@ -122,12 +122,12 @@ func (h *MonitorHandler) CreateMonitor(c *gin.Context) {
 	})
 }
 
-// ListMonitors 列出所有监控任务
+// ListMonitors List all surveillance tasks
 func (h *MonitorHandler) ListMonitors(c *gin.Context) {
 	status := c.Query("status")
 	monitorType := c.Query("type")
 
-	// 分页参数
+	// Page Break Parameters
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "20")
 
@@ -181,7 +181,7 @@ func (h *MonitorHandler) ListMonitors(c *gin.Context) {
 	})
 }
 
-// GetMonitor 获取监控详情
+// GetMonitor Get the details of the surveillance.
 func (h *MonitorHandler) GetMonitor(c *gin.Context) {
 	monitorID := c.Param("id")
 
@@ -194,7 +194,7 @@ func (h *MonitorHandler) GetMonitor(c *gin.Context) {
 	c.JSON(http.StatusOK, monitor)
 }
 
-// UpdateMonitorStatus 更新监控状态
+// UpdateMonitorStatus Update monitoring status
 func (h *MonitorHandler) UpdateMonitorStatus(c *gin.Context) {
 	monitorID := c.Param("id")
 
@@ -224,7 +224,7 @@ func (h *MonitorHandler) UpdateMonitorStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Monitor status updated successfully"})
 }
 
-// UpdateMonitor 更新监控任务
+// UpdateMonitor Update Control Task
 func (h *MonitorHandler) UpdateMonitor(c *gin.Context) {
 	monitorID := c.Param("id")
 
@@ -240,7 +240,7 @@ func (h *MonitorHandler) UpdateMonitor(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	if req.Name != "" {
 		monitor.Name = req.Name
 	}
@@ -263,15 +263,15 @@ func (h *MonitorHandler) UpdateMonitor(c *gin.Context) {
 		monitor.ScopeID = ""
 	}
 	if req.Interval > 0 {
-		monitor.Interval = req.Interval * 3600 // 转换为秒
+		monitor.Interval = req.Interval * 3600 // Convert to Second
 	}
-	// 更新options
+	// Updateoptions
 	if req.Options != nil {
 		optionsBytes, _ := json.Marshal(req.Options)
 		monitor.Options = string(optionsBytes)
 	}
 
-	// 更新notification config
+	// Updatenotification config
 	if req.NotificationConfig != nil {
 		notificationBytes, _ := json.Marshal(req.NotificationConfig)
 		monitor.NotificationConfig = string(notificationBytes)
@@ -297,25 +297,25 @@ func writeMonitorSaveError(c *gin.Context, err error, action string) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Monitor operation failed"})
 }
 
-// DeleteMonitor 删除监控任务
+// DeleteMonitor Remove Monitor Task
 func (h *MonitorHandler) DeleteMonitor(c *gin.Context) {
 	monitorID := c.Param("id")
 
-	// 删除监控及其结果
+	// Delete monitoring and its results
 	tx := database.DB.Begin()
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start monitor deletion"})
 		return
 	}
 
-	// 删除监控结果
+	// Delete the monitoring results
 	if err := tx.Delete(&models.MonitorResult{}, "monitor_id = ?", monitorID).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete monitor results"})
 		return
 	}
 
-	// 删除监控
+	// Remove Monitor
 	result := tx.Delete(&models.Monitor{}, "id = ?", monitorID)
 	if result.Error != nil {
 		tx.Rollback()
@@ -334,7 +334,7 @@ func (h *MonitorHandler) DeleteMonitor(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Monitor deleted successfully"})
 }
 
-// BatchDeleteMonitors 批量删除监控任务
+// BatchDeleteMonitors Batch Delete Monitor Tasks
 func (h *MonitorHandler) BatchDeleteMonitors(c *gin.Context) {
 	var req struct {
 		MonitorIDs []string `json:"monitor_ids" binding:"required"`
@@ -356,14 +356,14 @@ func (h *MonitorHandler) BatchDeleteMonitors(c *gin.Context) {
 		return
 	}
 
-	// 删除所有相关结果
+	// Delete all relevant outcomes
 	if err := tx.Where("monitor_id IN ?", req.MonitorIDs).Delete(&models.MonitorResult{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete monitor results"})
 		return
 	}
 
-	// 删除所有监控
+	// Remove all surveillance
 	if err := tx.Where("id IN ?", req.MonitorIDs).Delete(&models.Monitor{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete monitors"})
@@ -380,7 +380,7 @@ func (h *MonitorHandler) BatchDeleteMonitors(c *gin.Context) {
 	})
 }
 
-// ListMonitorResults 列出监控结果
+// ListMonitorResults List the results of the surveillance
 func (h *MonitorHandler) ListMonitorResults(c *gin.Context) {
 	monitorID := c.Param("id")
 

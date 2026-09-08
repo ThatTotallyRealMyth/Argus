@@ -9,15 +9,15 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// PolicyHandler 策略处理器
+// PolicyHandler Strategy Processor
 type PolicyHandler struct{}
 
-// NewPolicyHandler 创建策略处理器
+// NewPolicyHandler Create a policy processor
 func NewPolicyHandler() *PolicyHandler {
 	return &PolicyHandler{}
 }
 
-// ListPolicies 列出所有策略
+// ListPolicies List all strategies
 func (h *PolicyHandler) ListPolicies(c *gin.Context) {
 	name := c.Query("name")
 	page := c.DefaultQuery("page", "1")
@@ -67,7 +67,7 @@ func (h *PolicyHandler) ListPolicies(c *gin.Context) {
 	})
 }
 
-// GetPolicy 获取单个策略
+// GetPolicy Get Single Strategy
 func (h *PolicyHandler) GetPolicy(c *gin.Context) {
 	id := c.Param("id")
 
@@ -80,7 +80,7 @@ func (h *PolicyHandler) GetPolicy(c *gin.Context) {
 	c.JSON(http.StatusOK, policy)
 }
 
-// CreatePolicy 创建策略
+// CreatePolicy Create Policy
 func (h *PolicyHandler) CreatePolicy(c *gin.Context) {
 	var policy models.Policy
 	if err := c.ShouldBindJSON(&policy); err != nil {
@@ -88,7 +88,7 @@ func (h *PolicyHandler) CreatePolicy(c *gin.Context) {
 		return
 	}
 
-	// 设置创建者
+	// Setup Creator
 	userID, exists := c.Get("userID")
 	if exists {
 		policy.CreatedBy = userID.(string)
@@ -105,7 +105,7 @@ func (h *PolicyHandler) CreatePolicy(c *gin.Context) {
 	})
 }
 
-// UpdatePolicy 更新策略
+// UpdatePolicy Update Policy
 func (h *PolicyHandler) UpdatePolicy(c *gin.Context) {
 	id := c.Param("id")
 
@@ -121,7 +121,7 @@ func (h *PolicyHandler) UpdatePolicy(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	policy.Name = updateData.Name
 	policy.Description = updateData.Description
 	policy.Config = updateData.Config
@@ -138,7 +138,7 @@ func (h *PolicyHandler) UpdatePolicy(c *gin.Context) {
 	})
 }
 
-// DeletePolicy 删除策略
+// DeletePolicy Delete Policy
 func (h *PolicyHandler) DeletePolicy(c *gin.Context) {
 	id := c.Param("id")
 
@@ -148,7 +148,7 @@ func (h *PolicyHandler) DeletePolicy(c *gin.Context) {
 		return
 	}
 
-	// 检查是否为默认策略
+	// Check whether to use default policy
 	if policy.IsDefault {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete default policy"})
 		return
@@ -162,7 +162,7 @@ func (h *PolicyHandler) DeletePolicy(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Policy deleted successfully"})
 }
 
-// SetDefaultPolicy 设置默认策略
+// SetDefaultPolicy Set default policy
 func (h *PolicyHandler) SetDefaultPolicy(c *gin.Context) {
 	id := c.Param("id")
 
@@ -199,7 +199,7 @@ func (h *PolicyHandler) SetDefaultPolicy(c *gin.Context) {
 	})
 }
 
-// GetDefaultPolicy 获取默认策略
+// GetDefaultPolicy Get Default Policy
 func (h *PolicyHandler) GetDefaultPolicy(c *gin.Context) {
 	var policy models.Policy
 	if err := database.DB.Where("is_default = ?", true).First(&policy).Error; err != nil {
@@ -210,7 +210,7 @@ func (h *PolicyHandler) GetDefaultPolicy(c *gin.Context) {
 	c.JSON(http.StatusOK, policy)
 }
 
-// BatchDelete 批量删除策略
+// BatchDelete Batch Removal Policy
 func (h *PolicyHandler) BatchDelete(c *gin.Context) {
 	var req struct {
 		IDs []string `json:"ids" binding:"required"`
@@ -221,7 +221,7 @@ func (h *PolicyHandler) BatchDelete(c *gin.Context) {
 		return
 	}
 
-	// 检查是否包含默认策略
+	// Check to include default policy
 	var count int64
 	if err := database.DB.Model(&models.Policy{}).Where("id IN ? AND is_default = ?", req.IDs, true).Count(&count).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate policies"})
@@ -243,7 +243,7 @@ func (h *PolicyHandler) BatchDelete(c *gin.Context) {
 	})
 }
 
-// GetStats 获取策略统计
+// GetStats Get Strategy Statistics
 func (h *PolicyHandler) GetStats(c *gin.Context) {
 	var total int64
 	var defaultCount int64

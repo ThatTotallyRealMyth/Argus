@@ -153,10 +153,10 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 		severity := normalizedLeadSeverity(finding.Severity)
 		add("finding:"+finding.ID, AssetAttackLead{
 			ID: "finding:" + finding.ID, Type: "confirmed_vulnerability", Priority: findingPriority(severity),
-			Severity: severity, Confidence: 100, Title: fallbackText(finding.Title, "已确认漏洞"),
-			Reason: fmt.Sprintf("%s 已产出可复核的漏洞证据", fallbackText(finding.Source, finding.Type)),
-			Target: fallbackText(finding.URL, asset.DisplayValue), SuggestedAction: "复核证明与影响范围，整理可提交证据链",
-			Evidence: []AssetLeadEvidence{{Label: "匹配方式", Value: fallbackText(finding.MatchType, "关联")}, {Label: "来源", Value: fallbackText(finding.Source, finding.Type)}},
+			Severity: severity, Confidence: 100, Title: fallbackText(finding.Title, "Gap identified"),
+			Reason: fmt.Sprintf("%s Producing and re-readable gaps of evidence", fallbackText(finding.Source, finding.Type)),
+			Target: fallbackText(finding.URL, asset.DisplayValue), SuggestedAction: "Review of proof of review and scope of impact, Collating the chain of evidence available for submission",
+			Evidence: []AssetLeadEvidence{{Label: "Match", Value: fallbackText(finding.MatchType, "Association")}, {Label: "Source", Value: fallbackText(finding.Source, finding.Type)}},
 			TaskID:   finding.TaskID, ObservedAt: finding.CreatedAt,
 			DedupeKey: "vulnerability:" + fallbackText(finding.VulnerabilityID, finding.ID),
 		})
@@ -164,13 +164,13 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 
 	if leadBool(data["takeover_vulnerable"]) {
 		severity := normalizedLeadSeverity(fallbackText(leadString(data["takeover_severity"]), "critical"))
-		service := fallbackText(leadString(data["takeover_service"]), "未知托管服务")
-		cname := fallbackText(leadString(data["takeover_cname"]), "未记录 CNAME")
+		service := fallbackText(leadString(data["takeover_service"]), "Unknown hosting services")
+		cname := fallbackText(leadString(data["takeover_cname"]), "Unrecorded CNAME")
 		add("takeover", AssetAttackLead{
 			ID: "takeover", Type: "subdomain_takeover", Priority: 98, Severity: severity, Confidence: 96,
-			Title: "子域名接管候选", Reason: fmt.Sprintf("DNS 指纹命中 %s 的悬空绑定", service),
-			SuggestedAction: "验证资源是否可注册，并保留 DNS 与服务端回显证据",
-			Evidence:        []AssetLeadEvidence{{Label: "服务", Value: service}, {Label: "CNAME", Value: cname}},
+			Title: "Subdomain name takes over the candidate", Reason: fmt.Sprintf("DNS Fingerprint hit. %s The suspended air is tied.", service),
+			SuggestedAction: "Verifying the registration of resources, And keep it. DNS Reveal evidence with the server",
+			Evidence:        []AssetLeadEvidence{{Label: "Services", Value: service}, {Label: "CNAME", Value: cname}},
 			TaskID:          asset.LastTaskID, ObservedAt: asset.LastSeenAt,
 		})
 	}
@@ -193,9 +193,9 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 		if keyword, label := managementSurfaceSignal(asset, data); keyword != "" {
 			add("management:"+keyword, AssetAttackLead{
 				ID: "management:" + keyword, Type: "management_surface", Priority: 72, Severity: "medium", Confidence: 72,
-				Title: "管理或认证入口暴露", Reason: fmt.Sprintf("站点特征包含 %s 信号（%s）", label, keyword),
-				SuggestedAction: "核查未授权访问、默认凭据、弱口令与登录后越权边界",
-				Evidence:        []AssetLeadEvidence{{Label: "命中特征", Value: keyword}, {Label: "页面标题", Value: fallbackText(leadString(data["title"]), "未记录")}},
+				Title: "Manage or authenticate entrance exposure", Reason: fmt.Sprintf("Site Character Contains %s Signal (%s)", label, keyword),
+				SuggestedAction: "Verification of unauthorized visits, Default evidence, Weak password and access to the border overstepping authority",
+				Evidence:        []AssetLeadEvidence{{Label: "Hit Character", Value: keyword}, {Label: "Page Title", Value: fallbackText(leadString(data["title"]), "Unrecorded")}},
 				TaskID:          asset.LastTaskID, ObservedAt: asset.LastSeenAt,
 			})
 		}
@@ -218,10 +218,10 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 		pocView := &AssetLeadPoC{ID: poc.ID, Name: poc.Name, Severity: severity, Product: poc.Product, PoCType: poc.PoCType}
 		add("poc:"+poc.ID, AssetAttackLead{
 			ID: "poc:" + poc.ID, Type: "poc_opportunity", Priority: pocPriority(severity), Severity: severity, Confidence: 84,
-			Title: "指纹命中可用 PoC", Reason: fmt.Sprintf("%s 与当前技术指纹匹配", poc.Name),
+			Title: "Fingerprint hits are available. PoC", Reason: fmt.Sprintf("%s Matching current technical fingerprints", poc.Name),
 			Target:          assetPoCTarget(asset, data),
-			SuggestedAction: "确认授权范围后直接验证，并保存请求与响应证据",
-			Evidence:        []AssetLeadEvidence{{Label: "产品", Value: fallbackText(poc.Product, "未标注")}, {Label: "资产指纹", Value: fallbackText(strings.Join(fingerprints, ", "), "未记录")}},
+			SuggestedAction: "Direct verification after confirmation of authorized range, And keep the request and respond to the evidence.",
+			Evidence:        []AssetLeadEvidence{{Label: "Products", Value: fallbackText(poc.Product, "Unmarked")}, {Label: "Asset fingerprint.", Value: fallbackText(strings.Join(fingerprints, ", "), "Unrecorded")}},
 			TaskID:          asset.LastTaskID, ObservedAt: asset.LastSeenAt, PoC: pocView,
 		})
 	}
@@ -233,11 +233,11 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 		}
 		changeLimit++
 		title, severity, priority, action := changeLeadProfile(change.ChangedFields)
-		fields := strings.Join(change.ChangedFields, "、")
+		fields := strings.Join(change.ChangedFields, ", ")
 		add("change:"+change.ID, AssetAttackLead{
 			ID: "change:" + change.ID, Type: "surface_change", Priority: priority, Severity: severity, Confidence: 100,
-			Title: title, Reason: fmt.Sprintf("与上一次观测相比，%s 发生变化", fallbackText(fields, "资产状态")),
-			SuggestedAction: action, Evidence: []AssetLeadEvidence{{Label: "变化字段", Value: fallbackText(fields, "state")}},
+			Title: title, Reason: fmt.Sprintf("Compared to previous observations, %s Change", fallbackText(fields, "Asset status")),
+			SuggestedAction: action, Evidence: []AssetLeadEvidence{{Label: "Change Fields", Value: fallbackText(fields, "state")}},
 			TaskID: change.TaskID, ObservedAt: change.ObservedAt,
 		})
 	}
@@ -245,9 +245,9 @@ func BuildAssetAttackLeads(asset models.AssetEntity, changes []models.AssetChang
 	if (asset.Kind == "port" || asset.Kind == "site") && !asset.FirstSeenAt.IsZero() && time.Since(asset.FirstSeenAt) >= 0 && time.Since(asset.FirstSeenAt) <= 72*time.Hour {
 		add("recent-exposure", AssetAttackLead{
 			ID: "recent-exposure", Type: "recent_exposure", Priority: 58, Severity: "low", Confidence: 100,
-			Title: "最近出现的攻击面", Reason: "该资产在最近 72 小时内首次进入全局资产库",
-			SuggestedAction: "优先确认是否为新部署、临时环境或未纳入预期范围的服务",
-			Evidence:        []AssetLeadEvidence{{Label: "首次发现", Value: asset.FirstSeenAt.Format(time.RFC3339)}},
+			Title: "Recent attacks", Reason: "The asset is in the nearest position. 72 First access to global asset pool within hours",
+			SuggestedAction: "Priority is given to identifying new deployments, Temporary environment or services not included in the expected range",
+			Evidence:        []AssetLeadEvidence{{Label: "First Discovery", Value: asset.FirstSeenAt.Format(time.RFC3339)}},
 			TaskID:          asset.LastTaskID, ObservedAt: asset.FirstSeenAt,
 		})
 	}
@@ -287,15 +287,15 @@ func addSensitivePortLead(add func(string, AssetAttackLead), asset models.AssetE
 		return
 	}
 	service := leadString(assetLeadData(asset.CurrentData)["service"])
-	reason := fmt.Sprintf("%s 服务直接暴露在 %d 端口", profile.Name, port)
+	reason := fmt.Sprintf("%s The service is exposed directly to %d Port", profile.Name, port)
 	if service != "" && !strings.EqualFold(service, profile.Name) {
-		reason += "，扫描识别为 " + service
+		reason += ", Scan As " + service
 	}
 	add("port:"+strconv.Itoa(port)+":"+target, AssetAttackLead{
 		ID: "port:" + strconv.Itoa(port) + ":" + target, Type: "sensitive_service", Priority: profile.Priority,
-		Severity: profile.Severity, Confidence: 92, Title: "敏感服务暴露", Reason: reason, Target: target,
-		SuggestedAction: "检查未授权访问、弱口令、默认配置和已知版本漏洞",
-		Evidence:        []AssetLeadEvidence{{Label: "端口", Value: strconv.Itoa(port)}, {Label: "服务", Value: fallbackText(service, profile.Name)}},
+		Severity: profile.Severity, Confidence: 92, Title: "Exposure to sensitive services", Reason: reason, Target: target,
+		SuggestedAction: "Check for unauthorized access, Weak password., Default Configuration and Known Version Broker",
+		Evidence:        []AssetLeadEvidence{{Label: "Port", Value: strconv.Itoa(port)}, {Label: "Services", Value: fallbackText(service, profile.Name)}},
 		TaskID:          taskID, ObservedAt: observedAt, DedupeKey: "sensitive-service:" + target,
 	})
 }
@@ -311,9 +311,9 @@ func managementSurfaceSignal(asset models.AssetEntity, data map[string]any) (str
 	values = append(values, AssetLeadFingerprints(asset)...)
 	haystack := strings.ToLower(strings.Join(values, " "))
 	keywords := []struct{ value, label string }{
-		{"phpmyadmin", "数据库管理"}, {"grafana", "监控后台"}, {"jenkins", "持续集成"}, {"kibana", "日志后台"},
-		{"nacos", "配置中心"}, {"swagger", "接口文档"}, {"gitlab", "代码托管"}, {"dashboard", "控制面板"},
-		{"admin", "管理后台"}, {"console", "控制台"}, {"management", "管理入口"}, {"login", "认证入口"},
+		{"phpmyadmin", "Database management"}, {"grafana", "Monitor the backstage."}, {"jenkins", "Continuous Integration"}, {"kibana", "Log Back"},
+		{"nacos", "Configure Centre"}, {"swagger", "Interface Document"}, {"gitlab", "Code Host"}, {"dashboard", "Control Panel"},
+		{"admin", "Manage backstage"}, {"console", "Console"}, {"management", "Manage the entrances"}, {"login", "Authentication entrance"},
 	}
 	for _, keyword := range keywords {
 		if strings.Contains(haystack, keyword.value) {
@@ -328,13 +328,13 @@ func changeLeadProfile(fields []string) (string, string, int, string) {
 	has := func(field string) bool { return strings.Contains(joined, "\x00"+field+"\x00") }
 	switch {
 	case has("takeover_vulnerable") || has("takeover_cname") || has("takeover_service"):
-		return "接管状态发生变化", "high", 82, "重新验证 DNS 解析与第三方资源归属"
+		return "The state of the takeover has changed.", "high", 82, "Revalidate DNS Resolve third party resource attribution"
 	case has("status_code") || has("title") || has("server") || has("fingerprints"):
-		return "站点关键特征变化", "medium", 70, "对比新旧响应，检查新入口、技术栈和权限边界"
+		return "Site fingerprint changed", "medium", 70, "Compare the previous and current responses for new entry points, technology changes, and trust-boundary changes"
 	case has("service") || has("version") || has("banner_sha256") || has("ssl_cert_sha256"):
-		return "服务暴露发生变化", "medium", 72, "重新识别服务版本并匹配对应漏洞与 PoC"
+		return "Change in service exposure", "medium", 72, "Re-identify service version and match the matching bugs and PoC"
 	default:
-		return "资产状态发生变化", "low", 60, "对比变化前后证据，确认是否产生新的攻击入口"
+		return "Change in asset status", "low", 60, "Evidence before and after the comparison of changes, Confirm if a new attack entrance is created."
 	}
 }
 

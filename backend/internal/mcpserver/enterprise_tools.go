@@ -13,36 +13,36 @@ import (
 )
 
 type EnterpriseQueryCreateInput struct {
-	Keyword    string   `json:"keyword" jsonschema:"required,企业名称或关键词"`
-	Name       string   `json:"name,omitempty" jsonschema:"查询任务名称，默认使用关键词"`
-	Provider   string   `json:"provider,omitempty" jsonschema:"提供者，当前支持 icp_query"`
-	QueryTypes []string `json:"query_types,omitempty" jsonschema:"查询类型数组: web, app, mapp, kapp；默认 web"`
-	Confirm    bool     `json:"confirm" jsonschema:"required,查询会访问外部企业数据源，必须明确设为 true"`
+	Keyword    string   `json:"keyword" jsonschema:"required,Name or keyword of enterprise"`
+	Name       string   `json:"name,omitempty" jsonschema:"Query job name, Default use of keywords"`
+	Provider   string   `json:"provider,omitempty" jsonschema:"Providers, Current support icp_query"`
+	QueryTypes []string `json:"query_types,omitempty" jsonschema:"Query type arrays: web, app, mapp, kapp; Default web"`
+	Confirm    bool     `json:"confirm" jsonschema:"required,Query visits external enterprise data sources, It must be clearly defined. true"`
 }
 
 type EnterpriseListInput struct {
-	QueryID  string `json:"query_id,omitempty" jsonschema:"企业查询 ID，仅资产列表使用"`
-	Status   string `json:"status,omitempty" jsonschema:"任务状态过滤: queued, running, completed, failed"`
-	Kind     string `json:"kind,omitempty" jsonschema:"资产类型过滤: web, app, miniapp, quickapp"`
-	Search   string `json:"search,omitempty" jsonschema:"企业、名称、域名或备案号关键词"`
-	Page     int    `json:"page,omitempty" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size,omitempty" jsonschema:"每页数量，默认20，最大100"`
+	QueryID  string `json:"query_id,omitempty" jsonschema:"Enterprise queries ID, Use only for asset lists"`
+	Status   string `json:"status,omitempty" jsonschema:"Task Status Filter: queued, running, completed, failed"`
+	Kind     string `json:"kind,omitempty" jsonschema:"Asset type filter: web, app, miniapp, quickapp"`
+	Search   string `json:"search,omitempty" jsonschema:"Enterprise, Name, Domain name or filing number keyword"`
+	Page     int    `json:"page,omitempty" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size,omitempty" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type EnterpriseScanInput struct {
-	AssetIDs []string           `json:"asset_ids" jsonschema:"required,要下发扫描的企业资产 ID 数组，最多2000条"`
-	Name     string             `json:"name,omitempty" jsonschema:"扫描任务名称"`
-	PolicyID string             `json:"policy_id,omitempty" jsonschema:"可选扫描策略 ID"`
-	ScopeID  string             `json:"scope_id,omitempty" jsonschema:"可选授权扫描范围 ID；空值使用默认范围"`
-	Options  models.TaskOptions `json:"options,omitempty" jsonschema:"扫描选项；端口扫描始终开启"`
-	Start    bool               `json:"start,omitempty" jsonschema:"是否创建后立即加入扫描队列"`
-	Confirm  bool               `json:"confirm" jsonschema:"required,确认目标已获授权并明确设为 true"`
+	AssetIDs []string           `json:"asset_ids" jsonschema:"required,Business assets to be scanned ID Array, Up to2000Article"`
+	Name     string             `json:"name,omitempty" jsonschema:"Scan Task Name"`
+	PolicyID string             `json:"policy_id,omitempty" jsonschema:"Optional Scan Policy ID"`
+	ScopeID  string             `json:"scope_id,omitempty" jsonschema:"Optional authorized scan range ID; Empty values use default range"`
+	Options  models.TaskOptions `json:"options,omitempty" jsonschema:"Scan Options; Port scans are open at all times."`
+	Start    bool               `json:"start,omitempty" jsonschema:"Whether to add scan queues as soon as they are created"`
+	Confirm  bool               `json:"confirm" jsonschema:"required,The objectives are identified as mandated and clearly identified true"`
 }
 
 type EnterpriseSyncInput struct {
-	AssetIDs     []string `json:"asset_ids" jsonschema:"required,要同步到全局资产清单的企业资产 ID，最多2000条"`
-	GroupID      string   `json:"group_id,omitempty" jsonschema:"可选已有资产分组 ID"`
-	NewGroupName string   `json:"new_group_name,omitempty" jsonschema:"可选新资产分组名称；不能与 group_id 同时设置"`
+	AssetIDs     []string `json:"asset_ids" jsonschema:"required,Business assets to synchronize to global asset lists ID, Up to2000Article"`
+	GroupID      string   `json:"group_id,omitempty" jsonschema:"Selectable grouping of existing assets ID"`
+	NewGroupName string   `json:"new_group_name,omitempty" jsonschema:"New asset group name for possible; Can't be with group_id Setup simultaneously"`
 }
 
 func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
@@ -50,7 +50,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 		return
 	}
 	readOnly := &mcp.ToolAnnotations{ReadOnlyHint: true, OpenWorldHint: boolPtr(false)}
-	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_providers", Description: "列出企业资产发现提供者的配置和启用状态", Annotations: readOnly},
+	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_providers", Description: "Listing configuration and enable status of enterprise asset discovery provider", Annotations: readOnly},
 		func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 			providers, err := deps.EnterpriseService.ProviderStatus()
 			if err != nil {
@@ -59,7 +59,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 			return jsonResult(map[string]any{"providers": providers})
 		})
 
-	mcp.AddTool(server, &mcp.Tool{Name: "create_enterprise_query", Description: "通过已配置提供者查询企业域名、应用、小程序和快应用资产", Annotations: &mcp.ToolAnnotations{OpenWorldHint: boolPtr(true)}},
+	mcp.AddTool(server, &mcp.Tool{Name: "create_enterprise_query", Description: "Query enterprise domain names through configured provider, Apply, Small programs and fast-applying assets", Annotations: &mcp.ToolAnnotations{OpenWorldHint: boolPtr(true)}},
 		func(ctx context.Context, req *mcp.CallToolRequest, input EnterpriseQueryCreateInput) (*mcp.CallToolResult, any, error) {
 			if !input.Confirm {
 				return errResult(fmt.Errorf("enterprise query requires confirm=true")), nil, nil
@@ -71,7 +71,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 			return jsonResult(map[string]any{"query": query})
 		})
 
-	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_queries", Description: "分页列出企业资产查询任务及分类统计", Annotations: readOnly},
+	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_queries", Description: "Paged breakdown of enterprise asset search tasks and classification statistics", Annotations: readOnly},
 		func(ctx context.Context, req *mcp.CallToolRequest, input EnterpriseListInput) (*mcp.CallToolResult, any, error) {
 			page, pageSize := normalizePage(input.Page, input.PageSize)
 			query := database.DB.Model(&models.EnterpriseQuery{})
@@ -93,7 +93,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 			return jsonResult(map[string]any{"queries": rows, "total": total, "page": page, "page_size": pageSize})
 		})
 
-	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_assets", Description: "分页列出企业发现资产，可按查询、类型和关键词过滤", Annotations: readOnly},
+	mcp.AddTool(server, &mcp.Tool{Name: "list_enterprise_assets", Description: "Page-by-page listing of assets found by an enterprise, Available on Query, Type and keyword filter", Annotations: readOnly},
 		func(ctx context.Context, req *mcp.CallToolRequest, input EnterpriseListInput) (*mcp.CallToolResult, any, error) {
 			page, pageSize := normalizePage(input.Page, input.PageSize)
 			query := database.DB.Model(&models.EnterpriseAsset{})
@@ -118,7 +118,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 			return jsonResult(map[string]any{"assets": rows, "total": total, "page": page, "page_size": pageSize})
 		})
 
-	mcp.AddTool(server, &mcp.Tool{Name: "sync_enterprise_assets", Description: "将选中的企业域名同步到跨任务去重的全局资产清单，并可加入已有或新建资产分组", Annotations: &mcp.ToolAnnotations{IdempotentHint: true, OpenWorldHint: boolPtr(false)}},
+	mcp.AddTool(server, &mcp.Tool{Name: "sync_enterprise_assets", Description: "Synchronize selected enterprise domain names to cross-tasked global asset lists, and can add existing or new asset groups", Annotations: &mcp.ToolAnnotations{IdempotentHint: true, OpenWorldHint: boolPtr(false)}},
 		func(ctx context.Context, req *mcp.CallToolRequest, input EnterpriseSyncInput) (*mcp.CallToolResult, any, error) {
 			result, err := deps.EnterpriseService.SyncAssets(input.AssetIDs, input.GroupID, input.NewGroupName)
 			if err != nil {
@@ -132,7 +132,7 @@ func RegisterEnterpriseTools(server *mcp.Server, deps *Deps) {
 			return jsonResult(result)
 		})
 
-	mcp.AddTool(server, &mcp.Tool{Name: "launch_enterprise_scan", Description: "将选中的企业域名资产下发为原生扫描任务；必须 confirm=true", Annotations: &mcp.ToolAnnotations{OpenWorldHint: boolPtr(true)}},
+	mcp.AddTool(server, &mcp.Tool{Name: "launch_enterprise_scan", Description: "Issuance of selected enterprise domain name assets as original scan missions; Yes. confirm=true", Annotations: &mcp.ToolAnnotations{OpenWorldHint: boolPtr(true)}},
 		func(ctx context.Context, req *mcp.CallToolRequest, input EnterpriseScanInput) (*mcp.CallToolResult, any, error) {
 			if !input.Confirm {
 				return errResult(fmt.Errorf("launch requires confirm=true")), nil, nil

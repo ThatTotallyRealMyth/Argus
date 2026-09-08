@@ -9,12 +9,12 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// WAFDetector WAF检测器
+// WAFDetector WAFDetection
 type WAFDetector struct {
 	client *http.Client
 }
 
-// NewWAFDetector 创建WAF检测器
+// NewWAFDetector CreateWAFDetection
 func NewWAFDetector() *WAFDetector {
 	return &WAFDetector{
 		client: &http.Client{
@@ -29,7 +29,7 @@ func NewWAFDetector() *WAFDetector {
 	}
 }
 
-// WAFSignature WAF特征
+// WAFSignature WAFCharacteristics
 type WAFSignature struct {
 	Name    string
 	Headers map[string]string
@@ -37,18 +37,18 @@ type WAFSignature struct {
 	Body    []string
 }
 
-// Detect 检测WAF
+// Detect TestWAF
 func (d *WAFDetector) Detect(url string) []string {
 	var detectedWAFs []string
 
-	// 发送测试请求
+	// Send Test Request
 	resp, err := d.client.Get(url)
 	if err != nil {
 		return detectedWAFs
 	}
 	defer resp.Body.Close()
 
-	// WAF特征库
+	// WAFFeature Library
 	signatures := []WAFSignature{
 		{
 			Name: "Cloudflare",
@@ -120,41 +120,41 @@ func (d *WAFDetector) Detect(url string) []string {
 			Cookies: []string{"FORTIWAFSID"},
 		},
 		{
-			Name: "阿里云盾",
+			Name: "Ali Yun shiver.",
 			Headers: map[string]string{
 				"ali-swift-global-savetime": "",
 				"eagleid":                   "",
 			},
 		},
 		{
-			Name: "腾讯云WAF",
+			Name: "Xing XingyunWAF",
 			Headers: map[string]string{
 				"waf-powered-by": "Tencent",
 			},
 		},
 		{
-			Name: "安全狗",
+			Name: "Safe Dog",
 			Headers: map[string]string{
 				"server": "Safedog",
 			},
 			Cookies: []string{"safedog-flow-item"},
 		},
 		{
-			Name: "云锁",
+			Name: "Cloud lock.",
 			Headers: map[string]string{
 				"server": "Yunsuo",
 			},
 		},
 	}
 
-	// 检查特征
+	// Check Characteristics
 	for _, sig := range signatures {
 		if d.matchSignature(resp, sig) {
 			detectedWAFs = append(detectedWAFs, sig.Name)
 		}
 	}
 
-	// 发送恶意请求测试
+	// Send malignant request test
 	if d.testMaliciousRequest(url) {
 		if len(detectedWAFs) == 0 {
 			detectedWAFs = append(detectedWAFs, "Unknown WAF")
@@ -164,9 +164,9 @@ func (d *WAFDetector) Detect(url string) []string {
 	return detectedWAFs
 }
 
-// matchSignature 匹配特征
+// matchSignature Matching Characters
 func (d *WAFDetector) matchSignature(resp *http.Response, sig WAFSignature) bool {
-	// 检查Headers
+	// InspectionHeaders
 	for header, value := range sig.Headers {
 		headerValue := resp.Header.Get(header)
 		if headerValue != "" {
@@ -176,7 +176,7 @@ func (d *WAFDetector) matchSignature(resp *http.Response, sig WAFSignature) bool
 		}
 	}
 
-	// 检查Cookies
+	// InspectionCookies
 	for _, cookieName := range sig.Cookies {
 		for _, cookie := range resp.Cookies() {
 			if strings.Contains(cookie.Name, cookieName) {
@@ -188,9 +188,9 @@ func (d *WAFDetector) matchSignature(resp *http.Response, sig WAFSignature) bool
 	return false
 }
 
-// testMaliciousRequest 测试恶意请求
+// testMaliciousRequest Test malignant request.
 func (d *WAFDetector) testMaliciousRequest(baseURL string) bool {
-	// 测试SQL注入
+	// TestSQLInject.
 	testURL := baseURL + "?id=1' OR '1'='1"
 	resp, err := d.client.Get(testURL)
 	if err != nil {
@@ -198,7 +198,7 @@ func (d *WAFDetector) testMaliciousRequest(baseURL string) bool {
 	}
 	defer resp.Body.Close()
 
-	// 如果返回403或类似状态码，可能有WAF
+	// If returned403or similar status code, Maybe.WAF
 	if resp.StatusCode == 403 || resp.StatusCode == 406 || resp.StatusCode == 419 {
 		return true
 	}

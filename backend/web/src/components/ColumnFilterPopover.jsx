@@ -86,32 +86,32 @@ export function ColumnFilterPopover({ anchor, column, editor, options, operatorO
       className="column-filter-popover"
       role="dialog"
       aria-modal="false"
-      aria-label={`筛选${column}`}
+      aria-label={`Filter${column}`}
       style={{ top: position.top, left: position.left, maxHeight: position.maxHeight, visibility: position.ready ? "visible" : "hidden" }}
     >
       <div className="column-filter-title">
-        <div><Search size={14} /><span>列筛选</span><strong>{column}</strong></div>
-        <button type="button" aria-label="关闭筛选" title="关闭" onClick={onClose}><X size={14} /></button>
+        <div><Search size={14} /><span>Column Filter</span><strong>{column}</strong></div>
+        <button type="button" aria-label="Close Filter" title="Close" onClick={onClose}><X size={14} /></button>
       </div>
       <div className="column-filter-rules">
         {editor.rules.map((rule, index) => <div key={index}>
-          {index > 0 && <div className="column-filter-joiner" role="radiogroup" aria-label={`条件 ${index} 与上一条的连接方式`}>
-            <span>连接条件</span>
-            <button type="button" role="radio" aria-checked={rule.joiner !== "or"} className={rule.joiner !== "or" ? "active" : ""} onClick={() => updateRule(index, { joiner: "and" }, true)}>并且 <small>AND</small></button>
-            <button type="button" role="radio" aria-checked={rule.joiner === "or"} className={rule.joiner === "or" ? "active" : ""} onClick={() => updateRule(index, { joiner: "or" }, true)}>或者 <small>OR</small></button>
+          {index > 0 && <div className="column-filter-joiner" role="radiogroup" aria-label={`Condition ${index} Connection to previous`}>
+            <span>Connection Conditions</span>
+            <button type="button" role="radio" aria-checked={rule.joiner !== "or"} className={rule.joiner !== "or" ? "active" : ""} onClick={() => updateRule(index, { joiner: "and" }, true)}>And <small>AND</small></button>
+            <button type="button" role="radio" aria-checked={rule.joiner === "or"} className={rule.joiner === "or" ? "active" : ""} onClick={() => updateRule(index, { joiner: "or" }, true)}>Or... <small>OR</small></button>
           </div>}
           <div className="column-filter-rule">
           <div className="column-filter-rule-head">
-            <span>条件 {String(index + 1).padStart(2, "0")}</span>
+            <span>Condition {String(index + 1).padStart(2, "0")}</span>
             <div className="column-filter-rule-actions">
-              <button type="button" role="switch" aria-checked={Boolean(rule.enabled)} className={`column-filter-toggle ${rule.enabled ? "active" : ""}`} disabled={!rule.value.trim()} title={rule.enabled ? "停用条件" : "启用条件"} onClick={() => toggleRule(index)}>
+              <button type="button" role="switch" aria-checked={Boolean(rule.enabled)} className={`column-filter-toggle ${rule.enabled ? "active" : ""}`} disabled={!rule.value.trim()} title={rule.enabled ? "Disablement Conditions" : "Enable Conditions"} onClick={() => toggleRule(index)}>
                 <span className="column-filter-toggle-track" aria-hidden="true"><span /></span>
-                <span className="column-filter-toggle-label">{rule.enabled ? "已启用" : "未启用"}</span>
+                <span className="column-filter-toggle-label">{rule.enabled ? "Enabled" : "Not enabled"}</span>
               </button>
-              {editor.rules.length > 1 && <button type="button" className="column-filter-remove" aria-label={`删除条件 ${index + 1}`} title="删除条件" onClick={() => removeRule(index)}><Trash2 size={13} /></button>}
+              {editor.rules.length > 1 && <button type="button" className="column-filter-remove" aria-label={`Delete Condition ${index + 1}`} title="Delete Condition" onClick={() => removeRule(index)}><Trash2 size={13} /></button>}
             </div>
           </div>
-          <div className="column-filter-operators" role="radiogroup" aria-label={`${column}条件${index + 1}匹配关系`}>
+          <div className="column-filter-operators" role="radiogroup" aria-label={`${column}Condition${index + 1}Match`}>
             {operatorOptions.map((option) => (
               <button
                 type="button"
@@ -124,18 +124,18 @@ export function ColumnFilterPopover({ anchor, column, editor, options, operatorO
             ))}
           </div>
           <label className="column-filter-field">
-            <span>条件值</span>
+            <span>Conditional Value</span>
             {options.length ? (
-              <select name={`${editor.key}-filter-value-${index}`} autoFocus={index === 0} aria-label={`${column}条件${index + 1}筛选值`} value={rule.value} onChange={(event) => updateRule(index, { value: event.target.value }, !rule.enabled)} onBlur={(event) => updateRule(index, { value: event.currentTarget.value }, true)}>
-                <option value="">选择条件</option>
+              <select name={`${editor.key}-filter-value-${index}`} autoFocus={index === 0} aria-label={`${column}Condition${index + 1}Filter value`} value={rule.value} onChange={(event) => updateRule(index, { value: event.target.value }, !rule.enabled)} onBlur={(event) => updateRule(index, { value: event.currentTarget.value }, true)}>
+                <option value="">Select Conditions</option>
                 {options.map((option) => <option key={typeof option === "string" ? option : option.value} value={typeof option === "string" ? option : option.value}>{typeof option === "string" ? option : option.label}</option>)}
               </select>
             ) : (
               <input
                 name={`${editor.key}-filter-value-${index}`}
                 autoFocus={index === 0}
-                aria-label={`${column}条件${index + 1}筛选值`}
-                placeholder="输入条件值"
+                aria-label={`${column}Condition${index + 1}Filter value`}
+                placeholder="Enter Conditional Value"
                 value={rule.value}
                 onChange={(event) => updateRule(index, { value: event.target.value }, !rule.enabled)}
                 onBlur={(event) => updateRule(index, { value: event.currentTarget.value }, true)}
@@ -144,10 +144,10 @@ export function ColumnFilterPopover({ anchor, column, editor, options, operatorO
           </label>
           </div>
         </div>)}
-        <button type="button" className="column-filter-add" onClick={addRule}><Plus size={14} />添加条件</button>
+        <button type="button" className="column-filter-add" onClick={addRule}><Plus size={14} />Add Condition</button>
       </div>
       <div className="column-filter-actions">
-        <button type="button" onClick={onClear}>重置此列</button>
+        <button type="button" onClick={onClear}>Reset this column</button>
       </div>
     </div>,
     document.body,

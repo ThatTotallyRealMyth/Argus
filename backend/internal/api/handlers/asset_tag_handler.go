@@ -9,15 +9,15 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// AssetTagHandler 资产标签处理器
+// AssetTagHandler Asset Label Processor
 type AssetTagHandler struct{}
 
-// NewAssetTagHandler 创建资产标签处理器
+// NewAssetTagHandler Create an asset label handler
 func NewAssetTagHandler() *AssetTagHandler {
 	return &AssetTagHandler{}
 }
 
-// ListTags 获取标签列表
+// ListTags Fetch Tab List
 func (h *AssetTagHandler) ListTags(c *gin.Context) {
 	category := c.Query("category")
 	page, pageSize := parsePagination(c, 20, 100)
@@ -42,7 +42,7 @@ func (h *AssetTagHandler) ListTags(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tags": tags, "total": total, "page": page, "page_size": pageSize, "total_pages": int((total + int64(pageSize) - 1) / int64(pageSize))})
 }
 
-// CreateTag 创建标签
+// CreateTag Create Tab
 func (h *AssetTagHandler) CreateTag(c *gin.Context) {
 	var req models.CreateTagRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -61,7 +61,7 @@ func (h *AssetTagHandler) CreateTag(c *gin.Context) {
 	}
 
 	if tag.Color == "" {
-		tag.Color = "#3B82F6" // 默认蓝色
+		tag.Color = "#3B82F6" // Default Blue
 	}
 
 	if err := database.DB.Create(&tag).Error; err != nil {
@@ -72,7 +72,7 @@ func (h *AssetTagHandler) CreateTag(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"tag": tag})
 }
 
-// UpdateTag 更新标签
+// UpdateTag Update Tab
 func (h *AssetTagHandler) UpdateTag(c *gin.Context) {
 	id := c.Param("id")
 
@@ -88,7 +88,7 @@ func (h *AssetTagHandler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	if req.Name != "" {
 		tag.Name = req.Name
 	}
@@ -110,7 +110,7 @@ func (h *AssetTagHandler) UpdateTag(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tag": tag})
 }
 
-// DeleteTag 删除标签
+// DeleteTag Remove Tab
 func (h *AssetTagHandler) DeleteTag(c *gin.Context) {
 	id := c.Param("id")
 
@@ -143,7 +143,7 @@ func (h *AssetTagHandler) DeleteTag(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Tag deleted successfully"})
 }
 
-// AddAssetTags 为资产添加标签
+// AddAssetTags Adding a label to an asset
 func (h *AssetTagHandler) AddAssetTags(c *gin.Context) {
 	var req models.AddAssetTagRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -192,7 +192,7 @@ func (h *AssetTagHandler) AddAssetTags(c *gin.Context) {
 		return
 	}
 
-	// 添加新标签
+	// Add New Tab
 	for _, tagID := range unique {
 		relation := models.AssetTagRelation{
 			TagID:     tagID,
@@ -214,7 +214,7 @@ func (h *AssetTagHandler) AddAssetTags(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Tags added successfully"})
 }
 
-// GetAssetTags 获取资产的标签
+// GetAssetTags Label for acquiring assets
 func (h *AssetTagHandler) GetAssetTags(c *gin.Context) {
 	assetType := c.Query("asset_type")
 	assetID := c.Query("asset_id")
@@ -246,10 +246,10 @@ func (h *AssetTagHandler) GetAssetTags(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tags": tags})
 }
 
-// SearchAssetsByTag 根据标签搜索资产
+// SearchAssetsByTag Search assets from label
 func (h *AssetTagHandler) SearchAssetsByTag(c *gin.Context) {
 	tagID := c.Query("tag_id")
-	assetType := c.Query("asset_type") // 可选，过滤资产类型
+	assetType := c.Query("asset_type") // Optional, Filter asset type
 	page, pageSize := parsePagination(c, 50, 100)
 
 	if tagID == "" {
@@ -274,7 +274,7 @@ func (h *AssetTagHandler) SearchAssetsByTag(c *gin.Context) {
 		return
 	}
 
-	// 按资产类型分组
+	// Grouping by asset type
 	result := map[string][]string{
 		"domains": []string{},
 		"ips":     []string{},
@@ -298,7 +298,7 @@ func (h *AssetTagHandler) SearchAssetsByTag(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"assets": result, "total": total, "page": page, "page_size": pageSize, "total_pages": int((total + int64(pageSize) - 1) / int64(pageSize))})
 }
 
-// GetTagStats 获取标签统计
+// GetTagStats Get label statistics
 func (h *AssetTagHandler) GetTagStats(c *gin.Context) {
 	tagID := c.Param("id")
 
@@ -308,7 +308,7 @@ func (h *AssetTagHandler) GetTagStats(c *gin.Context) {
 		return
 	}
 
-	// 统计该标签关联的资产数量
+	// Count the assets associated with the label
 	var stats struct {
 		TotalAssets int64 `json:"total_assets"`
 		DomainCount int64 `json:"domain_count"`

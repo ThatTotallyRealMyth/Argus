@@ -7,18 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// GitHubMonitor GitHub监控模型
+// GitHubMonitor GitHubMonitor Model
 type GitHubMonitor struct {
 	ID          string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Name        string         `gorm:"type:varchar(255);not null" json:"name"`
-	Keywords    string         `gorm:"type:text;not null" json:"keywords"` // 关键词，逗号分隔
+	Keywords    string         `gorm:"type:text;not null" json:"keywords"` // Keywords, Comma separated
 	SearchType  string         `gorm:"type:varchar(50);not null" json:"search_type"` // code, repository, issue
 	Language    string         `gorm:"type:varchar(50)" json:"language"`
-	User        string         `gorm:"type:varchar(100)" json:"user"` // 限定用户/组织
-	Repository  string         `gorm:"type:varchar(200)" json:"repository"` // 限定仓库
-	Extension   string         `gorm:"type:varchar(50)" json:"extension"` // 文件扩展名
+	User        string         `gorm:"type:varchar(100)" json:"user"` // User-limited/Organizations
+	Repository  string         `gorm:"type:varchar(200)" json:"repository"` // Restricted Warehouse
+	Extension   string         `gorm:"type:varchar(50)" json:"extension"` // File Extension
 	IsEnabled   bool           `gorm:"default:true" json:"is_enabled"`
-	Interval    int            `gorm:"not null;default:3600" json:"interval"` // 检查间隔（秒）
+	Interval    int            `gorm:"not null;default:3600" json:"interval"` // Check interval (sec)
 	LastRunAt   *time.Time     `json:"last_run_at,omitempty"`
 	NextRunAt   *time.Time     `json:"next_run_at,omitempty"`
 	RunCount    int            `gorm:"default:0" json:"run_count"`
@@ -27,12 +27,12 @@ type GitHubMonitor struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (GitHubMonitor) TableName() string {
 	return "github_monitors"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (m *GitHubMonitor) BeforeCreate(tx *gorm.DB) error {
 	if m.ID == "" {
 		m.ID = uuid.New().String()
@@ -40,7 +40,7 @@ func (m *GitHubMonitor) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// GitHubMonitorResult GitHub监控结果
+// GitHubMonitorResult GitHubMonitor results
 type GitHubMonitorResult struct {
 	ID          string    `gorm:"type:varchar(36);primaryKey" json:"id"`
 	MonitorID   string    `gorm:"type:varchar(36);not null;index" json:"monitor_id"`
@@ -57,12 +57,12 @@ type GitHubMonitorResult struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (GitHubMonitorResult) TableName() string {
 	return "github_monitor_results"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (r *GitHubMonitorResult) BeforeCreate(tx *gorm.DB) error {
 	if r.ID == "" {
 		r.ID = uuid.New().String()

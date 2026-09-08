@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// AssetProfileService 资产画像服务
+// AssetProfileService Asset portrait services
 type AssetProfileService struct{}
 
 const (
@@ -23,14 +23,14 @@ const (
 	maxGraphEdges   = 1000
 )
 
-// NewAssetProfileService 创建资产画像服务
+// NewAssetProfileService Create an asset image service
 func NewAssetProfileService() *AssetProfileService {
 	return &AssetProfileService{}
 }
 
-// GetAssetProfile 获取资产画像
+// GetAssetProfile Acquisition of asset portraits
 func (s *AssetProfileService) GetAssetProfile(assetType, assetID string) (*models.AssetProfile, error) {
-	// 根据资产类型获取不同的画像
+	// Obtain different drawings by asset type
 	switch assetType {
 	case "domain":
 		return s.getDomainProfile(assetID)
@@ -45,7 +45,7 @@ func (s *AssetProfileService) GetAssetProfile(assetType, assetID string) (*model
 	}
 }
 
-// getDomainProfile 获取域名画像
+// getDomainProfile Get domain name drawings
 func (s *AssetProfileService) getDomainProfile(domainID string) (*models.AssetProfile, error) {
 	var domain models.Domain
 	if err := database.DB.First(&domain, "id = ?", domainID).Error; err != nil {
@@ -60,29 +60,29 @@ func (s *AssetProfileService) getDomainProfile(domainID string) (*models.AssetPr
 		UpdatedAt: domain.UpdatedAt,
 	}
 
-	// 获取标签
+	// Get Tabs
 	var err error
 	profile.Tags, err = s.getAssetTags("domain", domainID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 统计关联资产
+	// Statistically associated assets
 	if err := s.countRelatedAssets(profile, "domain", domainID); err != nil {
 		return nil, err
 	}
 
-	// 统计漏洞
+	// Statistical gaps
 	profile.VulnStats, err = s.getVulnStats(domain.TaskID, "domain", domain.Domain)
 	if err != nil {
 		return nil, err
 	}
 
-	// 域名特征
+	// Domain name characteristics
 	profile.Features.IsCDN = domain.CDN
 	profile.Features.TakeoverVulnerable = domain.TakeoverVulnerable
 
-	// 统计子域名数量
+	// Number of statistical subdomain names
 	rootDomain := registrableDomain(domain.Domain)
 	var taskDomains []models.Domain
 	if err := database.DB.Select("domain").Where("task_id = ?", domain.TaskID).Find(&taskDomains).Error; err != nil {
@@ -95,13 +95,13 @@ func (s *AssetProfileService) getDomainProfile(domainID string) (*models.AssetPr
 		}
 	}
 
-	// 计算风险评分
+	// Calculate risk rating
 	profile.RiskScore, profile.RiskLevel, profile.RiskReasons = s.calculateDomainRisk(domain, profile)
 
 	return profile, nil
 }
 
-// getIPProfile 获取IP画像
+// getIPProfile FetchIPPainting
 func (s *AssetProfileService) getIPProfile(ipID string) (*models.AssetProfile, error) {
 	var ip models.IP
 	if err := database.DB.First(&ip, "id = ?", ipID).Error; err != nil {
@@ -116,29 +116,29 @@ func (s *AssetProfileService) getIPProfile(ipID string) (*models.AssetProfile, e
 		UpdatedAt: ip.UpdatedAt,
 	}
 
-	// 获取标签
+	// Get Tabs
 	var err error
 	profile.Tags, err = s.getAssetTags("ip", ipID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 统计关联资产
+	// Statistically associated assets
 	if err := s.countRelatedAssets(profile, "ip", ipID); err != nil {
 		return nil, err
 	}
 
-	// 统计漏洞
+	// Statistical gaps
 	profile.VulnStats, err = s.getVulnStats(ip.TaskID, "ip", ip.IPAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	// IP特征
+	// IPCharacteristics
 	profile.Features.Location = ip.Location
 	profile.Features.OS = ip.OS
 
-	// 获取开放端口
+	// Get Open Port
 	var ports []models.Port
 	if err := database.DB.Where("task_id = ? AND ip_address = ?", ip.TaskID, ip.IPAddress).Limit(maxProfilePorts).Find(&ports).Error; err != nil {
 		return nil, err
@@ -149,13 +149,13 @@ func (s *AssetProfileService) getIPProfile(ipID string) (*models.AssetProfile, e
 	}
 	profile.Features.OpenPorts = openPorts
 
-	// 计算风险评分
+	// Calculate risk rating
 	profile.RiskScore, profile.RiskLevel, profile.RiskReasons = s.calculateIPRisk(ip, profile)
 
 	return profile, nil
 }
 
-// getSiteProfile 获取站点画像
+// getSiteProfile Get Site Graphics
 func (s *AssetProfileService) getSiteProfile(siteID string) (*models.AssetProfile, error) {
 	var site models.Site
 	if err := database.DB.First(&site, "id = ?", siteID).Error; err != nil {
@@ -170,37 +170,37 @@ func (s *AssetProfileService) getSiteProfile(siteID string) (*models.AssetProfil
 		UpdatedAt: site.UpdatedAt,
 	}
 
-	// 获取标签
+	// Get Tabs
 	var err error
 	profile.Tags, err = s.getAssetTags("site", siteID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 统计关联资产
+	// Statistically associated assets
 	if err := s.countRelatedAssets(profile, "site", siteID); err != nil {
 		return nil, err
 	}
 
-	// 统计漏洞
+	// Statistical gaps
 	profile.VulnStats, err = s.getVulnStats(site.TaskID, "site", site.URL)
 	if err != nil {
 		return nil, err
 	}
 
-	// 站点特征
+	// Site Character
 	profile.Features.Title = site.Title
 	profile.Features.StatusCode = site.StatusCode
 	profile.Features.Fingerprints = site.Fingerprints
 	profile.Features.HasScreenshot = site.Screenshot != ""
 
-	// 计算风险评分
+	// Calculate risk rating
 	profile.RiskScore, profile.RiskLevel, profile.RiskReasons = s.calculateSiteRisk(site, profile)
 
 	return profile, nil
 }
 
-// getPortProfile 获取端口画像
+// getPortProfile Get Port Images
 func (s *AssetProfileService) getPortProfile(portID string) (*models.AssetProfile, error) {
 	var port models.Port
 	if err := database.DB.First(&port, "id = ?", portID).Error; err != nil {
@@ -215,36 +215,36 @@ func (s *AssetProfileService) getPortProfile(portID string) (*models.AssetProfil
 		UpdatedAt: port.UpdatedAt,
 	}
 
-	// 获取标签
+	// Get Tabs
 	var err error
 	profile.Tags, err = s.getAssetTags("port", portID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 统计关联资产
+	// Statistically associated assets
 	if err := s.countRelatedAssets(profile, "port", portID); err != nil {
 		return nil, err
 	}
 
-	// 统计漏洞
+	// Statistical gaps
 	profile.VulnStats, err = s.getVulnStats(port.TaskID, "port", net.JoinHostPort(port.IPAddress, strconv.Itoa(port.Port))+"/tcp")
 	if err != nil {
 		return nil, err
 	}
 
-	// 端口特征
+	// Port characteristics
 	profile.Features.Service = port.Service
 	profile.Features.Version = port.Version
 	profile.Features.Banner = port.Banner
 
-	// 计算风险评分
+	// Calculate risk rating
 	profile.RiskScore, profile.RiskLevel, profile.RiskReasons = s.calculatePortRisk(port, profile)
 
 	return profile, nil
 }
 
-// getAssetTags 获取资产标签
+// getAssetTags Obtain asset labels
 func (s *AssetProfileService) getAssetTags(assetType, assetID string) ([]models.AssetTag, error) {
 	var relations []models.AssetTagRelation
 	if err := database.DB.Where("asset_type = ? AND asset_id = ?", assetType, assetID).Find(&relations).Error; err != nil {
@@ -268,7 +268,7 @@ func (s *AssetProfileService) getAssetTags(assetType, assetID string) ([]models.
 	return tags, nil
 }
 
-// countRelatedAssets 统计同一任务内的关联资产。
+// countRelatedAssets Statistics of associated assets within the same mandate.
 func (s *AssetProfileService) countRelatedAssets(profile *models.AssetProfile, assetType, assetID string) error {
 	switch assetType {
 	case "domain":
@@ -388,7 +388,7 @@ func countTaskSitesByHostname(taskID, hostname string) (int, error) {
 	return count, nil
 }
 
-// getVulnStats 使用与 canonical 漏洞关联相同的结构化目标规则。
+// getVulnStats Use with canonical The leaks are linked to the same structured target rules.
 func (s *AssetProfileService) getVulnStats(taskID, assetType, assetValue string) (models.VulnerabilityStats, error) {
 	var stats models.VulnerabilityStats
 	var vulnerabilities []models.Vulnerability
@@ -434,32 +434,32 @@ func vulnerabilityMatchesProfile(rawTarget, assetType, assetValue string) bool {
 	}
 }
 
-// calculateDomainRisk 计算域名风险评分
+// calculateDomainRisk Calculate domain name risk rating
 func (s *AssetProfileService) calculateDomainRisk(domain models.Domain, profile *models.AssetProfile) (int, string, []string) {
 	score := 0
 	reasons := []string{}
 
-	// 子域名接管 +40
+	// Subdomain name takes over +40
 	if domain.TakeoverVulnerable {
 		score += 40
-		reasons = append(reasons, "存在子域名接管风险")
+		reasons = append(reasons, "There is a risk of subdomain names taking over")
 	}
 
-	// 漏洞数量
+	// Number of gaps
 	if profile.VulnStats.Critical > 0 {
 		score += 30
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个严重漏洞", profile.VulnStats.Critical))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A serious breach.", profile.VulnStats.Critical))
 	}
 	if profile.VulnStats.High > 0 {
 		score += 20
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个高危漏洞", profile.VulnStats.High))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A high-risk breach.", profile.VulnStats.High))
 	}
 	if profile.VulnStats.Medium > 0 {
 		score += 10
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个中危漏洞", profile.VulnStats.Medium))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A breach.", profile.VulnStats.Medium))
 	}
 
-	// CDN保护 -5
+	// CDNProtection -5
 	if domain.CDN {
 		score -= 5
 	}
@@ -468,38 +468,38 @@ func (s *AssetProfileService) calculateDomainRisk(domain models.Domain, profile 
 	return score, level, reasons
 }
 
-// calculateIPRisk 计算IP风险评分
+// calculateIPRisk CalculateIPRisk rating
 func (s *AssetProfileService) calculateIPRisk(ip models.IP, profile *models.AssetProfile) (int, string, []string) {
 	score := 0
 	reasons := []string{}
 
-	// 开放端口数量
+	// Open Port Number
 	openPortCount := len(profile.Features.OpenPorts)
 	if openPortCount > 20 {
 		score += 20
-		reasons = append(reasons, fmt.Sprintf("开放端口过多 (%d个)", openPortCount))
+		reasons = append(reasons, fmt.Sprintf("Open Port Too Too Many (%dOne.)", openPortCount))
 	} else if openPortCount > 10 {
 		score += 10
-		reasons = append(reasons, fmt.Sprintf("开放端口较多 (%d个)", openPortCount))
+		reasons = append(reasons, fmt.Sprintf("More open ports (%dOne.)", openPortCount))
 	}
 
-	// 漏洞数量
+	// Number of gaps
 	if profile.VulnStats.Critical > 0 {
 		score += 30
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个严重漏洞", profile.VulnStats.Critical))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A serious breach.", profile.VulnStats.Critical))
 	}
 	if profile.VulnStats.High > 0 {
 		score += 20
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个高危漏洞", profile.VulnStats.High))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A high-risk breach.", profile.VulnStats.High))
 	}
 
-	// 危险端口
+	// Dangerous port
 	dangerousPorts := []int{21, 22, 23, 3389, 445, 135, 1433, 3306, 5432, 6379, 27017}
 	for _, port := range profile.Features.OpenPorts {
 		for _, dangerPort := range dangerousPorts {
 			if port == dangerPort {
 				score += 5
-				reasons = append(reasons, fmt.Sprintf("开放危险端口 %d", port))
+				reasons = append(reasons, fmt.Sprintf("Open the dangerous port. %d", port))
 				break
 			}
 		}
@@ -509,47 +509,47 @@ func (s *AssetProfileService) calculateIPRisk(ip models.IP, profile *models.Asse
 	return score, level, reasons
 }
 
-// calculateSiteRisk 计算站点风险评分
+// calculateSiteRisk Calculate site risk rating
 func (s *AssetProfileService) calculateSiteRisk(site models.Site, profile *models.AssetProfile) (int, string, []string) {
 	score := 0
 	reasons := []string{}
 
-	// 漏洞数量
+	// Number of gaps
 	if profile.VulnStats.Critical > 0 {
 		score += 30
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个严重漏洞", profile.VulnStats.Critical))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A serious breach.", profile.VulnStats.Critical))
 	}
 	if profile.VulnStats.High > 0 {
 		score += 20
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个高危漏洞", profile.VulnStats.High))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A high-risk breach.", profile.VulnStats.High))
 	}
 	if profile.VulnStats.Medium > 0 {
 		score += 10
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个中危漏洞", profile.VulnStats.Medium))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A breach.", profile.VulnStats.Medium))
 	}
 
-	// 指纹数量（可能暴露的信息）
+	// Number of fingerprints (Possible exposure)
 	if len(profile.Features.Fingerprints) > 5 {
 		score += 5
-		reasons = append(reasons, "暴露过多指纹信息")
+		reasons = append(reasons, "Over-exposed fingerprint information.")
 	}
 
-	// HTTP状态码
+	// HTTPStatus Code
 	if site.StatusCode == 403 || site.StatusCode == 401 {
 		score += 5
-		reasons = append(reasons, "存在认证/授权端点")
+		reasons = append(reasons, "Observed in an authorized scan or trusted data source")
 	}
 
 	level := getRiskLevel(score)
 	return score, level, reasons
 }
 
-// calculatePortRisk 计算端口风险评分
+// calculatePortRisk Calculate port risk rating
 func (s *AssetProfileService) calculatePortRisk(port models.Port, profile *models.AssetProfile) (int, string, []string) {
 	score := 0
 	reasons := []string{}
 
-	// 危险端口
+	// Dangerous port
 	dangerousPorts := map[int]string{
 		21:    "FTP",
 		22:    "SSH",
@@ -566,30 +566,30 @@ func (s *AssetProfileService) calculatePortRisk(port models.Port, profile *model
 
 	if serviceName, isDangerous := dangerousPorts[port.Port]; isDangerous {
 		score += 15
-		reasons = append(reasons, fmt.Sprintf("危险服务 %s (%d)", serviceName, port.Port))
+		reasons = append(reasons, fmt.Sprintf("Dangerous services %s (%d)", serviceName, port.Port))
 	}
 
-	// 漏洞数量
+	// Number of gaps
 	if profile.VulnStats.Critical > 0 {
 		score += 30
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个严重漏洞", profile.VulnStats.Critical))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A serious breach.", profile.VulnStats.Critical))
 	}
 	if profile.VulnStats.High > 0 {
 		score += 20
-		reasons = append(reasons, fmt.Sprintf("存在 %d 个高危漏洞", profile.VulnStats.High))
+		reasons = append(reasons, fmt.Sprintf("Existence %d A high-risk breach.", profile.VulnStats.High))
 	}
 
-	// Banner信息泄露
+	// BannerInformation leaks
 	if port.Banner != "" && len(port.Banner) > 50 {
 		score += 5
-		reasons = append(reasons, "Banner信息过度暴露")
+		reasons = append(reasons, "BannerOverexposure of information")
 	}
 
 	level := getRiskLevel(score)
 	return score, level, reasons
 }
 
-// getRiskLevel 根据分数获取风险等级
+// getRiskLevel Get risk level based on scores
 func getRiskLevel(score int) string {
 	if score >= 50 {
 		return "critical"
@@ -646,7 +646,7 @@ func siteURLPort(raw string) int {
 	}
 }
 
-// GetAssetRelations 获取资产关系
+// GetAssetRelations Acquisition of assets relationship
 func (s *AssetProfileService) GetAssetRelations(assetType, assetID string) ([]models.AssetRelation, error) {
 	relations := []models.AssetRelation{}
 	add := func(sourceType, sourceID, sourceName, targetType, targetID, targetName, relation string, createdAt time.Time) {
@@ -777,7 +777,7 @@ func (s *AssetProfileService) GetAssetRelations(assetType, assetID string) ([]mo
 	return relations, nil
 }
 
-// GetAssetGraph 获取资产关系图谱
+// GetAssetGraph Access to asset relationship maps
 func (s *AssetProfileService) GetAssetGraph(assetType, assetID string, depth int) (*models.AssetGraph, error) {
 	if depth < 0 {
 		return nil, fmt.Errorf("graph depth cannot be negative")
@@ -795,7 +795,7 @@ func (s *AssetProfileService) GetAssetGraph(assetType, assetID string, depth int
 	return graph, nil
 }
 
-// buildGraph 递归构建关系图谱
+// buildGraph Recursively build relationship maps
 func (s *AssetProfileService) buildGraph(graph *models.AssetGraph, assetType, assetID string, depth int, nodeSeen map[string]bool, expandedDepth map[string]int, edgeSeen map[string]bool) error {
 	key := assetType + ":" + assetID
 	if !nodeSeen[key] {
@@ -851,7 +851,7 @@ func (s *AssetProfileService) buildGraph(graph *models.AssetGraph, assetType, as
 	return nil
 }
 
-// createGraphNode 创建图谱节点
+// createGraphNode Create a Spectrum Node
 func (s *AssetProfileService) createGraphNode(assetType, assetID string) (*models.AssetGraphNode, error) {
 	node := &models.AssetGraphNode{
 		ID:   assetID,
@@ -896,13 +896,13 @@ func (s *AssetProfileService) createGraphNode(assetType, assetID string) (*model
 	return node, nil
 }
 
-// AnalyzeCSegment 分析单个任务内已收集的 C 段资产。
+// AnalyzeCSegment Analysis of collected within individual missions C Assets in Sector.
 func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models.CSegmentAnalysis, error) {
 	if strings.TrimSpace(taskID) == "" {
 		return nil, fmt.Errorf("task_id is required")
 	}
 
-	// 提取C段
+	// ExtractCParagraph
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
 		return nil, fmt.Errorf("invalid IP address")
@@ -913,7 +913,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 		return nil, fmt.Errorf("only IPv4 supported")
 	}
 
-	// C段: x.x.x.0/24
+	// CParagraph: x.x.x.0/24
 	cSegment := fmt.Sprintf("%d.%d.%d.0/24", ipv4[0], ipv4[1], ipv4[2])
 	cSegmentPrefix := fmt.Sprintf("%d.%d.%d.", ipv4[0], ipv4[1], ipv4[2])
 
@@ -921,7 +921,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 		CSegment: cSegment,
 	}
 
-	// 查询该C段的所有IP
+	// Query thisCAll of the paragraphsIP
 	var ips []models.IP
 	if err := database.DB.Where("task_id = ? AND ip_address LIKE ?", taskID, cSegmentPrefix+"%").Limit(512).Find(&ips).Error; err != nil {
 		return nil, err
@@ -933,7 +933,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 		analysis.ActiveIPs[i] = ip.IPAddress
 	}
 
-	// 统计端口
+	// Statistical Port
 	var totalPorts int64
 	if err := database.DB.Model(&models.Port{}).
 		Where("task_id = ? AND ip_address LIKE ?", taskID, cSegmentPrefix+"%").
@@ -942,7 +942,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 	}
 	analysis.TotalPorts = int(totalPorts)
 
-	// 统计站点
+	// Statistical sites
 	var totalSites int64
 	if err := database.DB.Model(&models.Site{}).
 		Where("task_id = ? AND ip LIKE ?", taskID, cSegmentPrefix+"%").
@@ -951,7 +951,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 	}
 	analysis.TotalSites = int(totalSites)
 
-	// 统计常见端口
+	// Statistics common ports
 	type PortCount struct {
 		Port  int
 		Count int
@@ -972,7 +972,7 @@ func (s *AssetProfileService) AnalyzeCSegment(taskID, ipAddress string) (*models
 		analysis.CommonPorts[i] = pc.Port
 	}
 
-	// 简单风险评估
+	// Simple risk assessment
 	if analysis.TotalPorts > 100 {
 		analysis.RiskLevel = "high"
 	} else if analysis.TotalPorts > 50 {

@@ -14,15 +14,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// FingerprintHandler 指纹处理器
+// FingerprintHandler Fingerprint processor
 type FingerprintHandler struct{}
 
-// NewFingerprintHandler 创建指纹处理器
+// NewFingerprintHandler Create fingerprint processor
 func NewFingerprintHandler() *FingerprintHandler {
 	return &FingerprintHandler{}
 }
 
-// CreateFingerprintRequest 创建指纹请求
+// CreateFingerprintRequest Create fingerprint request
 type CreateFingerprintRequest struct {
 	Name        string   `json:"name" binding:"required"`
 	Category    string   `json:"category" binding:"required"`
@@ -30,12 +30,12 @@ type CreateFingerprintRequest struct {
 	Description string   `json:"description"`
 }
 
-// ListFingerprints 列出所有指纹
+// ListFingerprints List all fingerprints.
 func (h *FingerprintHandler) ListFingerprints(c *gin.Context) {
 	category := c.Query("category")
 	name := c.Query("name")
 
-	// 分页参数
+	// Page Break Parameters
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "20")
 
@@ -95,7 +95,7 @@ func (h *FingerprintHandler) ListFingerprints(c *gin.Context) {
 	})
 }
 
-// GetFingerprint 获取单个指纹
+// GetFingerprint Get a single fingerprint.
 func (h *FingerprintHandler) GetFingerprint(c *gin.Context) {
 	id := c.Param("id")
 
@@ -112,7 +112,7 @@ func (h *FingerprintHandler) GetFingerprint(c *gin.Context) {
 	c.JSON(http.StatusOK, fingerprint)
 }
 
-// CreateFingerprint 创建指纹
+// CreateFingerprint Create Fingerprints
 func (h *FingerprintHandler) CreateFingerprint(c *gin.Context) {
 	var req CreateFingerprintRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -120,7 +120,7 @@ func (h *FingerprintHandler) CreateFingerprint(c *gin.Context) {
 		return
 	}
 
-	// 验证 DSL 规则
+	// Authentication DSL Rules
 	if len(req.DSL) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "DSL rules cannot be empty"})
 		return
@@ -145,7 +145,7 @@ func (h *FingerprintHandler) CreateFingerprint(c *gin.Context) {
 	})
 }
 
-// UpdateFingerprint 更新指纹
+// UpdateFingerprint Update Fingerprints
 func (h *FingerprintHandler) UpdateFingerprint(c *gin.Context) {
 	id := c.Param("id")
 
@@ -165,13 +165,13 @@ func (h *FingerprintHandler) UpdateFingerprint(c *gin.Context) {
 		return
 	}
 
-	// 验证 DSL 规则
+	// Authentication DSL Rules
 	if len(req.DSL) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "DSL rules cannot be empty"})
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	fingerprint.Name = req.Name
 	fingerprint.Category = req.Category
 	fingerprint.DSL = req.DSL
@@ -188,7 +188,7 @@ func (h *FingerprintHandler) UpdateFingerprint(c *gin.Context) {
 	})
 }
 
-// DeleteFingerprint 删除指纹
+// DeleteFingerprint Remove Fingerprints
 func (h *FingerprintHandler) DeleteFingerprint(c *gin.Context) {
 	id := c.Param("id")
 
@@ -200,7 +200,7 @@ func (h *FingerprintHandler) DeleteFingerprint(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Fingerprint deleted successfully"})
 }
 
-// BatchCreateFingerprints 批量创建指纹
+// BatchCreateFingerprints Batch Create Fingerprints
 func (h *FingerprintHandler) BatchCreateFingerprints(c *gin.Context) {
 	var fingerprints []CreateFingerprintRequest
 	if err := c.ShouldBindJSON(&fingerprints); err != nil {
@@ -231,7 +231,7 @@ func (h *FingerprintHandler) BatchCreateFingerprints(c *gin.Context) {
 	})
 }
 
-// GetCategories 获取所有分类
+// GetCategories Get All Categories
 func (h *FingerprintHandler) GetCategories(c *gin.Context) {
 	var categories []string
 	database.DB.Model(&models.Fingerprint{}).
@@ -241,7 +241,7 @@ func (h *FingerprintHandler) GetCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"categories": categories})
 }
 
-// FingerprintImportItem 指纹导入项目格式 (支持JSON和YAML)
+// FingerprintImportItem Fingerprint Import Item Format (SupportJSONandYAML)
 type FingerprintImportItem struct {
 	CMS      string   `json:"cms" yaml:"cms"`
 	Method   string   `json:"method" yaml:"method"`
@@ -249,51 +249,51 @@ type FingerprintImportItem struct {
 	Keyword  []string `json:"keyword" yaml:"keyword"`
 }
 
-// UniversalFingerprintFormat 通用指纹格式（自动解析多种格式）
+// UniversalFingerprintFormat Generic fingerprint format (Auto-settling multiple formats)
 type UniversalFingerprintFormat struct {
-	// 通用字段
+	// Common fields
 	Name        string      `yaml:"name" json:"name"`
 	ID          string      `yaml:"id" json:"id"`
 	CMS         string      `yaml:"cms" json:"cms"`
 	Category    string      `yaml:"category" json:"category"`
-	Tags        interface{} `yaml:"tags" json:"tags"` // 可能是字符串或数组
+	Tags        interface{} `yaml:"tags" json:"tags"` // Could be a string or array
 	Description string      `yaml:"description" json:"description"`
 
-	// Nuclei风格
+	// NucleiStyle
 	Info     map[string]interface{}   `yaml:"info" json:"info"`
 	Matchers []map[string]interface{} `yaml:"matchers" json:"matchers"`
 
-	// EHole/简化风格
+	// EHole/Simplified style
 	Method   string   `yaml:"method" json:"method"`
 	Location string   `yaml:"location" json:"location"`
 	Keyword  []string `yaml:"keyword" json:"keyword"`
 
-	// 自定义patterns格式
+	// CustompatternsFormat
 	Patterns map[string]interface{} `yaml:"patterns" json:"patterns"`
 
-	// ObserverWard风格
+	// ObserverWardStyle
 	Priority   int                      `yaml:"priority" json:"priority"`
 	MatchRules []map[string]interface{} `yaml:"match_rules" json:"match_rules"`
 
-	// Wappalyzer风格（键值对格式）
+	// WappalyzerStyle (Key-to-Format)
 	Cats    interface{}            `yaml:"cats" json:"cats"`
 	HTML    interface{}            `yaml:"html" json:"html"`
 	Headers map[string]interface{} `yaml:"headers" json:"headers"`
 	Implies interface{}            `yaml:"implies" json:"implies"`
 
-	// 原始数据（用于处理未知格式）
+	// Raw data (For processing unknown format)
 	Raw map[string]interface{} `yaml:",inline" json:"-"`
 }
 
-// ImportFingerprints 导入指纹 (支持多种YAML/JSON格式 - 智能识别)
+// ImportFingerprints Import Fingerprints (Multiple supportYAML/JSONFormat - Smart Recognition)
 func (h *FingerprintHandler) ImportFingerprints(c *gin.Context) {
-	// 调用通用导入接口
+	// Call for a common import interface
 	h.ImportFingerprintsUniversal(c)
 }
 
-// ImportFingerprintsLegacy 导入指纹 (旧版格式 - 仅用于向后兼容)
+// ImportFingerprintsLegacy Import Fingerprints (Old version format - For backward compatibility only)
 func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
-	// 读取原始数据
+	// Read raw data
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -301,13 +301,13 @@ func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
 		return
 	}
 
-	// 检测是否为 YAML 格式
+	// Check whether to YAML Format
 	contentType := c.GetHeader("Content-Type")
 	isYAML := strings.Contains(contentType, "yaml") || strings.Contains(contentType, "yml")
 
-	// 如果 Content-Type 不明确，尝试通过内容判断
+	// If Content-Type Not clear, Try to judge by content
 	if !isYAML && len(body) > 0 {
-		// YAML 通常包含 ":" 作为键值分隔符，且第一行不是 "[" 或 "{"
+		// YAML Organisation ":" As Key Separator, And first line is not. "[" or "{"
 		bodyStr := strings.TrimSpace(string(body))
 		if !strings.HasPrefix(bodyStr, "[") && !strings.HasPrefix(bodyStr, "{") {
 			isYAML = true
@@ -317,22 +317,22 @@ func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
 	var items []FingerprintImportItem
 
 	if isYAML {
-		fmt.Println("检测到 YAML 格式，开始解析...")
+		fmt.Println("Detected YAML Format, Start parsing...")
 		if err := yaml.Unmarshal(body, &items); err != nil {
-			fmt.Printf("YAML解析错误: %v\n", err)
+			fmt.Printf("YAMLParsing error: %v\n", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid YAML format: " + err.Error()})
 			return
 		}
 	} else {
-		fmt.Println("检测到 JSON 格式，开始解析...")
+		fmt.Println("Detected JSON Format, Start parsing...")
 		if err := json.Unmarshal(body, &items); err != nil {
-			fmt.Printf("JSON解析错误: %v\n", err)
+			fmt.Printf("JSONParsing error: %v\n", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format: " + err.Error()})
 			return
 		}
 	}
 
-	fmt.Printf("接收到 %d 条指纹数据 (格式: %s)\n", len(items), map[bool]string{true: "YAML", false: "JSON"}[isYAML])
+	fmt.Printf("Received %d Fingerprint data. (Format: %s)\n", len(items), map[bool]string{true: "YAML", false: "JSON"}[isYAML])
 
 	var created []models.Fingerprint
 	var failed int
@@ -340,33 +340,33 @@ func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
 	var failedReasons []string
 
 	for i, item := range items {
-		fmt.Printf("处理第 %d 条: CMS=%s, Method=%s, Location=%s, Keywords=%v\n",
+		fmt.Printf("Deal with the %d Article: CMS=%s, Method=%s, Location=%s, Keywords=%v\n",
 			i+1, item.CMS, item.Method, item.Location, item.Keyword)
 
-		// 验证必填字段
+		// Authentication of required fields
 		if item.CMS == "" || item.Method == "" || item.Location == "" || len(item.Keyword) == 0 {
-			reason := fmt.Sprintf("第%d条：缺少必填字段 (cms=%s, method=%s, location=%s, keywords=%d个)",
+			reason := fmt.Sprintf("Article%dArticle: Missing required fields (cms=%s, method=%s, location=%s, keywords=%dOne.)",
 				i+1, item.CMS, item.Method, item.Location, len(item.Keyword))
 			failedReasons = append(failedReasons, reason)
-			fmt.Printf("  -> 跳过: %s\n", reason)
+			fmt.Printf("  -> Skip: %s\n", reason)
 			failed++
 			continue
 		}
 
-		// 转换 location 为 rule_type
+		// Convert location Yes. rule_type
 		ruleType := convertLocationToRuleType(item.Location)
 		if ruleType == "" {
-			reason := fmt.Sprintf("第%d条：不支持的location类型 '%s'", i+1, item.Location)
+			reason := fmt.Sprintf("Article%dArticle: UnsupportedlocationType '%s'", i+1, item.Location)
 			failedReasons = append(failedReasons, reason)
-			fmt.Printf("  -> 跳过: %s\n", reason)
+			fmt.Printf("  -> Skip: %s\n", reason)
 			failed++
 			continue
 		}
 
-		// 将关键词转换为 DSL 规则
+		// Convert keywords to DSL Rules
 		dslRules := []string{}
 		for _, keyword := range item.Keyword {
-			// 根据不同的 location 创建相应的 DSL 规则
+			// According to the different location Create corresponding DSL Rules
 			var target string
 			switch item.Location {
 			case "body":
@@ -378,70 +378,70 @@ func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
 			default:
 				target = "body"
 			}
-			// 创建 contains 规则
+			// Create contains Rules
 			dslRule := fmt.Sprintf("contains(%s, '%s')", target, strings.ReplaceAll(keyword, "'", "\\'"))
 			dslRules = append(dslRules, dslRule)
 		}
 
 		if len(dslRules) == 0 {
-			reason := fmt.Sprintf("第%d条：DSL规则为空", i+1)
+			reason := fmt.Sprintf("Article%dArticle: DSLThe rule is empty.", i+1)
 			failedReasons = append(failedReasons, reason)
-			fmt.Printf("  -> 跳过: %s\n", reason)
+			fmt.Printf("  -> Skip: %s\n", reason)
 			failed++
 			continue
 		}
 
-		// 检查是否已存在相同的指纹（根据名称去重）
+		// Check if the same fingerprints exist. (Weight by name)
 		var existingFingerprint models.Fingerprint
 		if err := database.DB.Where("name = ?", item.CMS).First(&existingFingerprint).Error; err == nil {
-			// 已存在，跳过
-			fmt.Printf("  -> 跳过（已存在）: %s\n", item.CMS)
+			// Existing, Skip
+			fmt.Printf("  -> Skip (Existing): %s\n", item.CMS)
 			skipped++
 			continue
 		}
 
 		fingerprint := models.Fingerprint{
 			Name:        item.CMS,
-			Category:    "Web", // 默认分类
+			Category:    "Web", // Default Category
 			DSL:         dslRules,
 			Description: fmt.Sprintf("Imported from JSON - Method: %s, Location: %s", item.Method, item.Location),
 			IsEnabled:   true,
 		}
 
-		fmt.Printf("  -> 成功创建指纹: %s (DSL规则数: %d)\n", fingerprint.Name, len(fingerprint.DSL))
+		fmt.Printf("  -> Successfully created fingerprint: %s (DSLNumber of rules: %d)\n", fingerprint.Name, len(fingerprint.DSL))
 		created = append(created, fingerprint)
 	}
 
-	// 分批插入，使用FirstOrCreate避免重复错误
+	// Batch Insert, UseFirstOrCreateAvoidance of errors
 	successCount := 0
 	duplicateCount := 0
 
 	if len(created) > 0 {
 		for i, fingerprint := range created {
-			// 使用FirstOrCreate来避免重复（根据名称）
+			// UseFirstOrCreateTo avoid duplication (By name)
 			var existing models.Fingerprint
 			result := database.DB.Where("name = ?", fingerprint.Name).
 				FirstOrCreate(&existing, &fingerprint)
 
 			if result.Error != nil {
-				fmt.Printf("第 %d 条保存失败: %v\n", i+1, result.Error)
+				fmt.Printf("Article %d Scratch failed: %v\n", i+1, result.Error)
 				failed++
 				continue
 			}
 
 			if result.RowsAffected > 0 {
-				// 新创建的记录
+				// Newly created records
 				successCount++
 				if (i+1)%100 == 0 {
-					fmt.Printf("进度: %d/%d (成功: %d, 重复: %d)\n", i+1, len(created), successCount, duplicateCount)
+					fmt.Printf("Progress: %d/%d (Success: %d, Repeat: %d)\n", i+1, len(created), successCount, duplicateCount)
 				}
 			} else {
-				// 已存在的记录
+				// Existing records
 				duplicateCount++
 			}
 		}
 
-		fmt.Printf("全部完成：新增 %d 条，跳过重复 %d 条\n", successCount, duplicateCount)
+		fmt.Printf("All completed: Add %d Article, Skip Repeat %d Article\n", successCount, duplicateCount)
 	}
 
 	response := gin.H{
@@ -459,7 +459,7 @@ func (h *FingerprintHandler) ImportFingerprintsLegacy(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
-// convertLocationToRuleType 将location转换为rule_type
+// convertLocationToRuleType WilllocationConvert torule_type
 func convertLocationToRuleType(location string) string {
 	location = strings.ToLower(location)
 	switch location {
@@ -478,12 +478,12 @@ func convertLocationToRuleType(location string) string {
 	}
 }
 
-// parseUniversalFingerprint 智能解析通用指纹格式
+// parseUniversalFingerprint Smart parsing generic fingerprint formats
 func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*models.Fingerprint, error) {
 	var name, category, description string
 	var dslRules []string
 
-	// 1. 提取名称（优先级：name > id > cms）
+	// 1. Extract Name (Priority: name > id > cms)
 	if item.Name != "" {
 		name = item.Name
 	} else if item.ID != "" {
@@ -493,11 +493,11 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 	}
 
 	if name == "" {
-		return nil, fmt.Errorf("指纹缺少名称字段")
+		return nil, fmt.Errorf("Fingerprint missing name field")
 	}
 
-	// 2. 提取分类
-	category = "Web" // 默认分类
+	// 2. Extract Classification
+	category = "Web" // Default Category
 	if item.Category != "" {
 		category = item.Category
 	} else if item.Info != nil {
@@ -516,7 +516,7 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 3. 提取描述
+	// 3. Extract description
 	description = item.Description
 	if description == "" && item.Info != nil {
 		if desc, ok := item.Info["description"].(string); ok {
@@ -524,11 +524,11 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 4. 根据不同格式提取匹配规则
+	// 4. Extracting matching rules according to different formats
 
-	// 格式1: Nuclei风格 (matchers)
+	// Format1: NucleiStyle (matchers)
 	if len(item.Matchers) > 0 {
-		fmt.Printf("  [格式识别] Nuclei风格\n")
+		fmt.Printf("  [Format Recognition] NucleiStyle\n")
 		for _, matcher := range item.Matchers {
 			matcherType, _ := matcher["type"].(string)
 			part, _ := matcher["part"].(string)
@@ -536,7 +536,7 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 				part = "body"
 			}
 
-			// 提取关键词
+			// Extract keywords
 			var words []string
 			if wordList, ok := matcher["words"].([]interface{}); ok {
 				for _, w := range wordList {
@@ -548,7 +548,7 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 				words = append(words, word)
 			}
 
-			// 生成DSL规则
+			// GenerateDSLRules
 			for _, word := range words {
 				dsl := generateDSLRule(part, matcherType, word)
 				if dsl != "" {
@@ -558,9 +558,9 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 格式2: EHole风格 (method + location + keyword)
+	// Format2: EHoleStyle (method + location + keyword)
 	if len(dslRules) == 0 && len(item.Keyword) > 0 {
-		fmt.Printf("  [格式识别] EHole风格\n")
+		fmt.Printf("  [Format Recognition] EHoleStyle\n")
 		location := item.Location
 		if location == "" {
 			location = "body"
@@ -573,9 +573,9 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 格式3: 自定义patterns格式
+	// Format3: CustompatternsFormat
 	if len(dslRules) == 0 && item.Patterns != nil {
-		fmt.Printf("  [格式识别] Patterns风格\n")
+		fmt.Printf("  [Format Recognition] PatternsStyle\n")
 		for location, patterns := range item.Patterns {
 			if patternList, ok := patterns.([]interface{}); ok {
 				for _, p := range patternList {
@@ -595,9 +595,9 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 格式4: ObserverWard风格 (match_rules)
+	// Format4: ObserverWardStyle (match_rules)
 	if len(dslRules) == 0 && len(item.MatchRules) > 0 {
-		fmt.Printf("  [格式识别] ObserverWard风格\n")
+		fmt.Printf("  [Format Recognition] ObserverWardStyle\n")
 		for _, rule := range item.MatchRules {
 			// url_path
 			if urlPath, ok := rule["url_path"].(string); ok {
@@ -622,10 +622,10 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 格式5: Wappalyzer风格 (html, headers)
+	// Format5: WappalyzerStyle (html, headers)
 	if len(dslRules) == 0 && (item.HTML != nil || item.Headers != nil) {
-		fmt.Printf("  [格式识别] Wappalyzer风格\n")
-		// 处理HTML模式
+		fmt.Printf("  [Format Recognition] WappalyzerStyle\n")
+		// ProcessingHTMLMode
 		if item.HTML != nil {
 			if htmlList, ok := item.HTML.([]interface{}); ok {
 				for _, h := range htmlList {
@@ -643,7 +643,7 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 				}
 			}
 		}
-		// 处理Headers
+		// ProcessingHeaders
 		if item.Headers != nil {
 			for headerName, headerValue := range item.Headers {
 				if hvStr, ok := headerValue.(string); ok {
@@ -654,14 +654,14 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 		}
 	}
 
-	// 如果没有提取到任何规则
+	// If no rule is extracted
 	if len(dslRules) == 0 {
-		return nil, fmt.Errorf("无法从指纹中提取匹配规则")
+		return nil, fmt.Errorf("Could not extract matching rules from fingerprints")
 	}
 
-	// 生成描述
+	// Generate description
 	if description == "" {
-		description = fmt.Sprintf("自动导入的指纹 - 规则数: %d", len(dslRules))
+		description = fmt.Sprintf("Automaticly imported fingerprints - Number of rules: %d", len(dslRules))
 	}
 
 	fingerprint := &models.Fingerprint{
@@ -675,11 +675,11 @@ func parseUniversalFingerprint(item *UniversalFingerprintFormat, index int) (*mo
 	return fingerprint, nil
 }
 
-// generateDSLRule 生成DSL规则
+// generateDSLRule GenerateDSLRules
 func generateDSLRule(location, matchType, pattern string) string {
 	location = strings.ToLower(location)
 
-	// 转换location为DSL目标
+	// ConvertlocationYes.DSLObjective
 	var target string
 	switch location {
 	case "body", "response_body", "html":
@@ -696,10 +696,10 @@ func generateDSLRule(location, matchType, pattern string) string {
 		target = "body"
 	}
 
-	// 转义单引号
+	// Transliterate single quotation marks
 	escapedPattern := strings.ReplaceAll(pattern, "'", "\\'")
 
-	// 根据匹配类型生成规则
+	// Generate rules by matching type
 	switch strings.ToLower(matchType) {
 	case "word", "keyword", "contains":
 		return fmt.Sprintf("contains(%s, '%s')", target, escapedPattern)
@@ -708,14 +708,14 @@ func generateDSLRule(location, matchType, pattern string) string {
 	case "exact", "equals":
 		return fmt.Sprintf("%s == '%s'", target, escapedPattern)
 	default:
-		// 默认使用contains
+		// Default usecontains
 		return fmt.Sprintf("contains(%s, '%s')", target, escapedPattern)
 	}
 }
 
-// ImportFingerprintsUniversal 通用指纹导入接口（智能识别多种格式）
+// ImportFingerprintsUniversal Universal fingerprint import interface (Smart recognition in multiple formats)
 func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
-	// 读取原始数据
+	// Read raw data
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -723,7 +723,7 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 		return
 	}
 
-	// 检测是否为YAML格式
+	// Check whether toYAMLFormat
 	contentType := c.GetHeader("Content-Type")
 	isYAML := strings.Contains(contentType, "yaml") || strings.Contains(contentType, "yml")
 
@@ -734,24 +734,24 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 		}
 	}
 
-	fmt.Printf("📦 开始导入指纹（格式: %s）\n", map[bool]string{true: "YAML", false: "JSON"}[isYAML])
+	fmt.Printf("📦 Start importing fingerprints (Format: %s)\n", map[bool]string{true: "YAML", false: "JSON"}[isYAML])
 
-	// 尝试解析为通用格式数组
+	// Try to interpret into a generic format array
 	var items []UniversalFingerprintFormat
 
 	if isYAML {
-		// 先尝试作为数组解析
+		// Try to parsing as a array first
 		if err := yaml.Unmarshal(body, &items); err != nil {
-			// 如果失败，尝试作为单个对象解析
+			// If you fail, Try parsing as a single object
 			var singleItem UniversalFingerprintFormat
 			if err := yaml.Unmarshal(body, &singleItem); err != nil {
-				// 如果还是失败，尝试作为map[string]UniversalFingerprintFormat解析（Wappalyzer风格）
+				// If it still fails,, Try asmap[string]UniversalFingerprintFormatParsing (WappalyzerStyle)
 				var itemsMap map[string]UniversalFingerprintFormat
 				if err := yaml.Unmarshal(body, &itemsMap); err != nil {
 					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid YAML format: " + err.Error()})
 					return
 				}
-				// 转换map为数组
+				// ConvertmapGroup of countries
 				for name, item := range itemsMap {
 					if item.Name == "" {
 						item.Name = name
@@ -763,12 +763,12 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 			}
 		}
 	} else {
-		// JSON解析
+		// JSONParsing
 		if err := json.Unmarshal(body, &items); err != nil {
-			// 尝试单个对象
+			// Try Single Object
 			var singleItem UniversalFingerprintFormat
 			if err := json.Unmarshal(body, &singleItem); err != nil {
-				// 尝试map格式
+				// TrymapFormat
 				var itemsMap map[string]UniversalFingerprintFormat
 				if err := json.Unmarshal(body, &itemsMap); err != nil {
 					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format: " + err.Error()})
@@ -786,7 +786,7 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 		}
 	}
 
-	fmt.Printf("✅ 解析成功，共 %d 条指纹\n", len(items))
+	fmt.Printf("✅ Parsing successful, Total %d A fingerprint.\n", len(items))
 
 	var created []models.Fingerprint
 	var skipped int
@@ -794,31 +794,31 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 	var failedReasons []string
 
 	for i, item := range items {
-		fmt.Printf("\n[%d/%d] 处理指纹...\n", i+1, len(items))
+		fmt.Printf("\n[%d/%d] Handle fingerprints....\n", i+1, len(items))
 
-		// 智能解析
+		// Smart Parsing
 		fingerprint, err := parseUniversalFingerprint(&item, i)
 		if err != nil {
-			reason := fmt.Sprintf("第%d条: %s", i+1, err.Error())
+			reason := fmt.Sprintf("Article%dArticle: %s", i+1, err.Error())
 			failedReasons = append(failedReasons, reason)
 			fmt.Printf("  ❌ %s\n", reason)
 			failed++
 			continue
 		}
 
-		// 检查是否已存在
+		// Check if it exists
 		var existing models.Fingerprint
 		if err := database.DB.Where("name = ?", fingerprint.Name).First(&existing).Error; err == nil {
-			fmt.Printf("  ⏭️ 跳过（已存在）: %s\n", fingerprint.Name)
+			fmt.Printf("  ⏭️ Skip (Existing): %s\n", fingerprint.Name)
 			skipped++
 			continue
 		}
 
-		fmt.Printf("  ✅ %s (分类: %s, 规则数: %d)\n", fingerprint.Name, fingerprint.Category, len(fingerprint.DSL))
+		fmt.Printf("  ✅ %s (Classification: %s, Number of rules: %d)\n", fingerprint.Name, fingerprint.Category, len(fingerprint.DSL))
 		created = append(created, *fingerprint)
 	}
 
-	// 批量插入
+	// Batch Insert
 	successCount := 0
 	if len(created) > 0 {
 		batchSize := 100
@@ -830,11 +830,11 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 			batch := created[i:end]
 
 			if err := database.DB.Create(&batch).Error; err != nil {
-				fmt.Printf("❌ 批量插入失败 (batch %d-%d): %v\n", i, end, err)
+				fmt.Printf("❌ Batch Insert Failed (batch %d-%d): %v\n", i, end, err)
 				failed += len(batch)
 			} else {
 				successCount += len(batch)
-				fmt.Printf("✅ 批量插入成功 (batch %d-%d)\n", i, end)
+				fmt.Printf("✅ Batch Inserted Successfully (batch %d-%d)\n", i, end)
 			}
 		}
 	}
@@ -850,7 +850,7 @@ func (h *FingerprintHandler) ImportFingerprintsUniversal(c *gin.Context) {
 	if len(failedReasons) > 0 && len(failedReasons) <= 10 {
 		response["failed_reasons"] = failedReasons
 	} else if len(failedReasons) > 10 {
-		response["failed_reasons"] = append(failedReasons[:10], fmt.Sprintf("... 还有 %d 个失败", len(failedReasons)-10))
+		response["failed_reasons"] = append(failedReasons[:10], fmt.Sprintf("... And... %d A failure.", len(failedReasons)-10))
 	}
 
 	c.JSON(http.StatusCreated, response)

@@ -12,7 +12,7 @@ import (
 var Client *redis.Client
 var ctx = context.Background()
 
-// Config Redis配置
+// Config RedisConfigure
 type Config struct {
 	Host     string
 	Port     int
@@ -20,7 +20,7 @@ type Config struct {
 	DB       int
 }
 
-// Initialize 初始化Redis连接
+// Initialize InitializationRedisConnection
 func Initialize(config Config) error {
 	Client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
@@ -28,7 +28,7 @@ func Initialize(config Config) error {
 		DB:       config.DB,
 	})
 
-	// 测试连接
+	// Test Connection
 	_, err := Client.Ping(ctx).Result()
 	if err != nil {
 		return fmt.Errorf("failed to connect to redis: %w", err)
@@ -38,28 +38,28 @@ func Initialize(config Config) error {
 	return nil
 }
 
-// Set 设置键值对
+// Set Set Key Right
 func Set(key string, value interface{}, expiration time.Duration) error {
 	return Client.Set(ctx, key, value, expiration).Err()
 }
 
-// Get 获取键值
+// Get Get Key
 func Get(key string) (string, error) {
 	return Client.Get(ctx, key).Result()
 }
 
-// Delete 删除键
+// Delete Delete Key
 func Delete(key string) error {
 	return Client.Del(ctx, key).Err()
 }
 
-// Exists 检查键是否存在
+// Exists Check if key exists
 func Exists(key string) (bool, error) {
 	count, err := Client.Exists(ctx, key).Result()
 	return count > 0, err
 }
 
-// Close 关闭Redis连接
+// Close CloseRedisConnection
 func Close() error {
 	return Client.Close()
 }

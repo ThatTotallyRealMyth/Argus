@@ -264,11 +264,11 @@ func (service *NotificationService) sendJSONResponse(ctx context.Context, endpoi
 }
 
 func notificationPlainText(event NotificationEvent) string {
-	parts := []string{event.Title, event.Message, "级别: " + event.Severity}
+	parts := []string{event.Title, event.Message, "Level: " + event.Severity}
 	if event.Target != "" {
-		parts = append(parts, "目标: "+event.Target)
+		parts = append(parts, "Objective: "+event.Target)
 	}
-	parts = append(parts, "时间: "+event.OccurredAt.Format("2006-01-02 15:04:05"))
+	parts = append(parts, "Time: "+event.OccurredAt.Format("2006-01-02 15:04:05"))
 	return strings.Join(parts, "\n")
 }
 

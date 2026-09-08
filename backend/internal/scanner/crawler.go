@@ -15,7 +15,7 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// Crawler 爬虫
+// Crawler Crawlers.
 type Crawler struct {
 	client      *http.Client
 	validateURL func(string) error
@@ -28,7 +28,7 @@ type Crawler struct {
 	userAgent   string
 }
 
-// CrawlerConfig 爬虫配置
+// CrawlerConfig Retrieve Configuration
 type CrawlerConfig struct {
 	MaxDepth    int
 	MaxPages    int
@@ -39,7 +39,7 @@ type CrawlerConfig struct {
 
 const defaultCrawlerJSWorkers = 4
 
-// NewCrawler 创建爬虫
+// NewCrawler Create a crawler
 func NewCrawler() *Crawler {
 	return NewCrawlerWithConfig(CrawlerConfig{
 		MaxDepth: 3,
@@ -48,7 +48,7 @@ func NewCrawler() *Crawler {
 	})
 }
 
-// NewCrawlerWithConfig 使用配置创建爬虫
+// NewCrawlerWithConfig Create crawler using configuration
 func NewCrawlerWithConfig(config CrawlerConfig) *Crawler {
 	if config.MaxPages <= 0 {
 		config.MaxPages = 100
@@ -89,7 +89,7 @@ func NewCrawlerWithConfig(config CrawlerConfig) *Crawler {
 	return crawler
 }
 
-// Crawl 爬取URL
+// Crawl ClimbURL
 func (c *Crawler) Crawl(ctx *ScanContext, baseURL string) error {
 	if ctx == nil || ctx.Task == nil || ctx.DB == nil {
 		return fmt.Errorf("scan context, task, and database are required")
@@ -115,7 +115,7 @@ func (c *Crawler) Crawl(ctx *ScanContext, baseURL string) error {
 
 	ctx.Logger.Printf("Starting crawler for: %s (maxDepth: %d, maxPages: %d)", baseURL, c.maxDepth, c.maxPages)
 
-	// 爬取队列
+	// Climb Queue
 	queue := []crawlItem{{url: baseURL, depth: 0}}
 	queued := map[string]bool{baseURL: true}
 	workerCount := c.jsWorkers
@@ -158,16 +158,16 @@ crawlLoop:
 			break crawlLoop
 		default:
 		}
-		// 取出第一个
+		// Remove the first
 		item := queue[0]
 		queue = queue[1:]
 
-		// 检查是否已访问
+		// Check whether visits have been made
 		if !c.claimURL(item.url) {
 			continue
 		}
 
-		// 检查深度
+		// Check depth
 		if item.depth > c.maxDepth {
 			continue
 		}
@@ -180,14 +180,14 @@ crawlLoop:
 			}
 		}
 
-		// 创建请求
+		// Create Request
 		req, err := http.NewRequestWithContext(crawlContext, http.MethodGet, item.url, nil)
 		if err != nil {
 			continue
 		}
 		req.Header.Set("User-Agent", c.userAgent)
 
-		// 获取页面
+		// Get Page
 		startedAt := time.Now()
 		resp, err := c.client.Do(req)
 		if err != nil {
@@ -198,11 +198,11 @@ crawlLoop:
 			continue
 		}
 
-		// 获取状态码
+		// Get status code
 		statusCode := resp.StatusCode
 		contentType := resp.Header.Get("Content-Type")
 
-		// 保存URL记录
+		// SaveURLRecords
 		urlRecord := &models.CrawlerResult{
 			TaskID:         ctx.Task.ID,
 			URL:            item.url,
@@ -214,13 +214,13 @@ crawlLoop:
 			ResponseTimeMs: time.Since(startedAt).Milliseconds(),
 		}
 
-		// 解析URL参数
+		// ParsingURLParameters
 		parsedURL, _ := url.Parse(item.url)
 		if parsedURL.RawQuery != "" {
 			urlRecord.HasParams = true
 		}
 
-		// 保存到数据库
+		// Save to Database
 		if !budget.reserve() {
 			resp.Body.Close()
 			break
@@ -233,7 +233,7 @@ crawlLoop:
 			break
 		}
 
-		// 读取有限大小的响应体，用于 HTTP 回看和 HTML/JS 提取。
+		// Read a limited-sized response, For HTTP Look back and see HTML/JS Extract.
 		body, truncated, err := readHTTPBody(resp, maxCrawlerCaptureBytes)
 		resp.Body.Close()
 		if err != nil {
@@ -262,12 +262,12 @@ crawlLoop:
 			}
 		}
 
-		// 只处理HTML内容
+		// Only handleHTMLContents
 		if !strings.Contains(strings.ToLower(contentType), "text/html") {
 			continue
 		}
 
-		// 提取链接
+		// Extract Link
 		links := c.extractLinks(bodyStr, item.url, parsedBase)
 		for _, link := range links {
 			if len(queue) >= c.maxPages {
@@ -280,7 +280,7 @@ crawlLoop:
 			queue = append(queue, crawlItem{url: link, depth: item.depth + 1})
 		}
 
-		// 提取并保存JS文件
+		// Rip and SaveJSDocumentation
 		jsFiles := c.ExtractJSFiles(bodyStr, item.url)
 		for _, jsURL := range jsFiles {
 			select {
@@ -294,7 +294,7 @@ crawlLoop:
 			if !budget.reserve() {
 				break crawlLoop
 			}
-			// 保存JS文件URL
+			// SaveJSDocumentationURL
 			jsRecord := &models.CrawlerResult{
 				TaskID:      ctx.Task.ID,
 				URL:         jsURL,
@@ -309,7 +309,7 @@ crawlLoop:
 				break crawlLoop
 			}
 
-			// 下载并分析JS文件
+			// Download and analyzeJSDocumentation
 			select {
 			case jsJobs <- jsURL:
 			case <-crawlContext.Done():
@@ -335,7 +335,7 @@ crawlLoop:
 	return nil
 }
 
-// crawlItem 爬取项
+// crawlItem Crawling Entry
 type crawlItem struct {
 	url   string
 	depth int
@@ -397,12 +397,12 @@ func (c *Crawler) claimURL(target string) bool {
 	return true
 }
 
-// extractLinks 提取链接
+// extractLinks Extract Link
 func (c *Crawler) extractLinks(body, currentURL string, baseURL *url.URL) []string {
 	var links []string
 	seen := make(map[string]bool)
 
-	// 正则提取href
+	// Reciprocalhref
 	hrefRegex := regexp.MustCompile(`href=["']([^"']+)["']`)
 	matches := hrefRegex.FindAllStringSubmatch(body, -1)
 
@@ -413,7 +413,7 @@ func (c *Crawler) extractLinks(body, currentURL string, baseURL *url.URL) []stri
 
 		link := match[1]
 
-		// 跳过特殊链接
+		// Skip Special Links
 		if strings.HasPrefix(link, "javascript:") ||
 			strings.HasPrefix(link, "mailto:") ||
 			strings.HasPrefix(link, "#") ||
@@ -421,30 +421,30 @@ func (c *Crawler) extractLinks(body, currentURL string, baseURL *url.URL) []stri
 			continue
 		}
 
-		// 解析URL
+		// ParsingURL
 		parsedLink, err := url.Parse(link)
 		if err != nil {
 			continue
 		}
 
-		// 转换为绝对URL
+		// Convert to AbsoluteURL
 		if !parsedLink.IsAbs() {
 			parsedCurrent, _ := url.Parse(currentURL)
 			parsedLink = parsedCurrent.ResolveReference(parsedLink)
 		}
 
-		// 只爬取同域名的链接
+		// Only crawl to links with the same domain name
 		if parsedLink.Host != baseURL.Host {
 			continue
 		}
 
-		// 规范化URL
+		// NormativeURL
 		normalizedURL := parsedLink.Scheme + "://" + parsedLink.Host + parsedLink.Path
 		if parsedLink.RawQuery != "" {
 			normalizedURL += "?" + parsedLink.RawQuery
 		}
 
-		// 去重
+		// - Go heavy.
 		if !seen[normalizedURL] {
 			seen[normalizedURL] = true
 			links = append(links, normalizedURL)
@@ -454,12 +454,12 @@ func (c *Crawler) extractLinks(body, currentURL string, baseURL *url.URL) []stri
 	return links
 }
 
-// ExtractJSFiles 提取JS文件
+// ExtractJSFiles ExtractJSDocumentation
 func (c *Crawler) ExtractJSFiles(body, baseURL string) []string {
 	var jsFiles []string
 	seen := make(map[string]bool)
 
-	// 提取script src
+	// Extractscript src
 	scriptRegex := regexp.MustCompile(`(?i)<script[^>]+src=["']([^"']+)["']`)
 	matches := scriptRegex.FindAllStringSubmatch(body, -1)
 
@@ -479,7 +479,7 @@ func (c *Crawler) ExtractJSFiles(body, baseURL string) []string {
 			continue
 		}
 
-		// 转换为绝对URL
+		// Convert to AbsoluteURL
 		if !parsedSrc.IsAbs() {
 			parsedSrc = parsedBase.ResolveReference(parsedSrc)
 		}
@@ -494,12 +494,12 @@ func (c *Crawler) ExtractJSFiles(body, baseURL string) []string {
 	return jsFiles
 }
 
-// ExtractAPIs 从JS中提取API端点
+// ExtractAPIs FromJSDrawAPIEnd
 func (c *Crawler) ExtractAPIs(jsContent string) []string {
 	var apis []string
 	seen := make(map[string]bool)
 
-	// API路径模式
+	// APIPath Mode
 	patterns := []string{
 		`/api/[a-zA-Z0-9/_-]+`,
 		`/v\d+/[a-zA-Z0-9/_-]+`,
@@ -511,7 +511,7 @@ func (c *Crawler) ExtractAPIs(jsContent string) []string {
 		matches := re.FindAllString(jsContent, -1)
 
 		for _, match := range matches {
-			// 清理引号
+			// Clear quotes
 			match = strings.Trim(match, `"':`)
 			if !seen[match] && strings.HasPrefix(match, "/") {
 				seen[match] = true
@@ -523,18 +523,18 @@ func (c *Crawler) ExtractAPIs(jsContent string) []string {
 	return apis
 }
 
-// ExtractSubdomains 从JS中提取子域名
+// ExtractSubdomains FromJSNeuro-Pill Subdomain Name
 func (c *Crawler) ExtractSubdomains(jsContent string) []string {
 	var subdomains []string
 	seen := make(map[string]bool)
 
-	// 域名模式
+	// Domain name mode
 	domainRegex := regexp.MustCompile(`[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+`)
 	matches := domainRegex.FindAllString(jsContent, -1)
 
 	for _, match := range matches {
 		match = strings.ToLower(match)
-		// 过滤掉常见的非域名
+		// Filter common non-domain names
 		if !strings.Contains(match, ".") ||
 			strings.HasSuffix(match, ".js") ||
 			strings.HasSuffix(match, ".css") ||
@@ -552,7 +552,7 @@ func (c *Crawler) ExtractSubdomains(jsContent string) []string {
 	return subdomains
 }
 
-// analyzeJSFile 分析JS文件
+// analyzeJSFile AnalysisJSDocumentation
 func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain string, budget *crawlerBudget) error {
 	if c.validateURL != nil {
 		if err := c.validateURL(jsURL); err != nil {
@@ -565,7 +565,7 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 		scanContext = context.Background()
 	}
 	db := ctx.DB.WithContext(scanContext)
-	// 下载JS文件
+	// DownloadJSDocumentation
 	req, err := http.NewRequestWithContext(scanContext, http.MethodGet, jsURL, nil)
 	if err != nil {
 		ctx.Logger.Printf("[Crawler] Invalid JavaScript URL %s: %v", jsURL, err)
@@ -594,13 +594,13 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 
 	jsContent := string(body)
 
-	// 提取API端点
+	// ExtractAPIEnd
 	apis := c.ExtractAPIs(jsContent)
 	for _, api := range apis {
 		if err := scanContext.Err(); err != nil {
 			return err
 		}
-		// 构建完整URL
+		// Build FullURL
 		fullURL := jsURL
 		if strings.HasPrefix(api, "/") {
 			parsedJS, _ := url.Parse(jsURL)
@@ -628,16 +628,16 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 		}
 	}
 
-	// 提取子域名
+	// Extract subdomain names
 	subdomains := c.ExtractSubdomains(jsContent)
 	domainScanner := NewDomainScanner()
 	for _, subdomain := range subdomains {
 		if err := scanContext.Err(); err != nil {
 			return err
 		}
-		// 验证是否属于目标域名
+		// Verify whether to be a target domain name
 		if domainScanner.isSubdomainOf(subdomain, baseDomain) {
-			// 保存发现的子域名
+			// Save discovered subdomain names
 			domain := &models.Domain{
 				TaskID: ctx.Task.ID,
 				Domain: subdomain,
@@ -649,10 +649,10 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 		}
 	}
 
-	// 提取敏感信息
+	// Extract sensitive information
 	sensitiveInfo := c.ExtractSensitiveInfo(jsContent)
 	if len(sensitiveInfo) > 0 {
-		// 创建漏洞记录
+		// Create a bug record
 		description := ""
 		for key, values := range sensitiveInfo {
 			if len(values) > 0 {
@@ -665,9 +665,9 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 			URL:         jsURL,
 			Type:        "sensitive_info_leak",
 			Severity:    "high",
-			Title:       "JS文件中发现敏感信息",
+			Title:       "JSSensitive information found in the document",
 			Description: description,
-			Solution:    "移除JavaScript中的敏感信息，使用环境变量或安全的配置管理",
+			Solution:    "RemoveJavaScriptSensitive information in the, Manage using environment variables or secure configurations",
 		}
 		if err := db.Create(vuln).Error; err != nil {
 			return fmt.Errorf("save JavaScript sensitive information finding for %s: %w", jsURL, err)
@@ -676,7 +676,7 @@ func (c *Crawler) analyzeJSFile(ctx *ScanContext, jsURL string, baseDomain strin
 	return nil
 }
 
-// ExtractSensitiveInfo 提取敏感信息
+// ExtractSensitiveInfo Extract sensitive information
 func (c *Crawler) ExtractSensitiveInfo(content string) map[string][]string {
 	result := make(map[string][]string)
 
@@ -716,14 +716,14 @@ func (c *Crawler) ExtractSensitiveInfo(content string) map[string][]string {
 		}
 	}
 
-	// 内网IP
+	// IntranetIP
 	internalIPRegex := regexp.MustCompile(`\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b`)
 	internalIPs := internalIPRegex.FindAllString(content, -1)
 	if len(internalIPs) > 0 {
 		result["internal_ip"] = internalIPs
 	}
 
-	// 去重
+	// - Go heavy.
 	for key, values := range result {
 		result[key] = uniqueStrings(values)
 	}

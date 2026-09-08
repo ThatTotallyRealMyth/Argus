@@ -53,7 +53,7 @@ func Apply(query *gorm.DB, raw string, fields map[string]string, defaultColumns 
 		return query, err
 	}
 	if current := p.current(); current.kind != tokenEOF {
-		return query, fmt.Errorf("位置 %d 附近存在多余内容", current.pos+1)
+		return query, fmt.Errorf("Location %d There's excess content nearby.", current.pos+1)
 	}
 	where, args, err := compile(root, fields, defaultColumns)
 	if err != nil {
@@ -74,14 +74,14 @@ func lex(raw string) ([]token, error) {
 		switch runes[i] {
 		case '&':
 			if i+1 >= len(runes) || runes[i+1] != '&' {
-				return nil, fmt.Errorf("位置 %d：AND 运算符应写为 &&", i+1)
+				return nil, fmt.Errorf("Location %d: AND Operator should read &&", i+1)
 			}
 			result = append(result, token{kind: tokenAnd, pos: i})
 			i += 2
 			continue
 		case '|':
 			if i+1 >= len(runes) || runes[i+1] != '|' {
-				return nil, fmt.Errorf("位置 %d：OR 运算符应写为 ||", i+1)
+				return nil, fmt.Errorf("Location %d: OR Operator should read ||", i+1)
 			}
 			result = append(result, token{kind: tokenOr, pos: i})
 			i += 2
@@ -125,10 +125,10 @@ func lex(raw string) ([]token, error) {
 			i++
 		}
 		if quoted {
-			return nil, fmt.Errorf("位置 %d：双引号未闭合", start+1)
+			return nil, fmt.Errorf("Location %d: Double quotes are not closed", start+1)
 		}
 		if strings.TrimSpace(value.String()) == "" {
-			return nil, fmt.Errorf("位置 %d：检索词不能为空", start+1)
+			return nil, fmt.Errorf("Location %d: Search word cannot be empty", start+1)
 		}
 		result = append(result, token{kind: tokenTerm, value: value.String(), pos: start})
 	}
@@ -149,7 +149,7 @@ func (p *parser) parseOr() (*node, error) {
 	for p.current().kind == tokenOr {
 		operator := p.advance()
 		if p.current().kind == tokenEOF || p.current().kind == tokenRightParen {
-			return nil, fmt.Errorf("位置 %d：|| 后缺少条件", operator.pos+1)
+			return nil, fmt.Errorf("Location %d: || After that, it's not possible.", operator.pos+1)
 		}
 		right, err := p.parseAnd()
 		if err != nil {
@@ -174,7 +174,7 @@ func (p *parser) parseAnd() (*node, error) {
 		if explicit {
 			operator := p.advance()
 			if p.current().kind == tokenEOF || p.current().kind == tokenRightParen || p.current().kind == tokenOr {
-				return nil, fmt.Errorf("位置 %d：&& 后缺少条件", operator.pos+1)
+				return nil, fmt.Errorf("Location %d: && After that, it's not possible.", operator.pos+1)
 			}
 		}
 		right, err := p.parseUnary()
@@ -190,7 +190,7 @@ func (p *parser) parseUnary() (*node, error) {
 	if p.current().kind == tokenNot {
 		operator := p.advance()
 		if p.current().kind == tokenEOF || p.current().kind == tokenRightParen {
-			return nil, fmt.Errorf("位置 %d：! 后缺少条件", operator.pos+1)
+			return nil, fmt.Errorf("Location %d: ! After that, it's not possible.", operator.pos+1)
 		}
 		value, err := p.parseUnary()
 		if err != nil {
@@ -210,19 +210,19 @@ func (p *parser) parsePrimary() (*node, error) {
 	case tokenLeftParen:
 		p.advance()
 		if p.current().kind == tokenRightParen {
-			return nil, fmt.Errorf("位置 %d：括号内不能为空", current.pos+1)
+			return nil, fmt.Errorf("Location %d: The brackets cannot be empty.", current.pos+1)
 		}
 		value, err := p.parseExpression()
 		if err != nil {
 			return nil, err
 		}
 		if p.current().kind != tokenRightParen {
-			return nil, fmt.Errorf("位置 %d：缺少右括号", current.pos+1)
+			return nil, fmt.Errorf("Location %d: Missing right brackets", current.pos+1)
 		}
 		p.advance()
 		return value, nil
 	default:
-		return nil, fmt.Errorf("位置 %d：需要检索条件", current.pos+1)
+		return nil, fmt.Errorf("Location %d: Retrieval conditions required", current.pos+1)
 	}
 }
 
@@ -263,19 +263,19 @@ func compile(value *node, fields map[string]string, defaults []string) (string, 
 		if separator > 0 {
 			field, term = strings.ToLower(strings.TrimSpace(value.value[:separator])), strings.TrimSpace(value.value[separator+operatorLength:])
 			if term == "" {
-				return "", nil, fmt.Errorf("字段 %s 缺少检索值", field)
+				return "", nil, fmt.Errorf("Fields %s Missing search value", field)
 			}
 		}
 		columns := defaults
 		if field != "" {
 			column, ok := fields[field]
 			if !ok {
-				return "", nil, fmt.Errorf("不支持字段 %s", field)
+				return "", nil, fmt.Errorf("Fields Not Supported %s", field)
 			}
 			columns = []string{column}
 		}
 		if len(columns) == 0 {
-			return "", nil, fmt.Errorf("当前列表没有可检索字段")
+			return "", nil, fmt.Errorf("The current list does not have searchable fields")
 		}
 		parts := make([]string, 0, len(columns))
 		args := make([]any, 0, len(columns))
@@ -295,6 +295,6 @@ func compile(value *node, fields map[string]string, defaults []string) (string, 
 		}
 		return "(" + strings.Join(parts, " OR ") + ")", args, nil
 	default:
-		return "", nil, fmt.Errorf("无效检索表达式")
+		return "", nil, fmt.Errorf("Invalid search expression")
 	}
 }

@@ -7,74 +7,74 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// ScannerConfig 扫描器配置
+// ScannerConfig Scanner Configuration
 type ScannerConfig struct {
-	// 域名扫描配置
+	// Domain name scanning configuration
 	DomainConcurrency            int
 	DomainTimeout                time.Duration
 	DomainRetry                  int
 	SubdomainTakeoverConcurrency int
 
-	// 端口扫描配置
+	// Port Scan Configuration
 	PortConcurrencySmall  int
 	PortConcurrencyMedium int
 	PortConcurrencyLarge  int
 	PortTimeout           time.Duration
 
-	// 站点扫描配置
+	// Site Scan Configuration
 	SiteConcurrency int
 	SiteTimeout     time.Duration
 	CrawlerMaxDepth int
 	CrawlerMaxPages int
 
-	// 服务识别配置
+	// Service Recognition Configuration
 	ServiceTimeout  time.Duration
 	BannerMaxLength int
 
-	// IP地理位置配置
+	// IPGeographical location configuration
 	IPLocationRateLimit int
 	IPLocationBatchSize int
 
-	// 目录与敏感文件枚举配置
+	// Directory and Sensitive File Enumeration Configuration
 	FileLeakConcurrency int
 	FileLeakRateLimit   int
 }
 
-// LoadScannerConfig 从数据库加载扫描器配置
+// LoadScannerConfig Load scanner configuration from database
 func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 	config := &ScannerConfig{
-		// 默认值 - 域名扫描
+		// Default value - Domain Scanning
 		DomainConcurrency:            50,
 		DomainTimeout:                3 * time.Second,
 		DomainRetry:                  2,
 		SubdomainTakeoverConcurrency: 20,
 
-		// 默认值 - 端口扫描
+		// Default value - Port Scan
 		PortConcurrencySmall:  100,
 		PortConcurrencyMedium: 300,
 		PortConcurrencyLarge:  500,
-		PortTimeout:           1500 * time.Millisecond, // 1.5秒
+		PortTimeout:           1500 * time.Millisecond, // 1.5sec
 
-		// 默认值 - 站点扫描
+		// Default value - Site Scan
 		SiteConcurrency: 30,
 		SiteTimeout:     5 * time.Second,
 		CrawlerMaxDepth: 3,
 		CrawlerMaxPages: 500,
 
-		// 默认值 - 服务识别
+		// Default value - Service recognition
 		ServiceTimeout:  3 * time.Second,
 		BannerMaxLength: 2048,
 
-		// 默认值 - IP地理位置
+		// Default value - IPGeographical location
 		IPLocationRateLimit: 10,
 		IPLocationBatchSize: 20,
 
-		// 默认值 - 目录与敏感文件枚举
+		// Default value - Directory and sensitive document listings
 		FileLeakConcurrency: 20,
 		FileLeakRateLimit:   0,
 	}
 
-	// 从数据库加载配置
+	// Load Configuration From Database
 	var settings []models.Setting
 	ctx.DB.Where("category = ?", "scanner").Find(&settings)
 
@@ -85,7 +85,7 @@ func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 		}
 		setting.Value = normalized
 		switch setting.Key {
-		// 域名扫描配置
+		// Domain name scanning configuration
 		case "domain_concurrency":
 			if val, err := strconv.Atoi(setting.Value); err == nil && val > 0 {
 				config.DomainConcurrency = val
@@ -103,7 +103,7 @@ func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 				config.SubdomainTakeoverConcurrency = val
 			}
 
-		// 端口扫描配置
+		// Port Scan Configuration
 		case "port_concurrency_small":
 			if val, err := strconv.Atoi(setting.Value); err == nil && val > 0 {
 				config.PortConcurrencySmall = val
@@ -121,7 +121,7 @@ func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 				config.PortTimeout = time.Duration(val * float64(time.Second))
 			}
 
-		// 站点扫描配置
+		// Site Scan Configuration
 		case "site_concurrency":
 			if val, err := strconv.Atoi(setting.Value); err == nil && val > 0 {
 				config.SiteConcurrency = val
@@ -139,7 +139,7 @@ func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 				config.CrawlerMaxPages = val
 			}
 
-		// 服务识别配置
+		// Service Recognition Configuration
 		case "service_timeout":
 			if val, err := strconv.ParseFloat(setting.Value, 64); err == nil && val > 0 {
 				config.ServiceTimeout = time.Duration(val * float64(time.Second))
@@ -149,7 +149,7 @@ func LoadScannerConfig(ctx *ScanContext) *ScannerConfig {
 				config.BannerMaxLength = val
 			}
 
-		// IP地理位置配置
+		// IPGeographical location configuration
 		case "ip_location_rate_limit":
 			if val, err := strconv.Atoi(setting.Value); err == nil && val > 0 {
 				config.IPLocationRateLimit = val

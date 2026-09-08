@@ -15,7 +15,7 @@ func NewSensitiveRuleHandler() *SensitiveRuleHandler {
 	return &SensitiveRuleHandler{}
 }
 
-// CreateSensitiveRuleRequest 创建规则请求
+// CreateSensitiveRuleRequest Create Rule Request
 type CreateSensitiveRuleRequest struct {
 	Name        string                       `json:"name" binding:"required"`
 	Type        models.SensitiveRuleType     `json:"type" binding:"required"`
@@ -27,7 +27,7 @@ type CreateSensitiveRuleRequest struct {
 	IsEnabled   bool                         `json:"is_enabled"`
 }
 
-// UpdateSensitiveRuleRequest 更新规则请求
+// UpdateSensitiveRuleRequest Request for updating rules
 type UpdateSensitiveRuleRequest struct {
 	Name        string                       `json:"name"`
 	Type        models.SensitiveRuleType     `json:"type"`
@@ -39,7 +39,7 @@ type UpdateSensitiveRuleRequest struct {
 	IsEnabled   *bool                        `json:"is_enabled"`
 }
 
-// ListSensitiveRules 获取规则列表
+// ListSensitiveRules Fetch Rule List
 func (h *SensitiveRuleHandler) ListSensitiveRules(c *gin.Context) {
 	category := c.Query("category")
 	severity := c.Query("severity")
@@ -48,7 +48,7 @@ func (h *SensitiveRuleHandler) ListSensitiveRules(c *gin.Context) {
 
 	query := database.DB.Model(&models.SensitiveRule{})
 
-	// 筛选条件
+	// Filter Conditions
 	if category != "" {
 		query = query.Where("category = ?", category)
 	}
@@ -60,14 +60,14 @@ func (h *SensitiveRuleHandler) ListSensitiveRules(c *gin.Context) {
 		query = query.Where("is_enabled = ?", enabled)
 	}
 
-	// 统计总数
+	// Total statistics
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count rules"})
 		return
 	}
 
-	// 分页查询
+	// Page Break Query
 	var rules []models.SensitiveRule
 	offset := (page - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&rules).Error; err != nil {
@@ -84,7 +84,7 @@ func (h *SensitiveRuleHandler) ListSensitiveRules(c *gin.Context) {
 	})
 }
 
-// GetSensitiveRule 获取单个规则
+// GetSensitiveRule Get a single rule
 func (h *SensitiveRuleHandler) GetSensitiveRule(c *gin.Context) {
 	ruleID := c.Param("id")
 
@@ -97,7 +97,7 @@ func (h *SensitiveRuleHandler) GetSensitiveRule(c *gin.Context) {
 	c.JSON(http.StatusOK, rule)
 }
 
-// CreateSensitiveRule 创建规则
+// CreateSensitiveRule Create Rule
 func (h *SensitiveRuleHandler) CreateSensitiveRule(c *gin.Context) {
 	var req CreateSensitiveRuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -132,7 +132,7 @@ func (h *SensitiveRuleHandler) CreateSensitiveRule(c *gin.Context) {
 	})
 }
 
-// UpdateSensitiveRule 更新规则
+// UpdateSensitiveRule Update Rules
 func (h *SensitiveRuleHandler) UpdateSensitiveRule(c *gin.Context) {
 	ruleID := c.Param("id")
 
@@ -142,7 +142,7 @@ func (h *SensitiveRuleHandler) UpdateSensitiveRule(c *gin.Context) {
 		return
 	}
 
-	// 内置规则不允许修改核心字段
+	// The built-in rule does not allow changes to core fields
 	if rule.IsBuiltIn {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Built-in rules cannot be modified"})
 		return
@@ -154,7 +154,7 @@ func (h *SensitiveRuleHandler) UpdateSensitiveRule(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	if req.Name != "" {
 		rule.Name = req.Name
 	}
@@ -191,7 +191,7 @@ func (h *SensitiveRuleHandler) UpdateSensitiveRule(c *gin.Context) {
 	})
 }
 
-// DeleteSensitiveRule 删除规则
+// DeleteSensitiveRule Delete Rule
 func (h *SensitiveRuleHandler) DeleteSensitiveRule(c *gin.Context) {
 	ruleID := c.Param("id")
 
@@ -201,7 +201,7 @@ func (h *SensitiveRuleHandler) DeleteSensitiveRule(c *gin.Context) {
 		return
 	}
 
-	// 内置规则不允许删除
+	// The built-in rule does not allow deletion
 	if rule.IsBuiltIn {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Built-in rules cannot be deleted"})
 		return
@@ -215,7 +215,7 @@ func (h *SensitiveRuleHandler) DeleteSensitiveRule(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Rule deleted successfully"})
 }
 
-// ToggleSensitiveRule 切换规则启用状态
+// ToggleSensitiveRule Toggle Rule Enable Status
 func (h *SensitiveRuleHandler) ToggleSensitiveRule(c *gin.Context) {
 	ruleID := c.Param("id")
 
@@ -239,7 +239,7 @@ func (h *SensitiveRuleHandler) ToggleSensitiveRule(c *gin.Context) {
 	})
 }
 
-// BatchDeleteSensitiveRules 批量删除规则
+// BatchDeleteSensitiveRules Batch-Deleting Rule
 func (h *SensitiveRuleHandler) BatchDeleteSensitiveRules(c *gin.Context) {
 	var req struct {
 		RuleIDs []string `json:"rule_ids" binding:"required"`
@@ -250,7 +250,7 @@ func (h *SensitiveRuleHandler) BatchDeleteSensitiveRules(c *gin.Context) {
 		return
 	}
 
-	// 检查是否包含内置规则
+	// Check whether built-in rules are contained
 	var builtInCount int64
 	database.DB.Model(&models.SensitiveRule{}).
 		Where("id IN ? AND is_built_in = ?", req.RuleIDs, true).
@@ -261,7 +261,7 @@ func (h *SensitiveRuleHandler) BatchDeleteSensitiveRules(c *gin.Context) {
 		return
 	}
 
-	// 批量删除
+	// Batch Delete
 	if err := database.DB.Where("id IN ?", req.RuleIDs).Delete(&models.SensitiveRule{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete rules"})
 		return
@@ -273,7 +273,7 @@ func (h *SensitiveRuleHandler) BatchDeleteSensitiveRules(c *gin.Context) {
 	})
 }
 
-// BatchToggleSensitiveRules 批量切换规则状态
+// BatchToggleSensitiveRules Batch Switch Rule Status
 func (h *SensitiveRuleHandler) BatchToggleSensitiveRules(c *gin.Context) {
 	var req struct {
 		RuleIDs   []string `json:"rule_ids" binding:"required"`
@@ -299,7 +299,7 @@ func (h *SensitiveRuleHandler) BatchToggleSensitiveRules(c *gin.Context) {
 	})
 }
 
-// GetSensitiveRuleStats 获取规则统计
+// GetSensitiveRuleStats Access to rule statistics
 func (h *SensitiveRuleHandler) GetSensitiveRuleStats(c *gin.Context) {
 	var stats struct {
 		TotalRules   int64 `json:"total_rules"`
@@ -324,7 +324,7 @@ func (h *SensitiveRuleHandler) GetSensitiveRuleStats(c *gin.Context) {
 	c.JSON(http.StatusOK, stats)
 }
 
-// ListSensitiveMatches 获取匹配记录
+// ListSensitiveMatches Get Matching Records
 func (h *SensitiveRuleHandler) ListSensitiveMatches(c *gin.Context) {
 	taskID := c.Query("task_id")
 	ruleID := c.Query("rule_id")

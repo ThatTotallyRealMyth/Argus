@@ -9,30 +9,30 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// AdvancedPortScanner 高级端口扫描器
-// 使用平台可用的端口发现引擎，并统一执行服务识别。
+// AdvancedPortScanner Advanced Port Scanner
+// Use the port available to the platform to find the engine, and unified implementation service identification.
 type AdvancedPortScanner struct {
 	scanMode     string // normal, comprehensive
 	progressChan chan *ScanProgress
 	engine       PortScanEngine
 }
 
-// ScanProgress 扫描进度
+// ScanProgress Scan Progress
 type ScanProgress struct {
 	TaskID      string    `json:"task_id"`
 	Stage       string    `json:"stage"`        // port_scan
-	Current     int       `json:"current"`      // 当前完成数
-	Total       int       `json:"total"`        // 总数
-	Percentage  float64   `json:"percentage"`   // 百分比
-	Speed       float64   `json:"speed"`        // 速度 (ports/sec)
-	OpenPorts   int       `json:"open_ports"`   // 发现的开放端口数
-	ElapsedTime int64     `json:"elapsed_time"` // 已用时间(秒)
-	ETA         int64     `json:"eta"`          // 预计剩余时间(秒)
-	Message     string    `json:"message"`      // 状态消息
+	Current     int       `json:"current"`      // Current completions
+	Total       int       `json:"total"`        // Total
+	Percentage  float64   `json:"percentage"`   // Percentage
+	Speed       float64   `json:"speed"`        // Speed (ports/sec)
+	OpenPorts   int       `json:"open_ports"`   // Open port found
+	ElapsedTime int64     `json:"elapsed_time"` // Time used(sec)
+	ETA         int64     `json:"eta"`          // Projected remainder of time(sec)
+	Message     string    `json:"message"`      // Status Message
 	Timestamp   time.Time `json:"timestamp"`
 }
 
-// NewAdvancedPortScanner 创建高级端口扫描器
+// NewAdvancedPortScanner Create an advanced port scanner
 func NewAdvancedPortScanner() *AdvancedPortScanner {
 	scanner := &AdvancedPortScanner{
 		scanMode:     "normal",
@@ -44,26 +44,26 @@ func NewAdvancedPortScanner() *AdvancedPortScanner {
 	return scanner
 }
 
-// SetProgressChannel 设置进度推送通道
+// SetProgressChannel Set Progress Send Channel
 func (aps *AdvancedPortScanner) SetProgressChannel(ch chan *ScanProgress) {
 	aps.progressChan = ch
 }
 
-// SetScanMode 设置扫描模式
-// normal: Naabu 自适应速率 + Nmap 标准扫描
-// comprehensive: Naabu 自适应速率 + Nmap 深度扫描
+// SetScanMode Set Scan Mode
+// normal: Naabu Self-adaptation rate + Nmap Standard Scan
+// comprehensive: Naabu Self-adaptation rate + Nmap Deep Scan
 func (aps *AdvancedPortScanner) SetScanMode(mode string) {
 	aps.scanMode = mode
-	// Naabu使用自适应速率，无需手动设置
-	// 速率会根据目标数量和端口范围自动调整
+	// NaabuUse self-adaptation rate, No manual setting required
+	// Rates are automatically adjusted to target numbers and port range
 }
 
-// ApplyConfig 应用扫描器配置（兼容接口）
+// ApplyConfig Apply scanner configuration (Compatibility Interface)
 func (aps *AdvancedPortScanner) ApplyConfig(config *ScannerConfig, portCount int) {
-	// Naabu使用自适应速率，这里保留配置接口以兼容现有代码
+	// NaabuUse self-adaptation rate, Keep the configuration interface here to fit the existing code
 }
 
-// ScanWithProgress 执行端口扫描并推送进度
+// ScanWithProgress Execute port scan and push progress
 func (aps *AdvancedPortScanner) ScanWithProgress(ctx *ScanContext, ips []models.IP, ports []int) ([]*PortScanResult, error) {
 	if aps == nil {
 		return nil, fmt.Errorf("port scanner not initialized")
@@ -82,8 +82,8 @@ func (aps *AdvancedPortScanner) ScanWithProgress(ctx *ScanContext, ips []models.
 	ctx.Logger.Printf("Ports per IP: %d", len(ports))
 	ctx.Logger.Printf("Total port checks: %d", totalScans)
 
-	// 发送初始进度
-	aps.sendProgress(ctx, 0, totalScans, 0, 0, startTime, "开始端口发现...")
+	// Send Initial Progress
+	aps.sendProgress(ctx, 0, totalScans, 0, 0, startTime, "Start port discovery...")
 
 	results, err := aps.scanWithEngine(ctx, ips, ports, startTime, totalScans)
 	if err != nil {
@@ -98,23 +98,23 @@ func (aps *AdvancedPortScanner) ScanWithProgress(ctx *ScanContext, ips []models.
 		ctx.Logger.Printf("Average speed: %.0f ports/sec", float64(totalScans)/elapsed.Seconds())
 	}
 
-	// 发送完成进度
-	aps.sendProgress(ctx, totalScans, totalScans, len(results), 0, startTime, "端口扫描完成")
+	// Send Completion
+	aps.sendProgress(ctx, totalScans, totalScans, len(results), 0, startTime, "Port scan complete.")
 
 	return results, nil
 }
 
 func (aps *AdvancedPortScanner) scanWithEngine(ctx *ScanContext, ips []models.IP, ports []int, startTime time.Time, totalScans int) ([]*PortScanResult, error) {
-	// 转换IP列表为字符串数组
+	// ConvertIPList as String Array
 	ipStrings := make([]string, len(ips))
 	for i, ip := range ips {
 		ipStrings[i] = ip.IPAddress
 	}
 
 	ctx.Logger.Printf("Stage 1/2: %s port discovery", aps.engine.Name())
-	aps.sendProgress(ctx, 0, totalScans, 0, 0, startTime, "正在发现开放端口...")
+	aps.sendProgress(ctx, 0, totalScans, 0, 0, startTime, "Open port being detected...")
 
-	// 使用 Naabu 引擎扫描
+	// Use Naabu Engine Scan
 	results, err := aps.engine.ScanPorts(ctx.Ctx, ipStrings, ports)
 	if err != nil {
 		return nil, fmt.Errorf("%s scan failed: %w", aps.engine.Name(), err)
@@ -123,18 +123,18 @@ func (aps *AdvancedPortScanner) scanWithEngine(ctx *ScanContext, ips []models.IP
 	ctx.Logger.Printf("Stage 2/2: service detection completed")
 	ctx.Logger.Printf("Found %d open ports total", len(results))
 
-	// 实时保存结果到数据库
+	// Save results to database in real time
 	for _, result := range results {
 		aps.savePortResult(ctx, result)
 	}
 
-	// 更新最终进度
-	aps.sendProgress(ctx, totalScans, totalScans, len(results), 0, startTime, "端口与服务扫描完成")
+	// Update Final Progress
+	aps.sendProgress(ctx, totalScans, totalScans, len(results), 0, startTime, "Port and service scan complete.")
 
 	return results, nil
 }
 
-// sendProgress 发送扫描进度
+// sendProgress Send Scan Progress
 func (aps *AdvancedPortScanner) sendProgress(ctx *ScanContext, current, total, openPorts int, speed float64, startTime time.Time, message string) {
 	if aps.progressChan == nil {
 		return
@@ -168,17 +168,17 @@ func (aps *AdvancedPortScanner) sendProgress(ctx *ScanContext, current, total, o
 	select {
 	case aps.progressChan <- progress:
 	default:
-		// 通道满，跳过此次进度更新
+		// The tunnel's full., Skip this update
 	}
 }
 
-// savePortResult 实时保存端口扫描结果到数据库
+// savePortResult Save the results of the port scan to the database in real time
 func (aps *AdvancedPortScanner) savePortResult(ctx *ScanContext, result *PortScanResult) {
 	if ctx.DB == nil || ctx.Task == nil {
 		return
 	}
 
-	// 创建Port资产记录
+	// CreatePortAsset records
 	port := &models.Port{
 		TaskID:    ctx.Task.ID,
 		IPAddress: result.IP,
@@ -188,19 +188,19 @@ func (aps *AdvancedPortScanner) savePortResult(ctx *ScanContext, result *PortSca
 		Banner:    result.Banner,
 	}
 
-	// 使用 WithContext 确保可以取消
+	// Use WithContext Make sure you can cancel.
 	dbCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	if err := ctx.DB.WithContext(dbCtx).Create(port).Error; err != nil {
-		// 忽略重复记录错误
+		// Ignore duplicate record error
 		if !isDuplicateError(err) {
 			ctx.Logger.Printf("WARNING: Failed to save port result: %v", err)
 		}
 	}
 }
 
-// isDuplicateError 判断是否为重复记录错误
+// isDuplicateError A double record error to judge
 func isDuplicateError(err error) bool {
 	if err == nil {
 		return false
@@ -209,7 +209,7 @@ func isDuplicateError(err error) bool {
 	return containsStringIgnoreCase(errMsg, "duplicate") || containsStringIgnoreCase(errMsg, "UNIQUE")
 }
 
-// containsStringIgnoreCase 字符串包含检查（不区分大小写，避免重名）
+// containsStringIgnoreCase String contains inspection (Case sensitive, Avoid renaming)
 func containsStringIgnoreCase(str, substr string) bool {
 	return strings.Contains(strings.ToLower(str), strings.ToLower(substr))
 }

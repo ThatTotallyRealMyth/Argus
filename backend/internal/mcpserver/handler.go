@@ -26,9 +26,9 @@ type mcpRateLimiter struct {
 	clients map[string]rateWindow
 }
 
-// NewHandler 创建 MCP HTTP handler，挂载到主路由上
-// deps 为 MCP 工具所需的内部服务依赖
-// apiKey 为管理级 API 密钥；为空时拒绝所有请求
+// NewHandler Create MCP HTTP handler, Mount to Main Route
+// deps Yes. MCP Internal service dependency for tools
+// apiKey For management level API Key; Deny all requests in time
 func NewHandler(deps *Deps, apiKey string) http.Handler {
 	if strings.TrimSpace(apiKey) == "" {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func NewHandler(deps *Deps, apiKey string) http.Handler {
 		Name:    "eclipse-recon",
 		Version: serverVersion,
 	}, &mcp.ServerOptions{
-		Instructions: "Eclipse Recon 赏金猎人侦察平台。优先按全局资产清单 -> 聚类攻击线索 -> 证据工作台 -> 授权 PoC 验证的顺序工作；扫描和 PoC 会访问外部目标，执行前确认授权范围。",
+		Instructions: "Eclipse Recon The bounty hunter scout platform..Priority by global asset list -> Cluster attack trail -> Evidence workstation -> Delegation of authority PoC Authentication order work; Scan and PoC Access to external targets, Pre-implementation confirmation of the scope of the mandate.",
 	})
 
 	RegisterTools(server, deps)
@@ -53,8 +53,8 @@ func NewHandler(deps *Deps, apiKey string) http.Handler {
 	return limiter.middleware(mcpAuthMiddleware(h, apiKey))
 }
 
-// mcpAuthMiddleware MCP 认证中间件
-// 支持两种方式传递 API Key:
+// mcpAuthMiddleware MCP Authenticate intermediates
+// Support two modes of transmission API Key:
 //   - Authorization: Bearer <key>
 //   - X-API-Key: <key>
 func mcpAuthMiddleware(next http.Handler, apiKey string) http.Handler {

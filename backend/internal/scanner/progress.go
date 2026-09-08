@@ -1,17 +1,17 @@
 package scanner
 
-// ProgressHandler 扫描进度处理器接口
-// 由 WebSocket handler 实现，TaskService 通过此接口推送进度更新
+// ProgressHandler Scan Progress Processor Interface
+// By WebSocket handler Achieved, TaskService To push progress updates through this interface
 type ProgressHandler interface {
-	// RegisterProgressChannel 注册任务的进度通道
+	// RegisterProgressChannel Progress Channel for Register Tasks
 	RegisterProgressChannel(taskID string, ch chan *ScanProgress)
 
-	// UnregisterProgressChannel 注销任务的进度通道
+	// UnregisterProgressChannel Progress trail for write-off tasks
 	UnregisterProgressChannel(taskID string)
 
-	// BroadcastProgress 广播简易进度更新到所有订阅客户端
+	// BroadcastProgress Radio Simple Progress Updates to All Subscription Clients
 	BroadcastProgress(taskID string, progress int, message string)
 
-	// BroadcastTaskComplete 广播任务终态，驱动客户端刷新最终结果。
+	// BroadcastTaskComplete Broadcasting Mission End, Driver client refresh final result.
 	BroadcastTaskComplete(taskID string, status string, message string)
 }

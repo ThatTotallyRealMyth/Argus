@@ -7,15 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// Domain 域名资产
+// Domain Domain name assets
 type Domain struct {
 	ID        string `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID    string `gorm:"type:uuid;uniqueIndex:idx_task_domain" json:"task_id"`
 	Domain    string `gorm:"type:varchar(255);not null;uniqueIndex:idx_task_domain" json:"domain"`
-	Source    string `gorm:"type:varchar(100)" json:"source"` // 来源：brute, plugin, crawler等
+	Source    string `gorm:"type:varchar(100)" json:"source"` // Source: brute, plugin, crawlerWait.
 	IPAddress string `gorm:"type:varchar(50)" json:"ip_address"`
 	CDN       bool   `gorm:"default:false" json:"cdn"`
-	// 子域名接管检测字段
+	// Subdomain name takes over detection fields
 	TakeoverVulnerable bool      `gorm:"default:false" json:"takeover_vulnerable"`
 	TakeoverService    string    `gorm:"type:varchar(100)" json:"takeover_service,omitempty"`
 	TakeoverCNAME      string    `gorm:"type:varchar(255)" json:"takeover_cname,omitempty"`
@@ -35,7 +35,7 @@ func (Domain) TableName() string {
 	return "domains"
 }
 
-// IP IP资产
+// IP IPAssets
 type IP struct {
 	ID        string    `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID    string    `gorm:"type:uuid;uniqueIndex:idx_task_ip" json:"task_id"`
@@ -60,7 +60,7 @@ func (IP) TableName() string {
 	return "ips"
 }
 
-// Port 端口资产
+// Port Port assets
 type Port struct {
 	ID        string    `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID    string    `gorm:"type:uuid;uniqueIndex:idx_task_ip_port" json:"task_id"`
@@ -86,17 +86,17 @@ func (Port) TableName() string {
 	return "ports"
 }
 
-// Site 站点资产
+// Site Site assets
 type Site struct {
 	ID           string    `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID       string    `gorm:"type:uuid;uniqueIndex:idx_task_url" json:"task_id"`
 	URL          string    `gorm:"type:varchar(500);not null;uniqueIndex:idx_task_url" json:"url"`
 	Title        string    `gorm:"type:varchar(255)" json:"title,omitempty"`
 	StatusCode   int       `gorm:"default:0" json:"status_code"`
-	IP           string    `gorm:"type:varchar(50)" json:"ip,omitempty"` // 添加IP字段
+	IP           string    `gorm:"type:varchar(50)" json:"ip,omitempty"` // AddIPFields
 	ContentType  string    `gorm:"type:varchar(100)" json:"content_type,omitempty"`
 	Server       string    `gorm:"type:varchar(100)" json:"server,omitempty"`
-	Fingerprint  string    `gorm:"type:text" json:"fingerprint,omitempty"` // 添加单个指纹字段
+	Fingerprint  string    `gorm:"type:text" json:"fingerprint,omitempty"` // Add a single fingerprint field
 	Fingerprints []string  `gorm:"type:text;serializer:json" json:"fingerprints,omitempty"`
 	Screenshot   string    `gorm:"type:varchar(500)" json:"screenshot,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -114,7 +114,7 @@ func (Site) TableName() string {
 	return "sites"
 }
 
-// URL URL资产
+// URL URLAssets
 type URL struct {
 	ID        string    `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID    string    `gorm:"type:uuid;index" json:"task_id"`
@@ -144,18 +144,18 @@ const (
 	VulnerabilityStatusRegressed     = "regressed"
 )
 
-// Vulnerability 漏洞信息
+// Vulnerability Leak information
 type Vulnerability struct {
 	ID                     string     `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID                 string     `gorm:"type:uuid;index" json:"task_id"`
 	URL                    string     `gorm:"type:text;not null" json:"url"`
 	Type                   string     `gorm:"type:varchar(100)" json:"type"`      // file_leak, nuclei, host_collision, xray, custom
-	VulnType               string     `gorm:"type:varchar(100)" json:"vuln_type"` // XSS, SQLi, SSRF, etc (别名，向后兼容)
+	VulnType               string     `gorm:"type:varchar(100)" json:"vuln_type"` // XSS, SQLi, SSRF, etc (Alias, Recursive)
 	Severity               string     `gorm:"type:varchar(50)" json:"severity"`   // critical, high, medium, low, info
 	Title                  string     `gorm:"type:varchar(255)" json:"title"`
 	Description            string     `gorm:"type:text" json:"description,omitempty"`
-	Payload                string     `gorm:"type:text" json:"payload,omitempty"` // 攻击payload
-	Proof                  string     `gorm:"type:text" json:"proof,omitempty"`   // 漏洞证明
+	Payload                string     `gorm:"type:text" json:"payload,omitempty"` // Attack!payload
+	Proof                  string     `gorm:"type:text" json:"proof,omitempty"`   // The bug proof.
 	Solution               string     `gorm:"type:text" json:"solution,omitempty"`
 	Reference              string     `gorm:"type:text" json:"reference,omitempty"`
 	Source                 string     `gorm:"type:varchar(50)" json:"source,omitempty"` // nuclei, xray, custom_script
@@ -184,7 +184,7 @@ func (Vulnerability) TableName() string {
 	return "vulnerabilities"
 }
 
-// CrawlerResult 爬虫结果
+// CrawlerResult The crawler.
 type CrawlerResult struct {
 	ID             string    `gorm:"primaryKey;type:uuid" json:"id"`
 	TaskID         string    `gorm:"type:uuid;index" json:"task_id"`

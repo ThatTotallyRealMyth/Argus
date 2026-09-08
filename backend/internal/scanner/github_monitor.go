@@ -23,14 +23,14 @@ var (
 	ErrGithubIntegrationDisabled = errors.New("GitHub integration is disabled")
 )
 
-// GithubMonitor Github监控器
+// GithubMonitor GithubMonitor
 type GithubMonitor struct {
 	client  *http.Client
 	token   string
 	baseURL string
 }
 
-// NewGithubMonitor 创建Github监控器
+// NewGithubMonitor CreateGithubMonitor
 func NewGithubMonitor(token string) *GithubMonitor {
 	return &GithubMonitor{
 		client: &http.Client{
@@ -74,7 +74,7 @@ func NewGithubMonitorFromSettings(db *gorm.DB) (*GithubMonitor, error) {
 	return NewGithubMonitor(token), nil
 }
 
-// GithubSearchResult Github搜索结果
+// GithubSearchResult GithubSearch Results
 type GithubSearchResult struct {
 	TotalCount int                `json:"total_count"`
 	Items      []GithubSearchItem `json:"items"`
@@ -100,7 +100,7 @@ type GithubInspectedItem struct {
 	Err   error
 }
 
-// SearchKeyword 搜索关键字
+// SearchKeyword Search for keywords
 func (gm *GithubMonitor) SearchKeyword(keyword string, maxResults int) (*GithubSearchResult, error) {
 	if maxResults <= 0 {
 		maxResults = 30
@@ -109,7 +109,7 @@ func (gm *GithubMonitor) SearchKeyword(keyword string, maxResults int) (*GithubS
 		maxResults = 100
 	}
 
-	// 构建搜索URL
+	// Build SearchURL
 	query := url.QueryEscape(keyword)
 	apiURL := fmt.Sprintf("%s/search/code?q=%s&per_page=%d&sort=indexed&order=desc", strings.TrimRight(gm.baseURL, "/"), query, maxResults)
 
@@ -118,7 +118,7 @@ func (gm *GithubMonitor) SearchKeyword(keyword string, maxResults int) (*GithubS
 		return nil, err
 	}
 
-	// 设置认证头
+	// Set authentication headers
 	if gm.token != "" {
 		req.Header.Set("Authorization", "Bearer "+gm.token)
 	}
@@ -152,7 +152,7 @@ func (gm *GithubMonitor) SearchKeyword(keyword string, maxResults int) (*GithubS
 	return &result, nil
 }
 
-// SearchMultipleKeywords 搜索多个关键字
+// SearchMultipleKeywords Search for multiple keywords
 func (gm *GithubMonitor) SearchMultipleKeywords(keywords []string) (map[string]*GithubSearchResult, error) {
 	results := make(map[string]*GithubSearchResult)
 	var searchErrors []string
@@ -165,7 +165,7 @@ func (gm *GithubMonitor) SearchMultipleKeywords(keywords []string) (map[string]*
 		}
 		results[keyword] = result
 
-		// 避免触发rate limit
+		// Avoid triggeringrate limit
 		time.Sleep(2 * time.Second)
 	}
 
@@ -175,9 +175,9 @@ func (gm *GithubMonitor) SearchMultipleKeywords(keywords []string) (map[string]*
 	return results, nil
 }
 
-// SearchSensitiveInfo 搜索敏感信息
+// SearchSensitiveInfo Search for sensitive information
 func (gm *GithubMonitor) SearchSensitiveInfo(domain string) (*GithubSearchResult, error) {
-	// 构建敏感信息搜索查询
+	// Build Sensitive Information Search Query
 	queries := []string{
 		fmt.Sprintf("%s password", domain),
 		fmt.Sprintf("%s api_key", domain),
@@ -214,7 +214,7 @@ func (gm *GithubMonitor) SearchSensitiveInfo(domain string) (*GithubSearchResult
 	}, nil
 }
 
-// MonitorKeywords 监控关键字
+// MonitorKeywords Monitor Keywords
 func (gm *GithubMonitor) MonitorKeywords(ctx *ScanContext, keywords []string) error {
 	ctx.Logger.Printf("Monitoring %d keywords on Github", len(keywords))
 
@@ -223,7 +223,7 @@ func (gm *GithubMonitor) MonitorKeywords(ctx *ScanContext, keywords []string) er
 		return err
 	}
 
-	// 保存结果
+	// Save Results
 	for keyword, result := range results {
 		ctx.Logger.Printf("Keyword '%s' found %d results", keyword, result.TotalCount)
 
@@ -238,7 +238,7 @@ func (gm *GithubMonitor) MonitorKeywords(ctx *ScanContext, keywords []string) er
 			}
 
 			severity := githubLeakSeverity(leaks)
-			title := fmt.Sprintf("Github确认敏感信息泄露: %s", keyword)
+			title := fmt.Sprintf("GithubConfirm sensitive information leaks: %s", keyword)
 			description := fmt.Sprintf("Repository: %s\nFile: %s\nURL: %s\nEvidence: %s",
 				item.Repository.FullName, item.Path, item.HTMLURL, GithubLeakSummary(leaks))
 
@@ -250,7 +250,7 @@ func (gm *GithubMonitor) MonitorKeywords(ctx *ScanContext, keywords []string) er
 				Title:       title,
 				Description: description,
 				Reference:   item.Repository.HTMLURL,
-				Solution:    "检查Github仓库中的敏感信息泄露，及时删除或修改凭据",
+				Solution:    "InspectionGithubSensitivity leaks in warehouses, Delete or modify the supporting evidence in a timely manner",
 			}
 			ctx.DB.Create(vuln)
 		}
@@ -269,7 +269,7 @@ func githubLeakSeverity(leaks map[string][]string) string {
 	return "medium"
 }
 
-// GetFileContent 获取文件内容
+// GetFileContent Fetch File Contents
 func (gm *GithubMonitor) GetFileContent(repo, path, ref string) (string, error) {
 	base, err := url.Parse(strings.TrimRight(gm.baseURL, "/"))
 	if err != nil {
@@ -414,7 +414,7 @@ func GithubLeakSeverity(leaks map[string][]string) string {
 	return githubLeakSeverity(leaks)
 }
 
-// CheckLeakedCredentials 检查泄露的凭据
+// CheckLeakedCredentials Checking the leaked evidence.
 func (gm *GithubMonitor) CheckLeakedCredentials(content string) map[string][]string {
 	leaks := make(map[string][]string)
 
@@ -439,7 +439,7 @@ func (gm *GithubMonitor) CheckLeakedCredentials(content string) map[string][]str
 		leaks["jwt_token"] = keys
 	}
 
-	// 私钥
+	// Private Key
 	if strings.Contains(content, "BEGIN RSA PRIVATE KEY") ||
 		strings.Contains(content, "BEGIN PRIVATE KEY") ||
 		strings.Contains(content, "BEGIN EC PRIVATE KEY") ||
@@ -471,7 +471,7 @@ func extractCapturedPattern(content, pattern string) []string {
 	return results
 }
 
-// extractPattern 提取模式匹配
+// extractPattern Extract mode matches
 func extractPattern(content, pattern string) []string {
 	re, err := regexp.Compile(pattern)
 	if err != nil {

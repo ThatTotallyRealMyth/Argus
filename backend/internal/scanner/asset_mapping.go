@@ -10,69 +10,69 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// AssetMapper 资产测绘器
+// AssetMapper Asset Surveyor
 type AssetMapper struct {
 	mu sync.RWMutex
 }
 
-// AssetProfile 资产画像
+// AssetProfile Asset portrait
 type AssetProfile struct {
 	TaskID string `json:"task_id"`
 	Target string `json:"target"`
 
-	// 域名资产
+	// Domain name assets
 	TotalDomains     int            `json:"total_domains"`
 	RootDomains      []string       `json:"root_domains"`
-	SubdomainSources map[string]int `json:"subdomain_sources"` // 来源统计
+	SubdomainSources map[string]int `json:"subdomain_sources"` // Source statistics
 
-	// IP资产
+	// IPAssets
 	TotalIPs    int            `json:"total_ips"`
-	IPLocations map[string]int `json:"ip_locations"` // 地理位置分布
-	CDNIPs      int            `json:"cdn_ips"`      // CDN IP数量
+	IPLocations map[string]int `json:"ip_locations"` // Geographical distribution
+	CDNIPs      int            `json:"cdn_ips"`      // CDN IPNumber
 	UniqueIPs   []string       `json:"unique_ips"`
 
-	// 端口资产
+	// Port assets
 	TotalPorts       int            `json:"total_ports"`
-	OpenPorts        map[int]int    `json:"open_ports"`        // 端口号:数量
-	PortDistribution map[string]int `json:"port_distribution"` // 端口范围分布
+	OpenPorts        map[int]int    `json:"open_ports"`        // Port number:Number
+	PortDistribution map[string]int `json:"port_distribution"` // Port range distribution
 
-	// 服务资产
+	// Service assets
 	TotalServices int                 `json:"total_services"`
-	ServiceTypes  map[string]int      `json:"service_types"` // 服务类型统计
-	Versions      map[string][]string `json:"versions"`      // 服务版本信息
+	ServiceTypes  map[string]int      `json:"service_types"` // Statistics on service types
+	Versions      map[string][]string `json:"versions"`      // Service version information
 
-	// Web资产
+	// WebAssets
 	TotalSites      int            `json:"total_sites"`
-	WebTechnologies map[string]int `json:"web_technologies"`  // 技术栈统计
-	HTTPStatusCodes map[int]int    `json:"http_status_codes"` // 状态码分布
-	TitleKeywords   map[string]int `json:"title_keywords"`    // 标题关键词
+	WebTechnologies map[string]int `json:"web_technologies"`  // Web technology statistics
+	HTTPStatusCodes map[int]int    `json:"http_status_codes"` // Status Code Distribution
+	TitleKeywords   map[string]int `json:"title_keywords"`    // Title keywords
 
-	// 安全风险
-	TakeoverVulnerable int `json:"takeover_vulnerable"` // 子域名接管风险
-	FileLeaks          int `json:"file_leaks"`          // 文件泄露
-	SensitiveInfo      int `json:"sensitive_info"`      // 敏感信息
+	// Security risk
+	TakeoverVulnerable int `json:"takeover_vulnerable"` // Subdomain name takeover risk
+	FileLeaks          int `json:"file_leaks"`          // File leaks
+	SensitiveInfo      int `json:"sensitive_info"`      // Sensitive information
 
-	// 证书资产
+	// Certificate assets
 	SSLCertificates int            `json:"ssl_certificates"`
 	CertIssuers     map[string]int `json:"cert_issuers"`
 	ExpiredCerts    int            `json:"expired_certs"`
 
-	// 爬虫资产
+	// crawler
 	TotalURLs int            `json:"total_urls"`
-	URLPaths  map[string]int `json:"url_paths"`  // URL路径统计
-	FormCount int            `json:"form_count"` // 表单数量
+	URLPaths  map[string]int `json:"url_paths"`  // URLPath statistics
+	FormCount int            `json:"form_count"` // Number of forms
 
-	// 时间戳
+	// Time stamp
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
 
-// NewAssetMapper 创建资产测绘器
+// NewAssetMapper Create an asset mapr
 func NewAssetMapper() *AssetMapper {
 	return &AssetMapper{}
 }
 
-// MapAssets 执行资产测绘
+// MapAssets Implementation of asset mapping
 func (am *AssetMapper) MapAssets(ctx *ScanContext) error {
 	ctx.Logger.Printf("=== Asset Mapping Started ===")
 
@@ -93,7 +93,7 @@ func (am *AssetMapper) MapAssets(ctx *ScanContext) error {
 		URLPaths:         make(map[string]int),
 	}
 
-	// 并发统计各类资产
+	// And then you can run a list of assets.
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -134,17 +134,17 @@ func (am *AssetMapper) MapAssets(ctx *ScanContext) error {
 
 	wg.Wait()
 
-	// 保存资产画像
+	// Save asset portraits
 	am.saveProfile(ctx, profile)
 
-	// 打印统计摘要
+	// Print statistical summary
 	am.printSummary(ctx, profile)
 
 	ctx.Logger.Printf("Asset mapping completed")
 	return nil
 }
 
-// mapDomains 统计域名资产
+// mapDomains Statistical domain name assets
 func (am *AssetMapper) mapDomains(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
@@ -156,14 +156,14 @@ func (am *AssetMapper) mapDomains(ctx *ScanContext, profile *AssetProfile) {
 	rootDomainsMap := make(map[string]bool)
 
 	for _, domain := range domains {
-		// 统计来源
+		// Statistical sources
 		source := domain.Source
 		if source == "" {
 			source = "unknown"
 		}
 		profile.SubdomainSources[source]++
 
-		// 提取根域名
+		// Rip Root Domain Name
 		rootDomain := extractRootDomain(domain.Domain)
 		rootDomainsMap[rootDomain] = true
 	}
@@ -173,7 +173,7 @@ func (am *AssetMapper) mapDomains(ctx *ScanContext, profile *AssetProfile) {
 	}
 }
 
-// mapIPs 统计IP资产
+// mapIPs StatisticsIPAssets
 func (am *AssetMapper) mapIPs(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
@@ -187,12 +187,12 @@ func (am *AssetMapper) mapIPs(ctx *ScanContext, profile *AssetProfile) {
 	for _, ip := range ips {
 		uniqueIPMap[ip.IPAddress] = true
 
-		// 统计地理位置
+		// Statistical geographic location
 		if ip.Location != "" {
 			profile.IPLocations[ip.Location]++
 		}
 
-		// 统计CDN
+		// StatisticsCDN
 		if ip.CDN {
 			profile.CDNIPs++
 		}
@@ -203,7 +203,7 @@ func (am *AssetMapper) mapIPs(ctx *ScanContext, profile *AssetProfile) {
 	}
 }
 
-// mapPorts 统计端口资产
+// mapPorts Statistical Port Assets
 func (am *AssetMapper) mapPorts(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
@@ -214,16 +214,16 @@ func (am *AssetMapper) mapPorts(ctx *ScanContext, profile *AssetProfile) {
 	profile.TotalPorts = len(ports)
 
 	for _, port := range ports {
-		// 统计端口号
+		// Statistical port number
 		profile.OpenPorts[port.Port]++
 
-		// 端口范围分布
+		// Port range distribution
 		portRange := getPortRange(port.Port)
 		profile.PortDistribution[portRange]++
 	}
 }
 
-// mapServices 统计服务资产
+// mapServices Statistical services assets
 func (am *AssetMapper) mapServices(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
@@ -234,12 +234,12 @@ func (am *AssetMapper) mapServices(ctx *ScanContext, profile *AssetProfile) {
 	profile.TotalServices = len(ports)
 
 	for _, port := range ports {
-		// 统计服务类型
+		// Type of statistical services
 		service := port.Service
 		if service != "" {
 			profile.ServiceTypes[service]++
 
-			// 收集版本信息
+			// Collect Version Information
 			if port.Version != "" {
 				versionKey := fmt.Sprintf("%s/%s", service, port.Version)
 				if !containsString(profile.Versions[service], port.Version) {
@@ -251,7 +251,7 @@ func (am *AssetMapper) mapServices(ctx *ScanContext, profile *AssetProfile) {
 	}
 }
 
-// mapSites 统计Web资产
+// mapSites StatisticsWebAssets
 func (am *AssetMapper) mapSites(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
@@ -262,10 +262,10 @@ func (am *AssetMapper) mapSites(ctx *ScanContext, profile *AssetProfile) {
 	profile.TotalSites = len(sites)
 
 	for _, site := range sites {
-		// 统计HTTP状态码
+		// StatisticsHTTPStatus Code
 		profile.HTTPStatusCodes[site.StatusCode]++
 
-		// 统计标题关键词（提取有意义的词）
+		// Statistical title keywords (Draw meaningful words)
 		if site.Title != "" {
 			keywords := extractKeywords(site.Title)
 			for _, keyword := range keywords {
@@ -273,7 +273,7 @@ func (am *AssetMapper) mapSites(ctx *ScanContext, profile *AssetProfile) {
 			}
 		}
 
-		// 统计技术栈（从fingerprint字段解析）
+		// Statistical Technical Repository (FromfingerprintField Parsing)
 		if site.Fingerprint != "" {
 			techs := parseFingerprint(site.Fingerprint)
 			for _, tech := range techs {
@@ -282,36 +282,36 @@ func (am *AssetMapper) mapSites(ctx *ScanContext, profile *AssetProfile) {
 		}
 	}
 
-	// 统计URL
+	// StatisticsURL
 	var crawlerResults []models.CrawlerResult
 	ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&crawlerResults)
 	profile.TotalURLs = len(crawlerResults)
 
 	for _, result := range crawlerResults {
-		// 提取URL路径
+		// ExtractURLPath
 		path := extractURLPath(result.URL)
 		profile.URLPaths[path]++
 
-		// 统计表单
+		// Statistical forms
 		if result.HasForm {
 			profile.FormCount++
 		}
 	}
 }
 
-// mapSecurity 统计安全资产
+// mapSecurity Statistical security assets
 func (am *AssetMapper) mapSecurity(ctx *ScanContext, profile *AssetProfile) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
 
-	// 子域名接管风险
+	// Subdomain name takeover risk
 	var takeoverCount int64
 	ctx.DB.Model(&models.Domain{}).
 		Where("task_id = ? AND takeover_vulnerable = ?", ctx.Task.ID, true).
 		Count(&takeoverCount)
 	profile.TakeoverVulnerable = int(takeoverCount)
 
-	// 文件泄露与敏感信息统计来自漏洞结果，保持和风险列表一致。
+	// Document leakage and sensitive information statistics from leaking results, Maintains the same risk list.
 	var fileLeakCount int64
 	ctx.DB.Model(&models.Vulnerability{}).
 		Where("task_id = ? AND type = ?", ctx.Task.ID, "file_leak").
@@ -324,12 +324,12 @@ func (am *AssetMapper) mapSecurity(ctx *ScanContext, profile *AssetProfile) {
 		Count(&sensitiveInfoCount)
 	profile.SensitiveInfo = int(sensitiveInfoCount)
 
-	// SSL证书
+	// SSLCertificate
 	var ports []models.Port
 	ctx.DB.Where("task_id = ? AND ssl_cert IS NOT NULL AND ssl_cert != ''", ctx.Task.ID).Find(&ports)
 	profile.SSLCertificates = len(ports)
 
-	// 证书颁发者统计
+	// Certificate issuer statistics
 	for _, port := range ports {
 		if port.SSLCert != "" {
 			issuer := extractCertIssuer(port.SSLCert)
@@ -340,7 +340,7 @@ func (am *AssetMapper) mapSecurity(ctx *ScanContext, profile *AssetProfile) {
 	}
 }
 
-// saveProfile 保存资产画像到数据库
+// saveProfile Keep asset drawings to database
 func (am *AssetMapper) saveProfile(ctx *ScanContext, profile *AssetProfile) {
 	profileJSON, err := json.Marshal(profile)
 	if err != nil {
@@ -348,13 +348,13 @@ func (am *AssetMapper) saveProfile(ctx *ScanContext, profile *AssetProfile) {
 		return
 	}
 
-	// 保存到任务的元数据字段或单独的asset_profile表
+	// Save to Tasks Metadata Fields or Separateasset_profileTable
 	ctx.DB.Model(&models.Task{}).
 		Where("id = ?", ctx.Task.ID).
 		Update("asset_profile", string(profileJSON))
 }
 
-// printSummary 打印资产测绘摘要
+// printSummary Print summary of asset mapping
 func (am *AssetMapper) printSummary(ctx *ScanContext, profile *AssetProfile) {
 	ctx.Logger.Printf("=== Asset Mapping Summary ===")
 	ctx.Logger.Printf("📊 Domains: %d (Root: %d)", profile.TotalDomains, len(profile.RootDomains))
@@ -369,7 +369,7 @@ func (am *AssetMapper) printSummary(ctx *ScanContext, profile *AssetProfile) {
 		ctx.Logger.Printf("⚠️  Takeover Vulnerable: %d domains", profile.TakeoverVulnerable)
 	}
 
-	// 打印Top服务
+	// PrintTopServices
 	ctx.Logger.Printf("\n🔝 Top Services:")
 	for service, count := range profile.ServiceTypes {
 		if count > 0 {
@@ -377,16 +377,16 @@ func (am *AssetMapper) printSummary(ctx *ScanContext, profile *AssetProfile) {
 		}
 	}
 
-	// 打印Top端口
+	// PrintTopPort
 	ctx.Logger.Printf("\n🔝 Top Open Ports:")
 	for port, count := range profile.OpenPorts {
-		if count > 2 { // 只显示出现超过2次的端口
+		if count > 2 { // Show only more than2Subport
 			ctx.Logger.Printf("  - Port %d: %d instances", port, count)
 		}
 	}
 }
 
-// 辅助函数
+// Auxiliary Functions
 
 func extractRootDomain(domain string) string {
 	domain = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(domain)), ".")
@@ -418,12 +418,12 @@ func containsString(slice []string, item string) bool {
 }
 
 func extractKeywords(title string) []string {
-	// 简单的关键词提取（可以使用更复杂的NLP方法）
+	// Simple keyword extraction (It's more sophisticated.NLPMethodology)
 	keywords := []string{}
 	words := strings.Fields(title)
 	for _, word := range words {
 		word = strings.TrimSpace(word)
-		if len(word) > 2 { // 过滤太短的词
+		if len(word) > 2 { // Filter too short a word
 			keywords = append(keywords, strings.ToLower(word))
 		}
 	}
@@ -431,9 +431,9 @@ func extractKeywords(title string) []string {
 }
 
 func parseFingerprint(fingerprint string) []string {
-	// 解析fingerprint JSON字符串，提取技术栈名称
+	// Parsingfingerprint JSONString, Extracting Technical Repository Name
 	techs := []string{}
-	// 简单实现：假设fingerprint是逗号分隔的字符串
+	// Simple realization: AssumptionsfingerprintIt's a comma-separated string
 	if fingerprint != "" {
 		parts := strings.Split(fingerprint, ",")
 		for _, part := range parts {
@@ -447,7 +447,7 @@ func parseFingerprint(fingerprint string) []string {
 }
 
 func extractURLPath(url string) string {
-	// 提取URL的路径部分
+	// ExtractURLPath part of the
 	parts := strings.SplitN(url, "://", 2)
 	if len(parts) == 2 {
 		pathParts := strings.SplitN(parts[1], "/", 2)
@@ -459,15 +459,15 @@ func extractURLPath(url string) string {
 }
 
 func extractCertIssuer(certInfo string) string {
-	// 从证书信息中提取颁发者
-	// 简单实现：查找"Issuer:"行
+	// Extract the issuer from the certificate information
+	// Simple realization: Find"Issuer:"Okay.
 	lines := strings.Split(certInfo, "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "Issuer:") {
 			parts := strings.SplitN(line, ":", 2)
 			if len(parts) == 2 {
 				issuer := strings.TrimSpace(parts[1])
-				// 提取组织名称 (O=)
+				// Extract organisation name (O=)
 				if idx := strings.Index(issuer, "O="); idx >= 0 {
 					orgPart := issuer[idx+2:]
 					if endIdx := strings.Index(orgPart, ","); endIdx >= 0 {

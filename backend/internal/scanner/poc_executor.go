@@ -14,13 +14,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// PoCExecutor PoC执行器
+// PoCExecutor PoCExecutor
 type PoCExecutor struct {
 	client        *http.Client
 	neutronEngine *NeutronEngine
 }
 
-// NewPoCExecutor 创建PoC执行器
+// NewPoCExecutor CreatePoCExecutor
 func NewPoCExecutor() *PoCExecutor {
 	return &PoCExecutor{
 		client: &http.Client{
@@ -38,7 +38,7 @@ func NewPoCExecutor() *PoCExecutor {
 	}
 }
 
-// NucleiTemplate Nuclei模板结构（简化版）
+// NucleiTemplate NucleiTemplate Structure (Simplified version)
 type NucleiTemplate struct {
 	ID   string `yaml:"id"`
 	Info struct {
@@ -65,23 +65,23 @@ type NucleiTemplate struct {
 	} `yaml:"requests"`
 }
 
-// ExecuteResult 执行结果
+// ExecuteResult Results of implementation
 type ExecuteResult struct {
 	Vulnerable bool
 	Message    string
 	Details    string
 }
 
-// Execute 执行PoC
+// Execute ImplementationPoC
 func (e *PoCExecutor) Execute(poc *models.PoC, target string) (*ExecuteResult, error) {
-	// 确保target以http或https开头
+	// EnsuretargetByhttporhttpsStart
 	if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
 		target = "http://" + target
 	}
 
 	switch strings.ToLower(strings.TrimSpace(poc.PoCType)) {
 	case "nuclei":
-		// 使用Neutron引擎执行Nuclei格式的PoC
+		// UseNeutronEngine executionNucleiFormattedPoC
 		return e.executeNucleiPoCWithNeutron(poc, target)
 	case "custom":
 		return e.executeCustomPoC(poc.PoCContent, target)
@@ -90,7 +90,7 @@ func (e *PoCExecutor) Execute(poc *models.PoC, target string) (*ExecuteResult, e
 	}
 }
 
-// executeNucleiPoCWithNeutron 使用Neutron引擎执行Nuclei格式的PoC
+// executeNucleiPoCWithNeutron UseNeutronEngine executionNucleiFormattedPoC
 func (e *PoCExecutor) executeNucleiPoCWithNeutron(poc *models.PoC, target string) (*ExecuteResult, error) {
 	result, err := e.neutronEngine.ExecutePoC(poc, target)
 	if err != nil {
@@ -104,57 +104,57 @@ func (e *PoCExecutor) executeNucleiPoCWithNeutron(poc *models.PoC, target string
 	}, nil
 }
 
-// executeNucleiPoC 执行Nuclei格式的PoC (保留原方法作为fallback)
+// executeNucleiPoC ImplementationNucleiFormattedPoC (Retaining the original method asfallback)
 func (e *PoCExecutor) executeNucleiPoC(poc *models.PoC, target string) (*ExecuteResult, error) {
 	var template NucleiTemplate
 	if err := yaml.Unmarshal([]byte(poc.PoCContent), &template); err != nil {
 		return nil, fmt.Errorf("failed to parse nuclei template: %v", err)
 	}
 
-	// 遍历所有请求
+	// I've been through all the requests.
 	for _, request := range template.Requests {
-		// 默认方法为GET
+		// Default method isGET
 		method := request.Method
 		if method == "" {
 			method = "GET"
 		}
 
-		// 遍历所有路径
+		// Walk through all paths
 		for _, path := range request.Path {
-			// 构建完整URL
+			// Build FullURL
 			url := target
 			if !strings.HasSuffix(target, "/") && !strings.HasPrefix(path, "/") {
 				url += "/"
 			}
 			url += strings.TrimPrefix(path, "/")
 
-			// 创建HTTP请求
+			// CreateHTTPRequest
 			req, err := http.NewRequest(method, url, strings.NewReader(request.Body))
 			if err != nil {
 				continue
 			}
 
-			// 设置请求头
+			// Set request header
 			for key, value := range request.Headers {
 				req.Header.Set(key, value)
 			}
 
-			// 设置默认User-Agent
+			// Set DefaultUser-Agent
 			if req.Header.Get("User-Agent") == "" {
 				req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 			}
 
-			// 发送请求
+			// Send Request
 			resp, err := e.client.Do(req)
 			if err != nil {
 				continue
 			}
 
-			// 读取响应
+			// Read Response
 			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
 
-			// 检查匹配器
+			// Check Match
 			matched := e.checkMatchers(request.Matchers, request.MatchersCondition, resp, body)
 			if matched {
 				return &ExecuteResult{
@@ -173,7 +173,7 @@ func (e *PoCExecutor) executeNucleiPoC(poc *models.PoC, target string) (*Execute
 	}, nil
 }
 
-// checkMatchers 检查匹配器
+// checkMatchers Check Match
 func (e *PoCExecutor) checkMatchers(matchers []struct {
 	Type   string   `yaml:"type"`
 	Words  []string `yaml:"words"`
@@ -185,7 +185,7 @@ func (e *PoCExecutor) checkMatchers(matchers []struct {
 		return false
 	}
 
-	// 默认条件为or
+	// Default condition isor
 	if condition == "" {
 		condition = "or"
 	}
@@ -196,7 +196,7 @@ func (e *PoCExecutor) checkMatchers(matchers []struct {
 		results[i] = e.checkSingleMatcher(matcher, resp, body)
 	}
 
-	// 根据条件组合结果
+	// Group results according to conditions
 	if condition == "and" {
 		for _, result := range results {
 			if !result {
@@ -214,7 +214,7 @@ func (e *PoCExecutor) checkMatchers(matchers []struct {
 	}
 }
 
-// checkSingleMatcher 检查单个匹配器
+// checkSingleMatcher Check individual matches
 func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 	Type   string   `yaml:"type"`
 	Words  []string `yaml:"words"`
@@ -224,7 +224,7 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 }, resp *http.Response, body []byte) bool {
 	bodyStr := string(body)
 
-	// 获取检查部分（默认为body）
+	// Get the check part (Default Asbody)
 	checkContent := bodyStr
 	if matcher.Part == "header" {
 		checkContent = fmt.Sprintf("%v", resp.Header)
@@ -232,7 +232,7 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 
 	switch matcher.Type {
 	case "word", "words":
-		// 检查关键词（所有关键词都必须存在）
+		// Check keywords (All keywords must exist.)
 		for _, word := range matcher.Words {
 			if !strings.Contains(checkContent, word) {
 				return false
@@ -241,7 +241,7 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 		return len(matcher.Words) > 0
 
 	case "regex":
-		// 检查正则表达式
+		// Check regular expressions
 		for _, pattern := range matcher.Regex {
 			matched, err := regexp.MatchString(pattern, checkContent)
 			if err != nil || !matched {
@@ -251,7 +251,7 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 		return len(matcher.Regex) > 0
 
 	case "status":
-		// 检查状态码
+		// Check the status code
 		for _, status := range matcher.Status {
 			if resp.StatusCode == status {
 				return true
@@ -260,9 +260,9 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 		return false
 
 	case "dsl":
-		// DSL表达式支持（简化版：只支持状态码和长度检查）
-		// 例如: "status_code == 200 && len(body) > 100"
-		// 这里简化处理，只检查状态码
+		// DSLExpression support (Simplified version: Only state code and length check is supported)
+		// For example...: "status_code == 200 && len(body) > 100"
+		// It's a simple process here., Check the status code only
 		return resp.StatusCode == 200
 
 	default:
@@ -270,7 +270,7 @@ func (e *PoCExecutor) checkSingleMatcher(matcher struct {
 	}
 }
 
-// BatchExecute 批量执行PoC
+// BatchExecute Batch executionPoC
 func (e *PoCExecutor) BatchExecute(pocs []*models.PoC, target string) []*ExecuteResult {
 	results := make([]*ExecuteResult, 0, len(pocs))
 

@@ -30,14 +30,14 @@ func TestApplyBooleanExpression(t *testing.T) {
 
 func TestApplyRejectsUnknownField(t *testing.T) {
 	_, err := Apply(dryRunDB(t), "secret:value", map[string]string{"name": "name"}, []string{"name"})
-	if err == nil || !strings.Contains(err.Error(), "不支持字段") {
+	if err == nil || !strings.Contains(err.Error(), "Fields Not Supported") {
 		t.Fatalf("got %v", err)
 	}
 }
 
 func TestApplyReportsSyntaxPosition(t *testing.T) {
 	_, err := Apply(dryRunDB(t), `name:"broken`, map[string]string{"name": "name"}, []string{"name"})
-	if err == nil || !strings.Contains(err.Error(), "位置") {
+	if err == nil || !strings.Contains(err.Error(), "Location") {
 		t.Fatalf("got %v", err)
 	}
 }

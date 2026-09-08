@@ -10,12 +10,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// NeutronEngine Neutron引擎包装器
+// NeutronEngine NeutronEngine packaging
 type NeutronEngine struct {
 	options *protocols.ExecuterOptions
 }
 
-// NewNeutronEngine 创建Neutron引擎
+// NewNeutronEngine CreateNeutronEngine
 func NewNeutronEngine() *NeutronEngine {
 	return &NeutronEngine{
 		options: &protocols.ExecuterOptions{
@@ -26,7 +26,7 @@ func NewNeutronEngine() *NeutronEngine {
 	}
 }
 
-// NeutronResult Neutron执行结果
+// NeutronResult NeutronResults of implementation
 type NeutronResult struct {
 	Vulnerable    bool
 	TemplateID    string
@@ -36,26 +36,26 @@ type NeutronResult struct {
 	Details       string
 }
 
-// ExecutePoC 使用Neutron执行PoC
+// ExecutePoC UseNeutronImplementationPoC
 func (ne *NeutronEngine) ExecutePoC(poc *models.PoC, target string) (*NeutronResult, error) {
-	// 解析 PoC 模板
+	// Parsing PoC Templates
 	tmpl := &templates.Template{}
 	if err := yaml.Unmarshal([]byte(poc.PoCContent), tmpl); err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	// 编译模板
+	// Compile Template
 	if err := tmpl.Compile(ne.options); err != nil {
 		return nil, fmt.Errorf("failed to compile template: %w", err)
 	}
 
-	// 执行模板
+	// Execute Template
 	result, err := tmpl.Execute(target, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute template: %w", err)
 	}
 
-	// 转换结果
+	// Convert Results
 	neutronResult := &NeutronResult{
 		Vulnerable: result.Matched,
 		TemplateID: tmpl.Id,
@@ -63,7 +63,7 @@ func (ne *NeutronEngine) ExecutePoC(poc *models.PoC, target string) (*NeutronRes
 	}
 
 	if result.Matched {
-		// 收集匹配的规则名称
+		// Name of the rule to collect matching
 		var matcherNames []string
 		for matcherName := range result.Matches {
 			matcherNames = append(matcherNames, matcherName)
@@ -72,7 +72,7 @@ func (ne *NeutronEngine) ExecutePoC(poc *models.PoC, target string) (*NeutronRes
 			neutronResult.MatcherName = matcherNames[0]
 		}
 
-		// 收集提取的数据
+		// Collection of extracted data
 		var extracted []string
 		for _, values := range result.Extracts {
 			extracted = append(extracted, values...)
@@ -86,11 +86,11 @@ func (ne *NeutronEngine) ExecutePoC(poc *models.PoC, target string) (*NeutronRes
 	return neutronResult, nil
 }
 
-// ExecutePoCBatch 批量执行PoC
+// ExecutePoCBatch Batch executionPoC
 func (ne *NeutronEngine) ExecutePoCBatch(pocs []*models.PoC, targets []string) (map[string][]*NeutronResult, error) {
 	results := make(map[string][]*NeutronResult)
 
-	// 解析所有模板
+	// Parsing all templates
 	var tmpls []*templates.Template
 	for _, poc := range pocs {
 		tmpl := &templates.Template{}
@@ -111,7 +111,7 @@ func (ne *NeutronEngine) ExecutePoCBatch(pocs []*models.PoC, targets []string) (
 		return results, fmt.Errorf("no valid templates to execute")
 	}
 
-	// 对每个目标执行所有模板
+	// Execute all templates for each target
 	for _, target := range targets {
 		for _, tmpl := range tmpls {
 			result, err := tmpl.Execute(target, nil)
@@ -152,7 +152,7 @@ func (ne *NeutronEngine) ExecutePoCBatch(pocs []*models.PoC, targets []string) (
 	return results, nil
 }
 
-// SetTimeout 设置超时时间
+// SetTimeout Set timeout
 func (ne *NeutronEngine) SetTimeout(timeout int) {
 	ne.options.Options.Timeout = timeout
 }

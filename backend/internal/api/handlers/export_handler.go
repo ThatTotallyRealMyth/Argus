@@ -14,27 +14,27 @@ import (
 	"gorm.io/gorm"
 )
 
-// ExportHandler 导出处理器
+// ExportHandler Export Processor
 type ExportHandler struct {
 	exporter *export.Exporter
 }
 
-// NewExportHandler 创建导出处理器
+// NewExportHandler Create Export Processor
 func NewExportHandler() *ExportHandler {
 	exp := export.NewExporter("./exports")
-	// 启动定期清理：每6小时清理超过24小时的导出文件
+	// Start regular cleanup.: Every6Over-exact hours24Export File for Hours
 	exp.StartPeriodicCleanup(6*time.Hour, 24*time.Hour)
 	return &ExportHandler{
 		exporter: exp,
 	}
 }
 
-// ExportTask 导出任务数据
+// ExportTask Export Task Data
 func (h *ExportHandler) ExportTask(c *gin.Context) {
 	taskID := c.Param("id")
 	format := c.DefaultQuery("format", "json") // json, csv, html
 
-	// 获取任务
+	// Get Tasks
 	var task models.Task
 	if err := database.DB.First(&task, "id = ?", taskID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -196,7 +196,7 @@ func loadTaskExportData(taskID string, task *models.Task, includeHTTPBodies bool
 	return data, nil
 }
 
-// DownloadExport 下载导出文件
+// DownloadExport Download Export File
 func (h *ExportHandler) DownloadExport(c *gin.Context) {
 	filename := c.Query("file")
 	if filename == "" {
@@ -228,28 +228,28 @@ func validExportFilename(filename string) bool {
 	}
 }
 
-// containsPathTraversal 检查路径遍历
+// containsPathTraversal Check Path Through
 func containsPathTraversal(path string) bool {
-	// 空路径
+	// Empty Path
 	if len(path) == 0 {
 		return true
 	}
-	// 绝对路径
+	// Absolute Path
 	if path[0] == '/' || path[0] == '\\' {
 		return true
 	}
 	if strings.ContainsAny(path, `/\\`) {
 		return true
 	}
-	// 包含路径遍历序列
+	// Include path through the history series
 	if strings.Contains(path, "..") {
 		return true
 	}
-	// 包含空字节
+	// Include empty bytes
 	if strings.ContainsRune(path, 0) {
 		return true
 	}
-	// 包含 URL 编码的路径遍历
+	// Organisation URL Encoding Path Through
 	if strings.Contains(strings.ToLower(path), "%2e%2e") ||
 		strings.Contains(strings.ToLower(path), "%2f") ||
 		strings.Contains(strings.ToLower(path), "%5c") {

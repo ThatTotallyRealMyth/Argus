@@ -33,7 +33,7 @@ func TestTaskLogWriterPostgres(t *testing.T) {
 
 	taskID := uuid.NewString()
 	writer := &taskLogRecorder{db: tx, taskID: taskID, buffer: make([]models.TaskLog, 0, taskLogBatchSize)}
-	if _, err := writer.Write([]byte("2026/07/16 10:00:00 开始端口扫描\n2026/07/16 10:00:01 端口扫描失败：timeout\n")); err != nil {
+	if _, err := writer.Write([]byte("2026/07/16 10:00:00 Start Port Scanning\n2026/07/16 10:00:01 Port scan failed: timeout\n")); err != nil {
 		t.Fatalf("write task logs: %v", err)
 	}
 	writer.Close()
@@ -41,7 +41,7 @@ func TestTaskLogWriterPostgres(t *testing.T) {
 	if err := tx.Where("task_id = ?", taskID).Order("created_at ASC, sequence ASC").Find(&rows).Error; err != nil {
 		t.Fatalf("load task logs: %v", err)
 	}
-	if len(rows) != 2 || rows[0].Message != "开始端口扫描" || rows[0].Level != "info" || rows[0].Sequence != 1 || rows[1].Level != "error" || rows[1].Sequence != 2 || rows[1].CreatedAt.Before(rows[0].CreatedAt) {
+	if len(rows) != 2 || rows[0].Message != "Start Port Scanning" || rows[0].Level != "info" || rows[0].Sequence != 1 || rows[1].Level != "error" || rows[1].Sequence != 2 || rows[1].CreatedAt.Before(rows[0].CreatedAt) {
 		t.Fatalf("unexpected task logs: %#v", rows)
 	}
 }

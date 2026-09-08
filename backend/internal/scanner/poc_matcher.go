@@ -7,17 +7,17 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// PoCMatcher PoC智能匹配服务
+// PoCMatcher PoCSmart Matching Service
 type PoCMatcher struct{}
 
-// NewPoCMatcher 创建PoC匹配器
+// NewPoCMatcher CreatePoCMatcher
 func NewPoCMatcher() *PoCMatcher {
 	return &PoCMatcher{}
 }
 
-// MatchPoCsByFingerprints 根据指纹匹配PoC
-// fingerprints: 识别到的指纹名称列表
-// 返回匹配的PoC列表
+// MatchPoCsByFingerprints It's a fingerprint match.PoC
+// fingerprints: List of identified fingerprints
+// Back MatchingPoCList
 func (pm *PoCMatcher) MatchPoCsByFingerprints(fingerprints []string) ([]models.PoC, error) {
 	if len(fingerprints) == 0 {
 		return []models.PoC{}, nil
@@ -25,7 +25,7 @@ func (pm *PoCMatcher) MatchPoCsByFingerprints(fingerprints []string) ([]models.P
 
 	var allPoCs []models.PoC
 
-	// 获取所有启用的PoC
+	// Get all enabledPoC
 	if err := database.DB.Where("is_enabled = ?", true).Find(&allPoCs).Error; err != nil {
 		return nil, err
 	}
@@ -53,16 +53,16 @@ func executablePoCType(pocType string) bool {
 	}
 }
 
-// isPoCMatched 判断PoC是否匹配指纹
+// isPoCMatched JudgementPoCMatching fingerprints
 func (pm *PoCMatcher) isPoCMatched(poc models.PoC, fingerprints []string) bool {
-	// 如果PoC没有设置指纹关联和应用名称，默认不匹配(避免无差别扫描)
+	// IfPoCNo fingerprint association and application name set, Default mismatch(Avoiding Undifferent Scan)
 	if poc.Fingerprints == "" && poc.AppNames == "" {
 		return false
 	}
 
 	matchMode := poc.MatchMode
 	if matchMode == "" {
-		matchMode = "fuzzy" // 默认模糊匹配
+		matchMode = "fuzzy" // Default Fuzzy Matches
 	}
 
 	switch matchMode {
@@ -77,7 +77,7 @@ func (pm *PoCMatcher) isPoCMatched(poc models.PoC, fingerprints []string) bool {
 	}
 }
 
-// exactMatch 精确匹配 - PoC指纹必须完全匹配
+// exactMatch Accurate Match - PoCFingerprints must match exactly.
 func (pm *PoCMatcher) exactMatch(poc models.PoC, fingerprints []string) bool {
 	if poc.Fingerprints == "" {
 		return false
@@ -89,7 +89,7 @@ func (pm *PoCMatcher) exactMatch(poc models.PoC, fingerprints []string) bool {
 		fingerprintMap[strings.ToLower(fp)] = true
 	}
 
-	// 所有PoC指定的指纹都必须存在
+	// AllPoCThe fingerprints must be in place.
 	for _, pocFp := range pocFingerprints {
 		if !fingerprintMap[strings.ToLower(pocFp)] {
 			return false
@@ -99,9 +99,9 @@ func (pm *PoCMatcher) exactMatch(poc models.PoC, fingerprints []string) bool {
 	return len(pocFingerprints) > 0
 }
 
-// fuzzyMatch 模糊匹配 - 只要有一个指纹匹配即可
+// fuzzyMatch Fuzzy Match - Just one fingerprint match.
 func (pm *PoCMatcher) fuzzyMatch(poc models.PoC, fingerprints []string) bool {
-	// 检查fingerprints字段
+	// InspectionfingerprintsFields
 	if poc.Fingerprints != "" {
 		pocFingerprints := pm.splitAndTrim(poc.Fingerprints)
 		for _, pocFp := range pocFingerprints {
@@ -113,7 +113,7 @@ func (pm *PoCMatcher) fuzzyMatch(poc models.PoC, fingerprints []string) bool {
 		}
 	}
 
-	// 检查app_names字段
+	// Inspectionapp_namesFields
 	if poc.AppNames != "" {
 		appNames := pm.splitAndTrim(poc.AppNames)
 		for _, appName := range appNames {
@@ -128,9 +128,9 @@ func (pm *PoCMatcher) fuzzyMatch(poc models.PoC, fingerprints []string) bool {
 	return false
 }
 
-// keywordMatch 关键词匹配 - 包含关键词即匹配
+// keywordMatch Keywords Match - Include keywords to match
 func (pm *PoCMatcher) keywordMatch(poc models.PoC, fingerprints []string) bool {
-	// 检查fingerprints字段
+	// InspectionfingerprintsFields
 	if poc.Fingerprints != "" {
 		pocFingerprints := pm.splitAndTrim(poc.Fingerprints)
 		for _, pocFp := range pocFingerprints {
@@ -144,7 +144,7 @@ func (pm *PoCMatcher) keywordMatch(poc models.PoC, fingerprints []string) bool {
 		}
 	}
 
-	// 检查app_names字段
+	// Inspectionapp_namesFields
 	if poc.AppNames != "" {
 		appNames := pm.splitAndTrim(poc.AppNames)
 		for _, appName := range appNames {
@@ -161,22 +161,22 @@ func (pm *PoCMatcher) keywordMatch(poc models.PoC, fingerprints []string) bool {
 	return false
 }
 
-// fuzzyCompare 模糊比较两个字符串
+// fuzzyCompare Blur Compares Two Strings
 func (pm *PoCMatcher) fuzzyCompare(str1, str2 string) bool {
 	s1 := strings.ToLower(strings.TrimSpace(str1))
 	s2 := strings.ToLower(strings.TrimSpace(str2))
 
-	// 完全相同
+	// Exactly the same.
 	if s1 == s2 {
 		return true
 	}
 
-	// 包含关系
+	// Organisation
 	if strings.Contains(s1, s2) || strings.Contains(s2, s1) {
 		return true
 	}
 
-	// 移除常见分隔符后比较
+	// Compare after removing common separator
 	s1Clean := pm.cleanString(s1)
 	s2Clean := pm.cleanString(s2)
 	if s1Clean == s2Clean {
@@ -186,7 +186,7 @@ func (pm *PoCMatcher) fuzzyCompare(str1, str2 string) bool {
 	return false
 }
 
-// cleanString 清理字符串,移除常见分隔符
+// cleanString Clear String,Remove Common Separator
 func (pm *PoCMatcher) cleanString(s string) string {
 	s = strings.ReplaceAll(s, "-", "")
 	s = strings.ReplaceAll(s, "_", "")
@@ -195,7 +195,7 @@ func (pm *PoCMatcher) cleanString(s string) string {
 	return s
 }
 
-// splitAndTrim 分割并去除空白
+// splitAndTrim Split and Remove Space
 func (pm *PoCMatcher) splitAndTrim(s string) []string {
 	parts := strings.Split(s, ",")
 	var result []string
@@ -208,11 +208,11 @@ func (pm *PoCMatcher) splitAndTrim(s string) []string {
 	return result
 }
 
-// GetMatchedPoCsByAppName 根据应用名称获取匹配的PoC
+// GetMatchedPoCsByAppName Matches by applied namePoC
 func (pm *PoCMatcher) GetMatchedPoCsByAppName(appName string) ([]models.PoC, error) {
 	var pocs []models.PoC
 
-	// 使用LIKE查询模糊匹配
+	// UseLIKEQuery Fuzzy Matches
 	query := database.DB.Where("is_enabled = ?", true)
 	query = query.Where(
 		"app_names LIKE ? OR fingerprints LIKE ? OR name LIKE ?",
@@ -228,7 +228,7 @@ func (pm *PoCMatcher) GetMatchedPoCsByAppName(appName string) ([]models.PoC, err
 	return pocs, nil
 }
 
-// GetPoCStats 获取PoC匹配统计
+// GetPoCStats FetchPoCMatch Statistics
 func (pm *PoCMatcher) GetPoCStats(fingerprints []string) map[string]interface{} {
 	matchedPoCs, _ := pm.MatchPoCsByFingerprints(fingerprints)
 
@@ -236,14 +236,14 @@ func (pm *PoCMatcher) GetPoCStats(fingerprints []string) map[string]interface{} 
 	stats["total_matched"] = len(matchedPoCs)
 	stats["matched_fingerprints"] = fingerprints
 
-	// 按严重等级分类
+	// Classification by Serious Level
 	severityCount := make(map[string]int)
 	for _, poc := range matchedPoCs {
 		severityCount[poc.Severity]++
 	}
 	stats["severity_distribution"] = severityCount
 
-	// 按分类统计
+	// By category
 	categoryCount := make(map[string]int)
 	for _, poc := range matchedPoCs {
 		categoryCount[poc.Category]++

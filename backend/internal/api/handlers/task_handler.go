@@ -13,29 +13,29 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateTaskRequest 创建任务请求
+// CreateTaskRequest contains the fields accepted when creating a scan task.
 type CreateTaskRequest struct {
 	Name     string             `json:"name" binding:"required"`
 	Target   string             `json:"target" binding:"required"`
-	PolicyID string             `json:"policy_id"` // 可选：关联的策略ID
-	ScopeID  string             `json:"scope_id"`  // 可选：授权扫描范围；空值使用默认范围
+	PolicyID string             `json:"policy_id"` // Optional: Linking strategyID
+	ScopeID  string             `json:"scope_id"`  // Optional: Authorized scan range; Empty values use default range
 	Options  models.TaskOptions `json:"options"`
 	StartNow bool               `json:"start_now"`
 }
 
-// TaskHandler 任务处理器
+// TaskHandler Task Processor
 type TaskHandler struct {
 	taskService *services.TaskService
 }
 
-// NewTaskHandler 创建任务处理器
+// NewTaskHandler Create Task Processor
 func NewTaskHandler(taskService *services.TaskService) *TaskHandler {
 	return &TaskHandler{
 		taskService: taskService,
 	}
 }
 
-// CreateTask 创建新任务
+// CreateTask validates and creates a scan task.
 func (h *TaskHandler) CreateTask(c *gin.Context) {
 	var req CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -68,12 +68,12 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": message, "task": task})
 }
 
-// policyConfigToTaskOptions 将策略配置转换为任务选项
+// policyConfigToTaskOptions Convert policy configuration to task options
 func policyConfigToTaskOptions(policyConfig models.PolicyConfig, baseOptions models.TaskOptions) models.TaskOptions {
 	return services.ApplyPolicyConfig(policyConfig, baseOptions)
 }
 
-// GetTask 获取任务详情
+// GetTask Get Task Details
 func (h *TaskHandler) GetTask(c *gin.Context) {
 	taskID := c.Param("id")
 
@@ -120,7 +120,7 @@ func (h *TaskHandler) GetTaskLogs(c *gin.Context) {
 	})
 }
 
-// ListTasks 列出所有任务
+// ListTasks List all tasks
 func (h *TaskHandler) ListTasks(c *gin.Context) {
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "20")
@@ -188,7 +188,7 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 	})
 }
 
-// DeleteTask 删除任务及其所有相关资产数据
+// DeleteTask Delete task and all related asset data
 func (h *TaskHandler) DeleteTask(c *gin.Context) {
 	taskID := c.Param("id")
 	if err := h.taskService.DeleteTask(taskID); err != nil {
@@ -204,7 +204,7 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task and all related assets deleted successfully"})
 }
 
-// CancelTask 取消任务
+// CancelTask Cancel Task
 func (h *TaskHandler) CancelTask(c *gin.Context) {
 	taskID := c.Param("id")
 
@@ -216,18 +216,18 @@ func (h *TaskHandler) CancelTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Task cancelled successfully"})
 }
 
-// StartTask 手动启动任务
+// StartTask Manually start the task
 func (h *TaskHandler) StartTask(c *gin.Context) {
 	taskID := c.Param("id")
 
-	// 检查任务是否存在
+	// Check if the task exists
 	var task models.Task
 	if err := database.DB.First(&task, "id = ?", taskID).Error; err != nil {
 		writeTaskLookupError(c, err)
 		return
 	}
 
-	// 只允许启动 pending 状态的任务
+	// Only allow to start pending Tasks for Status
 	if task.Status != models.TaskStatusPending {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("Cannot start task with status: %s. Only pending tasks can be started.", task.Status),
@@ -279,7 +279,7 @@ func (h *TaskHandler) RetryTask(c *gin.Context) {
 	})
 }
 
-// GetTaskStats 获取任务统计信息
+// GetTaskStats Access to mission statistics
 func (h *TaskHandler) GetTaskStats(c *gin.Context) {
 	var stats struct {
 		Total     int64 `json:"total"`
@@ -317,7 +317,7 @@ func (h *TaskHandler) GetTaskStats(c *gin.Context) {
 	c.JSON(http.StatusOK, stats)
 }
 
-// BatchDeleteTasks 批量删除任务
+// BatchDeleteTasks Batch Delete Tasks
 func (h *TaskHandler) BatchDeleteTasks(c *gin.Context) {
 	var req struct {
 		TaskIDs []string `json:"task_ids" binding:"required"`
@@ -337,7 +337,7 @@ func (h *TaskHandler) BatchDeleteTasks(c *gin.Context) {
 		return
 	}
 
-	// 批量处理任务删除
+	// Batch processing task delete
 	successCount := 0
 	failedTasks := []string{}
 

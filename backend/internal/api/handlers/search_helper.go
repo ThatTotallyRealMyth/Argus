@@ -20,8 +20,8 @@ func applyAdvancedSearch(c *gin.Context, query *gorm.DB, fields map[string]strin
 	}
 	sort.Strings(fieldNames)
 	c.JSON(http.StatusBadRequest, gin.H{
-		"error":            "检索语法错误：" + err.Error(),
-		"example":          `nginx && !test || title:"管理系统"`,
+		"error":            "Search for Syntax Error: " + err.Error(),
+		"example":          `nginx && !test || title:"Management system"`,
 		"supported_fields": fieldNames,
 	})
 	return query, false

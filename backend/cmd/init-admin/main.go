@@ -57,7 +57,7 @@ func main() {
 
 	admin := models.User{
 		ID: uuid.New().String(), Username: strings.TrimSpace(*usernameFlag),
-		Email: strings.TrimSpace(*emailFlag), Nickname: "系统管理员",
+		Email: strings.TrimSpace(*emailFlag), Nickname: "System Administrator",
 		Role: "admin", Status: "active", MustChangePassword: false,
 	}
 	if admin.Username == "" || admin.Email == "" {

@@ -19,15 +19,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// PoCHandler PoC处理器
+// PoCHandler PoCProcessor
 type PoCHandler struct{}
 
-// NewPoCHandler 创建PoC处理器
+// NewPoCHandler CreatePoCProcessor
 func NewPoCHandler() *PoCHandler {
 	return &PoCHandler{}
 }
 
-// CreatePoCRequest 创建PoC请求 (支持YAML)
+// CreatePoCRequest CreatePoCRequest (SupportYAML)
 type CreatePoCRequest struct {
 	Name             string `json:"name" yaml:"name" binding:"required"`
 	Category         string `json:"category" yaml:"category" binding:"required"`
@@ -46,7 +46,7 @@ type CreatePoCRequest struct {
 	MatchMode        string `json:"match_mode" yaml:"match_mode"`
 }
 
-// ListPoCs 列出所有PoC
+// ListPoCs List allPoC
 func (h *PoCHandler) ListPoCs(c *gin.Context) {
 	category := c.Query("category")
 	severity := c.Query("severity")
@@ -66,7 +66,7 @@ func (h *PoCHandler) ListPoCs(c *gin.Context) {
 	if _, err := fmt.Sscanf(pageSize, "%d", &pageSizeInt); err != nil || pageSizeInt < 1 {
 		pageSizeInt = 20
 	}
-	// 限制单页最大数量，防止查询过多数据导致性能问题
+	// Limit maximum number of single pages, Preventing excessive data searches from causing performance problems
 	const maxPageSize = 100
 	if pageSizeInt > maxPageSize {
 		pageSizeInt = maxPageSize
@@ -130,7 +130,7 @@ func (h *PoCHandler) ListPoCs(c *gin.Context) {
 	})
 }
 
-// GetPoC 获取单个PoC
+// GetPoC Fetching individualPoC
 func (h *PoCHandler) GetPoC(c *gin.Context) {
 	id := c.Param("id")
 
@@ -147,7 +147,7 @@ func (h *PoCHandler) GetPoC(c *gin.Context) {
 	c.JSON(http.StatusOK, poc)
 }
 
-// CreatePoC 创建PoC
+// CreatePoC CreatePoC
 func (h *PoCHandler) CreatePoC(c *gin.Context) {
 	var req CreatePoCRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -155,7 +155,7 @@ func (h *PoCHandler) CreatePoC(c *gin.Context) {
 		return
 	}
 
-	// 验证严重等级
+	// Authenticate Serious Level
 	validSeverities := map[string]bool{
 		"critical": true, "high": true, "medium": true, "low": true, "info": true,
 	}
@@ -164,7 +164,7 @@ func (h *PoCHandler) CreatePoC(c *gin.Context) {
 		return
 	}
 
-	// 验证PoC类型
+	// AuthenticationPoCType
 	validPoCTypes := map[string]bool{
 		"nuclei": true, "custom": true,
 	}
@@ -210,7 +210,7 @@ func (h *PoCHandler) CreatePoC(c *gin.Context) {
 	})
 }
 
-// UpdatePoC 更新PoC
+// UpdatePoC UpdatePoC
 func (h *PoCHandler) UpdatePoC(c *gin.Context) {
 	id := c.Param("id")
 
@@ -230,7 +230,7 @@ func (h *PoCHandler) UpdatePoC(c *gin.Context) {
 		return
 	}
 
-	// 验证严重等级
+	// Authenticate Serious Level
 	validSeverities := map[string]bool{
 		"critical": true, "high": true, "medium": true, "low": true, "info": true,
 	}
@@ -239,7 +239,7 @@ func (h *PoCHandler) UpdatePoC(c *gin.Context) {
 		return
 	}
 
-	// 验证PoC类型
+	// AuthenticationPoCType
 	validPoCTypes := map[string]bool{
 		"nuclei": true, "custom": true,
 	}
@@ -252,7 +252,7 @@ func (h *PoCHandler) UpdatePoC(c *gin.Context) {
 		return
 	}
 
-	// 更新字段
+	// Update Fields
 	poc.Name = req.Name
 	poc.Category = req.Category
 	poc.Severity = req.Severity
@@ -280,7 +280,7 @@ func (h *PoCHandler) UpdatePoC(c *gin.Context) {
 	})
 }
 
-// DeletePoC 删除PoC
+// DeletePoC DeletePoC
 func (h *PoCHandler) DeletePoC(c *gin.Context) {
 	id := c.Param("id")
 
@@ -292,7 +292,7 @@ func (h *PoCHandler) DeletePoC(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "PoC deleted successfully"})
 }
 
-// TogglePoCStatus 切换PoC启用状态
+// TogglePoCStatus TogglePoCEnable Status
 func (h *PoCHandler) TogglePoCStatus(c *gin.Context) {
 	id := c.Param("id")
 
@@ -318,9 +318,9 @@ func (h *PoCHandler) TogglePoCStatus(c *gin.Context) {
 	})
 }
 
-// BatchImportPoCs 批量导入PoC (仅支持YAML格式)
+// BatchImportPoCs Batch ImportPoC (Support onlyYAMLFormat)
 func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
-	// 读取原始数据
+	// Read raw data
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -328,14 +328,14 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 		return
 	}
 
-	// 检测是否为 YAML 格式
+	// Check whether to YAML Format
 	contentType := c.GetHeader("Content-Type")
 	isYAML := strings.Contains(contentType, "yaml") || strings.Contains(contentType, "yml")
 
-	// 如果 Content-Type 不明确，尝试通过内容判断
+	// If Content-Type Not clear, Try to judge by content
 	if !isYAML && len(body) > 0 {
 		bodyStr := strings.TrimSpace(string(body))
-		// YAML 通常不以 "[" 或 "{" 开头
+		// YAML Not usually. "[" or "{" Start
 		if !strings.HasPrefix(bodyStr, "[") && !strings.HasPrefix(bodyStr, "{") {
 			isYAML = true
 		}
@@ -344,22 +344,22 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 	var pocs []CreatePoCRequest
 
 	if !isYAML {
-		// 不再支持 JSON 格式
+		// Not supported JSON Format
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Only YAML format is supported. JSON format is no longer supported."})
 		return
 	}
 
-	fmt.Println("检测到 YAML 格式，开始解析...")
+	fmt.Println("Detected YAML Format, Start parsing...")
 
-	// 首先尝试解析为数组格式（批量导入）
+	// First attempt to solve the number group format (Batch Import)
 	if err := yaml.Unmarshal(body, &pocs); err != nil {
-		fmt.Printf("尝试作为数组解析失败: %v，尝试作为Nuclei模板解析...\n", err)
+		fmt.Printf("Failed to attempt to parsing as array: %v, Try asNucleiTemplate Parsing...\n", err)
 
-		// 尝试解析为多文档YAML（使用 --- 分隔符）
+		// Try to parse into multiple documentsYAML (Use --- Separator)
 		bodyStr := string(body)
 		documents := strings.Split(bodyStr, "\n---\n")
 
-		fmt.Printf("检测到 %d 个YAML文档\n", len(documents))
+		fmt.Printf("Detected %d One.YAMLDocument\n", len(documents))
 
 		for i, doc := range documents {
 			doc = strings.TrimSpace(doc)
@@ -367,24 +367,24 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 				continue
 			}
 
-			fmt.Printf("解析第 %d 个文档（前100字符）: %s...\n", i+1, doc[:min(100, len(doc))])
+			fmt.Printf("Parsing %d Documents (Front100Character): %s...\n", i+1, doc[:min(100, len(doc))])
 
-			// 尝试解析为Nuclei模板格式（单个对象）
+			// Try to parse asNucleiTemplate Format (Single Object)
 			var nucleiTemplate map[string]interface{}
 			if err := yaml.Unmarshal([]byte(doc), &nucleiTemplate); err != nil {
-				fmt.Printf("⚠️ 文档 %d YAML解析错误: %v\n", i+1, err)
+				fmt.Printf("⚠️ Document %d YAMLParsing error: %v\n", i+1, err)
 				continue
 			}
 
-			// 转换Nuclei模板为CreatePoCRequest
+			// ConvertNucleiTemplate AsCreatePoCRequest
 			poc, err := convertNucleiTemplate(nucleiTemplate)
 			if err != nil {
-				fmt.Printf("⚠️ 文档 %d Nuclei模板转换错误: %v\n", i+1, err)
+				fmt.Printf("⚠️ Document %d NucleiTemplate conversion error: %v\n", i+1, err)
 				continue
 			}
 
 			pocs = append(pocs, poc)
-			fmt.Printf("✅ 文档 %d 解析成功: Name=%s, Category=%s, Severity=%s\n", i+1, poc.Name, poc.Category, poc.Severity)
+			fmt.Printf("✅ Document %d Parsing successful: Name=%s, Category=%s, Severity=%s\n", i+1, poc.Name, poc.Category, poc.Severity)
 		}
 
 		if len(pocs) == 0 {
@@ -393,14 +393,14 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 		}
 	}
 
-	fmt.Printf("接收到 %d 条 PoC 数据\n", len(pocs))
+	fmt.Printf("Received %d Article PoC Data\n", len(pocs))
 
-	// 限制单次导入数量，防止数据过大导致超时或内存溢出
+	// Limit the number of single imports, Prevent over-data from leading to time-consuming or over-spills in memory
 	const maxBatchSize = 1000
 	if len(pocs) > maxBatchSize {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   fmt.Sprintf("Too many PoCs in one batch. Maximum allowed: %d, received: %d", maxBatchSize, len(pocs)),
-			"message": fmt.Sprintf("请将PoC分批上传，单次最多 %d 条", maxBatchSize),
+			"message": fmt.Sprintf("Please.PoCbatch upload, Most times per person %d Article", maxBatchSize),
 		})
 		return
 	}
@@ -412,18 +412,18 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 	var updated int
 
 	for i, req := range pocs {
-		fmt.Printf("处理第 %d 条: Name=%s, Category=%s, Severity=%s\n",
+		fmt.Printf("Deal with the %d Article: Name=%s, Category=%s, Severity=%s\n",
 			i+1, req.Name, req.Category, req.Severity)
 
-		// 验证必填字段
+		// Authentication of required fields
 		if req.Name == "" || req.Category == "" || req.Severity == "" || req.PoCType == "" || req.PoCContent == "" {
-			fmt.Printf("  -> ❌ 跳过: 缺少必填字段 (Name=%q, Category=%q, Severity=%q, PoCType=%q, ContentLen=%d)\n",
+			fmt.Printf("  -> ❌ Skip: Missing required fields (Name=%q, Category=%q, Severity=%q, PoCType=%q, ContentLen=%d)\n",
 				req.Name, req.Category, req.Severity, req.PoCType, len(req.PoCContent))
 			failed++
 			continue
 		}
 		if err := scanner.ValidatePoCContent(req.PoCType, req.PoCContent); err != nil {
-			fmt.Printf("  -> ❌ 跳过: %v\n", err)
+			fmt.Printf("  -> ❌ Skip: %v\n", err)
 			failed++
 			continue
 		}
@@ -464,7 +464,7 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 				continue
 			}
 			updated++
-			fmt.Printf("  -> 覆盖已有 PoC: %s\n", req.Name)
+			fmt.Printf("  -> Overwrite Already PoC: %s\n", req.Name)
 			continue
 		}
 		if err != gorm.ErrRecordNotFound {
@@ -472,10 +472,10 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 			continue
 		}
 		created = append(created, poc)
-		fmt.Printf("  -> 成功创建 PoC: %s\n", poc.Name)
+		fmt.Printf("  -> Create successfully PoC: %s\n", poc.Name)
 	}
 
-	// 批量插入 - 分批处理，每批最多100条
+	// Batch Insert - Batch Processing, Maximum per batch100Article
 	if len(created) > 0 {
 		batchSize := 100
 		for i := 0; i < len(created); i += batchSize {
@@ -486,7 +486,7 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 			batch := created[i:end]
 
 			if err := database.DB.Create(&batch).Error; err != nil {
-				fmt.Printf("❌ 批量插入失败 (batch %d-%d): %v\n", i, end, err)
+				fmt.Printf("❌ Batch Insert Failed (batch %d-%d): %v\n", i, end, err)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":          "Failed to import PoCs: " + err.Error(),
 					"imported_count": i,
@@ -496,7 +496,7 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 				})
 				return
 			}
-			fmt.Printf("✅ 批量插入成功 (batch %d-%d)\n", i, end)
+			fmt.Printf("✅ Batch Inserted Successfully (batch %d-%d)\n", i, end)
 		}
 	}
 
@@ -510,7 +510,7 @@ func (h *PoCHandler) BatchImportPoCs(c *gin.Context) {
 	})
 }
 
-// GetPoCCategories 获取所有分类
+// GetPoCCategories Get All Categories
 func (h *PoCHandler) GetPoCCategories(c *gin.Context) {
 	var categories []string
 	if err := database.DB.Model(&models.PoC{}).
@@ -523,7 +523,7 @@ func (h *PoCHandler) GetPoCCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"categories": categories})
 }
 
-// GetPoCStats 获取PoC统计信息
+// GetPoCStats FetchPoCStatistical information
 func (h *PoCHandler) GetPoCStats(c *gin.Context) {
 	var total int64
 	if err := database.DB.Model(&models.PoC{}).Count(&total).Error; err != nil {
@@ -564,7 +564,7 @@ func (h *PoCHandler) GetPoCStats(c *gin.Context) {
 	})
 }
 
-// ExecutePoC 执行PoC
+// ExecutePoC ImplementationPoC
 func (h *PoCHandler) ExecutePoC(c *gin.Context) {
 	id := c.Param("id")
 
@@ -583,7 +583,7 @@ func (h *PoCHandler) ExecutePoC(c *gin.Context) {
 		return
 	}
 
-	// 检查 PoC 是否启用
+	// Inspection PoC Whether to enable
 	if !poc.IsEnabled {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "PoC is disabled"})
 		return
@@ -607,11 +607,11 @@ func (h *PoCHandler) ExecutePoC(c *gin.Context) {
 	}
 	req.Target = validation.NormalizedTarget
 
-	// 使用新的PoC执行器
+	// Use newPoCExecutor
 	executor := scanner.NewPoCExecutor()
 	execResult, err := executor.Execute(&poc, req.Target)
 
-	// 记录执行日志
+	// Record executable logs
 	logResult := "safe"
 	details := ""
 
@@ -654,7 +654,7 @@ func (h *PoCHandler) ExecutePoC(c *gin.Context) {
 	})
 }
 
-// min 返回两个整数中的较小值
+// min Returns the smaller of two integer values
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -662,23 +662,23 @@ func min(a, b int) int {
 	return b
 }
 
-// ImportPoCsFromZip 从zip文件批量导入PoC
+// ImportPoCsFromZip FromzipDocument batch importPoC
 func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 25<<20)
-	// 获取上传的zip文件
+	// Fetch UploadedzipDocumentation
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get uploaded file: " + err.Error()})
 		return
 	}
 
-	// 检查文件扩展名
+	// Check file extension
 	if !strings.HasSuffix(strings.ToLower(file.Filename), ".zip") {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Only .zip files are supported"})
 		return
 	}
 
-	// 压缩包本身和解压后的内容分别限额。
+	// The compressor itself and the post-pressure limits separately.
 	const maxFileSize = 20 * 1024 * 1024
 	if file.Size > maxFileSize {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -688,7 +688,7 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 		return
 	}
 
-	// 每个请求使用独立目录，避免并发导入互相覆盖。
+	// Use a separate directory for each request, Avoid simultaneous import overlaying.
 	tempDir, err := os.MkdirTemp("", "poc_import_*")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create temp directory"})
@@ -696,21 +696,21 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 	}
 	defer os.RemoveAll(tempDir)
 
-	// 保存上传的zip文件
+	// Save UploadedzipDocumentation
 	zipPath := filepath.Join(tempDir, file.Filename)
 	if err := c.SaveUploadedFile(file, zipPath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save uploaded file"})
 		return
 	}
 
-	// 解压zip文件
+	// Unpressure.zipDocumentation
 	extractDir := filepath.Join(tempDir, "extracted")
 	if err := unzipFile(zipPath, extractDir); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to extract zip file: " + err.Error()})
 		return
 	}
 
-	// 递归查找所有yaml文件
+	// Recursively search for allyamlDocumentation
 	var yamlFiles []string
 	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -734,9 +734,9 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("📦 找到 %d 个YAML文件，开始批量导入...\n", len(yamlFiles))
+	fmt.Printf("📦 Found it. %d One.YAMLDocumentation, Start batch import...\n", len(yamlFiles))
 
-	// 批量导入PoC
+	// Batch ImportPoC
 	userID := c.GetString("user_id")
 	var created []models.PoC
 	var skipped int
@@ -746,50 +746,50 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 
 	for _, yamlPath := range yamlFiles {
 		relPath, _ := filepath.Rel(extractDir, yamlPath)
-		fmt.Printf("📄 处理文件: %s\n", relPath)
+		fmt.Printf("📄 Processing of documents: %s\n", relPath)
 
-		// 读取yaml文件内容
+		// ReadyamlContents
 		content, err := os.ReadFile(yamlPath)
 		if err != nil {
-			fmt.Printf("  ❌ 读取失败: %v\n", err)
+			fmt.Printf("  ❌ Reading Failed: %v\n", err)
 			failed++
 			failedFiles = append(failedFiles, relPath)
 			continue
 		}
 
-		// 尝试解析为Nuclei模板
+		// Try to parse asNucleiTemplates
 		var template map[string]interface{}
 		if err := yaml.Unmarshal(content, &template); err != nil {
-			fmt.Printf("  ❌ YAML解析失败: %v\n", err)
+			fmt.Printf("  ❌ YAMLParsing failed: %v\n", err)
 			failed++
 			failedFiles = append(failedFiles, relPath)
 			continue
 		}
 
-		// 转换为CreatePoCRequest
+		// Convert toCreatePoCRequest
 		poc, err := convertNucleiTemplate(template)
 		if err != nil {
-			fmt.Printf("  ❌ 模板转换失败: %v\n", err)
+			fmt.Printf("  ❌ Template conversion failed: %v\n", err)
 			failed++
 			failedFiles = append(failedFiles, relPath)
 			continue
 		}
 
-		// 验证必填字段
+		// Authentication of required fields
 		if poc.Name == "" || poc.Category == "" || poc.Severity == "" || poc.PoCType == "" || poc.PoCContent == "" {
-			fmt.Printf("  ⏭️ 跳过: 缺少必填字段\n")
+			fmt.Printf("  ⏭️ Skip: Missing required fields\n")
 			failed++
 			failedFiles = append(failedFiles, relPath)
 			continue
 		}
 		if err := scanner.ValidatePoCContent(poc.PoCType, poc.PoCContent); err != nil {
-			fmt.Printf("  ⏭️ 跳过: %v\n", err)
+			fmt.Printf("  ⏭️ Skip: %v\n", err)
 			failed++
 			failedFiles = append(failedFiles, relPath)
 			continue
 		}
 
-		// 添加到待创建列表
+		// Add to to to create list
 		pocModel := models.PoC{
 			Name:             poc.Name,
 			Category:         poc.Category,
@@ -827,7 +827,7 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 				continue
 			}
 			updated++
-			fmt.Printf("  ✅ 覆盖已有 PoC: %s\n", poc.Name)
+			fmt.Printf("  ✅ Overwrite Already PoC: %s\n", poc.Name)
 			continue
 		}
 		if err != gorm.ErrRecordNotFound {
@@ -836,10 +836,10 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 			continue
 		}
 		created = append(created, pocModel)
-		fmt.Printf("  ✅ 准备导入: %s\n", poc.Name)
+		fmt.Printf("  ✅ Ready for import: %s\n", poc.Name)
 	}
 
-	// 批量插入到数据库（分批处理，每批100条）
+	// Batch Insert to Database (Batch Processing, Each batch100Article)
 	if len(created) > 0 {
 		batchSize := 100
 		for i := 0; i < len(created); i += batchSize {
@@ -850,7 +850,7 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 			batch := created[i:end]
 
 			if err := database.DB.Create(&batch).Error; err != nil {
-				fmt.Printf("❌ 批量插入失败 (batch %d-%d): %v\n", i, end, err)
+				fmt.Printf("❌ Batch Insert Failed (batch %d-%d): %v\n", i, end, err)
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error":          "Failed to import PoCs: " + err.Error(),
 					"imported_count": i,
@@ -861,7 +861,7 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 				})
 				return
 			}
-			fmt.Printf("✅ 批量插入成功 (batch %d-%d)\n", i, end)
+			fmt.Printf("✅ Batch Inserted Successfully (batch %d-%d)\n", i, end)
 		}
 	}
 
@@ -876,7 +876,7 @@ func (h *PoCHandler) ImportPoCsFromZip(c *gin.Context) {
 	})
 }
 
-// unzipFile 解压zip文件到指定目录
+// unzipFile Unpressure.zipFile to specified directory
 func unzipFile(zipPath, destDir string) error {
 	const (
 		maxArchiveFiles = 5000
@@ -910,7 +910,7 @@ func unzipFile(zipPath, destDir string) error {
 				return fmt.Errorf("archive expands beyond the allowed size")
 			}
 		}
-		// 防止路径遍历攻击
+		// Prevent the path from going through the attack.
 		fpath := filepath.Join(destDir, filepath.Clean(f.Name))
 		if !strings.HasPrefix(fpath, filepath.Clean(destDir)+string(os.PathSeparator)) {
 			return fmt.Errorf("illegal file path: %s", f.Name)
@@ -923,12 +923,12 @@ func unzipFile(zipPath, destDir string) error {
 			continue
 		}
 
-		// 创建父目录
+		// Create Parent Directory
 		if err := os.MkdirAll(filepath.Dir(fpath), 0755); err != nil {
 			return err
 		}
 
-		// 解压文件
+		// Unpress File
 		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			return err
@@ -954,26 +954,26 @@ func unzipFile(zipPath, destDir string) error {
 	return nil
 }
 
-// convertNucleiTemplate 转换Nuclei模板为CreatePoCRequest
+// convertNucleiTemplate ConvertNucleiTemplate AsCreatePoCRequest
 func convertNucleiTemplate(template map[string]interface{}) (CreatePoCRequest, error) {
 	var req CreatePoCRequest
 
-	// 提取ID作为CVE编号
+	// ExtractIDAsCVENumbering
 	if id, ok := template["id"].(string); ok {
 		req.CVE = id
 	}
 
-	// 提取info部分
+	// ExtractinfoPart
 	info, ok := template["info"].(map[string]interface{})
 	if !ok {
 		return req, fmt.Errorf("missing 'info' section")
 	}
 
-	// 提取name（必填）
+	// Extractname (Required)
 	if name, ok := info["name"].(string); ok {
 		req.Name = name
 	} else {
-		// 如果没有name，尝试使用ID作为name
+		// If not,name, Try usingIDAsname
 		if req.CVE != "" {
 			req.Name = req.CVE
 		} else {
@@ -981,24 +981,24 @@ func convertNucleiTemplate(template map[string]interface{}) (CreatePoCRequest, e
 		}
 	}
 
-	// 提取author
+	// Extractauthor
 	if author, ok := info["author"].(string); ok {
 		req.Author = author
 	}
 
-	// 提取severity
+	// Extractseverity
 	if severity, ok := info["severity"].(string); ok {
 		req.Severity = severity
 	} else {
-		req.Severity = "medium" // 默认值
+		req.Severity = "medium" // Default value
 	}
 
-	// 提取description
+	// Extractdescription
 	if desc, ok := info["description"].(string); ok {
 		req.Description = strings.TrimSpace(desc)
 	}
 
-	// 提取reference（可能是数组或字符串）
+	// Extractreference (Could be a array or string)
 	if ref, ok := info["reference"]; ok {
 		switch v := ref.(type) {
 		case []interface{}:
@@ -1014,19 +1014,19 @@ func convertNucleiTemplate(template map[string]interface{}) (CreatePoCRequest, e
 		}
 	}
 
-	// 提取tags
+	// Extracttags
 	if tags, ok := info["tags"].(string); ok {
 		req.Tags = tags
 	}
 
-	// 提取CVE ID（从classification或直接从info）
+	// ExtractCVE ID (FromclassificationOr directly frominfo)
 	if classification, ok := info["classification"].(map[string]interface{}); ok {
 		if cveID, ok := classification["cve-id"].(string); ok {
 			req.CVE = cveID
 		}
 	}
 
-	// 设置category（从tags中提取）
+	// Settingscategory (FromtagsDraw)
 	if req.Tags != "" {
 		tagList := strings.Split(req.Tags, ",")
 		if len(tagList) > 0 {
@@ -1034,16 +1034,16 @@ func convertNucleiTemplate(template map[string]interface{}) (CreatePoCRequest, e
 		}
 	}
 	if req.Category == "" {
-		req.Category = "其他" // 默认分类
+		req.Category = "Other" // Default Category
 	}
 
-	// 将整个模板作为PoC内容（转回YAML）
+	// Use the entire template asPoCContents (Turn backYAML)
 	templateBytes, err := yaml.Marshal(template)
 	if err != nil {
 		return req, fmt.Errorf("failed to marshal template: %w", err)
 	}
 	req.PoCContent = string(templateBytes)
-	req.PoCType = "nuclei" // 设置PoC类型为nuclei
+	req.PoCType = "nuclei" // SettingsPoCTypenuclei
 
 	return req, nil
 }

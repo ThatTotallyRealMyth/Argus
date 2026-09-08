@@ -9,19 +9,19 @@ export function validateSearchSyntax(raw, fields = []) {
     if (quoted) continue;
     if (char === "(" ) depth += 1;
     if (char === ")") depth -= 1;
-    if (depth < 0) return `位置 ${index + 1}：缺少左括号`;
-    if ((char === "&" && value[index + 1] !== "&" && value[index - 1] !== "&") || (char === "|" && value[index + 1] !== "|" && value[index - 1] !== "|")) return `位置 ${index + 1}：运算符必须写成 && 或 ||`;
+    if (depth < 0) return `Location ${index + 1}: Missing Left Brackets`;
+    if ((char === "&" && value[index + 1] !== "&" && value[index - 1] !== "&") || (char === "|" && value[index + 1] !== "|" && value[index - 1] !== "|")) return `Location ${index + 1}: The operator must be written && or ||`;
   }
-  if (quoted) return "双引号未闭合";
-  if (depth) return "括号未闭合";
-  if (/^(?:&&|\|\|)/.test(value) || /(?:&&|\|\|)$/.test(value)) return "表达式不能以 && 或 || 开始或结束";
-  if (/(?:&&|\|\|)\s*(?:&&|\|\|)/.test(value)) return "两个运算符之间缺少条件";
-  if (/!\s*$/.test(value)) return "! 后缺少排除条件";
+  if (quoted) return "Double quotes are not closed";
+  if (depth) return "Brackets not closed";
+  if (/^(?:&&|\|\|)/.test(value) || /(?:&&|\|\|)$/.test(value)) return "Expressions cannot be used && or || Start or end";
+  if (/(?:&&|\|\|)\s*(?:&&|\|\|)/.test(value)) return "Lack of conditions between the operators";
+  if (/!\s*$/.test(value)) return "! After that, there was no exclusion.";
   const allowed = new Set(fields.map((field) => field.toLowerCase()));
   const fieldPattern = /(?:^|[\s(])([a-zA-Z_][\w-]*)\s*(?::|!?=)/g;
   let match = fieldPattern.exec(value);
   while (match) {
-    if (allowed.size && !allowed.has(match[1].toLowerCase())) return `不支持字段 ${match[1]}`;
+    if (allowed.size && !allowed.has(match[1].toLowerCase())) return `Fields Not Supported ${match[1]}`;
     match = fieldPattern.exec(value);
   }
   return "";

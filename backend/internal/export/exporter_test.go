@@ -21,13 +21,13 @@ func TestTaskWorkbenchCSVExports(t *testing.T) {
 	}{
 		{name: "ips", export: func() (string, error) {
 			return exporter.ExportIPsToCSV([]models.IP{{IPAddress: "203.0.113.7"}}, "task")
-		}, header: "IP地址,关联域名,来源,操作系统,位置,CDN,创建时间"},
+		}, header: "IPAddress,Associate domain name,Source,Operating system,Location,CDN,Created"},
 		{name: "urls", export: func() (string, error) {
 			return exporter.ExportURLsToCSV([]models.CrawlerResult{{URL: "https://example.com"}}, "task")
-		}, header: "URL,方法,状态码,Content-Type,响应长度,来源,创建时间"},
+		}, header: "URL,Methodology,Status Code,Content-Type,Response Length,Source,Created"},
 		{name: "http", export: func() (string, error) {
 			return exporter.ExportHTTPTransactionsToCSV([]models.HTTPTransaction{{URL: "https://example.com"}}, "task")
-		}, header: "URL,方法,状态码,Content-Type,响应长度,响应耗时(ms),来源,创建时间"},
+		}, header: "URL,Methodology,Status Code,Content-Type,Response Length,Response time-consuming(ms),Source,Created"},
 		{name: "vulnerabilities", export: func() (string, error) {
 			verifiedAt := time.Date(2026, time.July, 21, 9, 30, 0, 0, time.UTC)
 			return exporter.ExportVulnerabilitiesToCSV([]models.Vulnerability{{
@@ -35,7 +35,7 @@ func TestTaskWorkbenchCSVExports(t *testing.T) {
 				Title: "Access control bypass", Source: "poc-verification", LastVerificationResult: "safe", LastVerifiedAt: &verifiedAt,
 				Payload: "role=user", Proof: "HTTP 200", TriageNote: "retest after deployment",
 			}}, "task")
-		}, header: "URL,类型,严重性,状态,标题,来源,最近复测,最近复测时间,描述,Payload,Proof,研判笔记,解决方案"},
+		}, header: "URL,Type,Severity,Status,Title,Source,Latest retest result,Latest retest time,Description,Payload,Proof,Triage notes,Solutions"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestJSONExportIncludesTaskLogs(t *testing.T) {
 	exporter := NewExporter(t.TempDir())
 	filename, err := exporter.ExportToJSON(&ExportData{
 		Task:     &models.Task{ID: "task"},
-		TaskLogs: []models.TaskLog{{TaskID: "task", Sequence: 1, Message: "任务开始"}},
+		TaskLogs: []models.TaskLog{{TaskID: "task", Sequence: 1, Message: "Mission begins."}},
 	})
 	if err != nil {
 		t.Fatalf("export JSON: %v", err)
@@ -95,7 +95,7 @@ func TestJSONExportIncludesTaskLogs(t *testing.T) {
 	if err := json.Unmarshal(content, &decoded); err != nil {
 		t.Fatalf("decode JSON: %v", err)
 	}
-	if len(decoded.TaskLogs) != 1 || decoded.TaskLogs[0].Message != "任务开始" {
+	if len(decoded.TaskLogs) != 1 || decoded.TaskLogs[0].Message != "Mission begins." {
 		t.Fatalf("task logs missing from JSON: %#v", decoded.TaskLogs)
 	}
 }
@@ -136,13 +136,13 @@ func TestHTMLReportEscapesUntrustedReconEvidence(t *testing.T) {
 		}
 	}
 	for _, marker := range []string{
-		"Eclipse Recon 侦察报告",
+		"Eclipse Recon Reconnaissance report",
 		"Content-Security-Policy",
 		"&lt;script&gt;alert(7)&lt;/script&gt;",
 		"&lt;b&gt;confirmed&lt;/b&gt;",
 		`class="severity-info"`,
-		"漏洞证据与研判",
-		"复发",
+		"Plugging evidence and sentencing",
+		"Relapsing",
 	} {
 		if !strings.Contains(report, marker) {
 			t.Fatalf("secure report missing %q", marker)
@@ -166,7 +166,7 @@ func TestGenerateReportUsesPrivatePermissions(t *testing.T) {
 }
 
 func TestTruncateStringPreservesUTF8(t *testing.T) {
-	if got := truncateString("漏洞证据", 2); got != "漏洞..." || strings.ToValidUTF8(got, "") != got {
+	if got := truncateString("Plugging evidence.", 2); got != "Leaks..." || strings.ToValidUTF8(got, "") != got {
 		t.Fatalf("unicode truncation = %q", got)
 	}
 }

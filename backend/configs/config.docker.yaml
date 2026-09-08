@@ -10,11 +10,11 @@ server:
   shutdown_timeout: 20
   trusted_proxies: []
 
-# MCP (Model Context Protocol) 服务 — 供 AI 客户端调用
+# MCP (Model Context Protocol) service - for AI client call
 mcp:
-  enabled: false     # 生产默认关闭；同时设置 MCP_ENABLED=true 和强密钥后启用
-  path: /mcp         # MCP 端点路径
-  api_key: ""        # 管理级密钥，为空时端点不会挂载
+  enabled: false     # Production Default Close; Setup simultaneously MCP_ENABLED=true Enable after strong keys
+  path: /mcp         # MCP End Path
+  api_key: ""        # Manage Keys, Not mount for empty end
 
 jwt:
   secret: ""

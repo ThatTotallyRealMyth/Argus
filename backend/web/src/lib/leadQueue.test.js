@@ -8,8 +8,8 @@ test("builds compact lead queue filters", () => {
 });
 
 test("maps lead workflow labels", () => {
-  assert.equal(leadStatusLabel("validated"), "已验证");
-  assert.equal(leadTypeLabel("subdomain_takeover"), "接管候选");
+  assert.equal(leadStatusLabel("validated"), "Verifyed");
+  assert.equal(leadTypeLabel("subdomain_takeover"), "Subdomain takeover candidate");
 });
 
 test("opens browser-compatible lead targets", () => {

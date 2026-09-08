@@ -113,7 +113,7 @@ export function DataTable({ columns, rows, loading, empty, sortKeys = [], sortSt
   }
   const activeIndex = onSortChange ? (sortState?.index ?? -1) : sort.index;
   const activeDirection = onSortChange ? (sortState?.direction || "asc") : sort.direction;
-  const operatorOptions = [{ value: "contains", label: "包含" }, { value: "not-contains", label: "不包含" }, { value: "equals", label: "等于" }, { value: "not-equals", label: "不等于" }];
+  const operatorOptions = [{ value: "contains", label: "Contains" }, { value: "not-contains", label: "Does not contain" }, { value: "equals", label: "Equals" }, { value: "not-equals", label: "Does not equal" }];
   const activeFilters = Object.entries(filters).filter(([, filter]) => hasFilterRules(filter));
   const closeFilter = useCallback(() => setFilterEditor(null), []);
   function openFilter(event, index, key) {
@@ -183,18 +183,18 @@ export function DataTable({ columns, rows, loading, empty, sortKeys = [], sortSt
     writeTableWidths(signature, null);
   }
   function columnName(key) { const index = filterKeys.indexOf(key); return columns[index] || key; }
-  return <div className="table-wrap">{activeFilters.length > 0 && <div className="active-filter-strip"><span>已启用条件</span>{activeFilters.map(([key, filter]) => {
+  return <div className="table-wrap">{activeFilters.length > 0 && <div className="active-filter-strip"><span>Enabled conditions</span>{activeFilters.map(([key, filter]) => {
     const group = normalizeFilterGroup(filter);
     const rules = group.rules.filter((rule) => rule.value.trim());
-    const details = rules.map((rule, ruleIndex) => `${ruleIndex > 0 ? (rule.joiner === "or" ? "或者：" : "并且：") : ""}${operatorOptions.find((option) => option.value === rule.operator)?.label || "包含"} ${rule.value}`).join("；");
+    const details = rules.map((rule, ruleIndex) => `${ruleIndex > 0 ? (rule.joiner === "or" ? "OR: " : "AND: ") : ""}${operatorOptions.find((option) => option.value === rule.operator)?.label || "Contains"} ${rule.value}`).join("; ");
     const index = filterKeys.indexOf(key);
     const label = columnName(key);
     return <div className="active-filter-chip" key={key}>
-      <button type="button" className="active-filter-view" title={`${details}；点击查看${label}筛选`} aria-label={`查看${label}筛选条件`} aria-expanded={filterEditor?.index === index} onClick={(event) => openFilter(event, index, key)}><strong>{label}</strong><small>{rules.length > 1 ? `${rules.length} 条` : operatorOptions.find((option) => option.value === rules[0]?.operator)?.label || "包含"}</small><code>{rules.length > 1 ? "组合条件" : rules[0]?.value}</code></button>
-      <button type="button" className="active-filter-clear" title={`取消${label}筛选`} aria-label={`取消${label}筛选`} onPointerDown={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); clearFilter(key); }}><X size={12} /></button>
+      <button type="button" className="active-filter-view" title={`${details}; click to edit the ${label} filter`} aria-label={`View ${label} filter conditions`} aria-expanded={filterEditor?.index === index} onClick={(event) => openFilter(event, index, key)}><strong>{label}</strong><small>{rules.length > 1 ? `${rules.length} rules` : operatorOptions.find((option) => option.value === rules[0]?.operator)?.label || "Contains"}</small><code>{rules.length > 1 ? "Grouped conditions" : rules[0]?.value}</code></button>
+      <button type="button" className="active-filter-clear" title={`Clear ${label} filter`} aria-label={`Clear ${label} filter`} onPointerDown={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); clearFilter(key); }}><X size={12} /></button>
     </div>;
   })}</div>}<table className={cls(selectionColumn && "has-selection-column", columnWidths && "has-custom-column-widths")} style={columnWidths ? { width: `${columnWidths.reduce((total, width) => total + width, 0)}px`, minWidth: "100%" } : undefined}><colgroup>{columns.map((column, index) => <col className={selectionColumn && index === 0 ? "selection-column" : undefined} style={columnWidths && !(selectionColumn && index === 0) ? { width: `${columnWidths[index]}px` } : undefined} key={`${column}-${index}`} />)}</colgroup><thead><tr>{columns.map((column, index) => {
-    const sortable = column !== "操作" && column !== "选择" && (onSortChange ? Boolean(sortKeys[index]) : true);
+    const sortable = column !== "Operation" && column !== "Selection" && (onSortChange ? Boolean(sortKeys[index]) : true);
     const filterKey = filterKeys[index];
     const filterable = Boolean(filterKey && onFilterChange);
     const currentFilter = filters[filterKey];
@@ -203,19 +203,19 @@ export function DataTable({ columns, rows, loading, empty, sortKeys = [], sortSt
     const Icon = active ? (activeDirection === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
     return <th key={column} aria-sort={active ? (activeDirection === "asc" ? "ascending" : "descending") : sortable ? "none" : undefined}>
       <div className="table-head-control">
-        {sortable ? <button type="button" className={cls("sort-button", active && "active")} aria-label={`${column}，${active ? (activeDirection === "asc" ? "升序" : "降序") : "未排序"}`} onClick={() => toggleSort(index)}><span>{column}</span><Icon size={12} /></button> : <span>{headerCells[index] ?? column}</span>}
-        {filterable && <button type="button" className={cls("column-filter-button", filterActive && "active")} aria-label={`筛选${column}`} title={`筛选${column}`} aria-expanded={filterEditor?.index === index} onClick={(event) => openFilter(event, index, filterKey)}><Search size={13} /></button>}
+        {sortable ? <button type="button" className={cls("sort-button", active && "active")} aria-label={`${column}, ${active ? (activeDirection === "asc" ? "ascending" : "descending") : "not sorted"}`} onClick={() => toggleSort(index)}><span>{column}</span><Icon size={12} /></button> : <span>{headerCells[index] ?? column}</span>}
+        {filterable && <button type="button" className={cls("column-filter-button", filterActive && "active")} aria-label={`Filter${column}`} title={`Filter${column}`} aria-expanded={filterEditor?.index === index} onClick={(event) => openFilter(event, index, filterKey)}><Search size={13} /></button>}
       </div>
-      {index < columns.length - 1 && !(selectionColumn && index === 0) && <button type="button" className="column-resize-handle" aria-label={`调整${column}列宽`} title="拖动调整列宽，双击恢复默认" onPointerDown={(event) => startColumnResize(event, index)} onPointerMove={resizeColumn} onPointerUp={finishColumnResize} onPointerCancel={finishColumnResize} onDoubleClick={resetColumnWidths} />}
+      {index < columns.length - 1 && !(selectionColumn && index === 0) && <button type="button" className="column-resize-handle" aria-label={`Resize ${column} column`} title="Drag to resize; double-click to restore the default" onPointerDown={(event) => startColumnResize(event, index)} onPointerMove={resizeColumn} onPointerUp={finishColumnResize} onPointerCancel={finishColumnResize} onDoubleClick={resetColumnWidths} />}
     </th>;
-  })}</tr></thead><tbody>{loading && <tr><td colSpan={columns.length}>加载中...</td></tr>}{!loading && sortedRows.length === 0 && <tr><td colSpan={columns.length}>{empty}</td></tr>}{!loading && sortedRows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody></table>{filterEditor && <ColumnFilterPopover anchor={filterEditor.anchor} column={columns[filterEditor.index]} editor={filterEditor} options={filterOptions[filterEditor.key] || []} operatorOptions={operatorOptions} onChange={setFilterEditor} onCommit={commitFilter} onClear={() => clearFilter(filterEditor.key)} onClose={closeFilter} />}</div>;
+  })}</tr></thead><tbody>{loading && <tr><td colSpan={columns.length}>Loading...</td></tr>}{!loading && sortedRows.length === 0 && <tr><td colSpan={columns.length}>{empty}</td></tr>}{!loading && sortedRows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody></table>{filterEditor && <ColumnFilterPopover anchor={filterEditor.anchor} column={columns[filterEditor.index]} editor={filterEditor} options={filterOptions[filterEditor.key] || []} operatorOptions={operatorOptions} onChange={setFilterEditor} onCommit={commitFilter} onClear={() => clearFilter(filterEditor.key)} onClose={closeFilter} />}</div>;
 }
 
 function sortValue(value) {
   if (value == null) return "";
   if (typeof value === "number") return value;
   if (typeof value === "string") {
-    if (/^\s*-?[\d,.]+(?:\s*(?:%|bytes|小时))?\s*$/i.test(value)) return Number(value.replace(/[^0-9.-]/g, ""));
+    if (/^\s*-?[\d,.]+(?:\s*(?:%|bytes|Hours))?\s*$/i.test(value)) return Number(value.replace(/[^0-9.-]/g, ""));
     const timestamp = Date.parse(value);
     return Number.isNaN(timestamp) ? value : timestamp;
   }
@@ -226,17 +226,17 @@ function sortValue(value) {
 
 export function Badge({ children, tone = "muted" }) { return <span className={cls("badge", tone)}>{children}</span>; }
 export function Tabs({ value, setValue, items, labels = {} }) { return <div className="tabs">{items.map((item) => <button type="button" key={item} className={value === item ? "active" : ""} onClick={() => setValue(item)}>{labels[item] || item}</button>)}</div>; }
-export function Pager({ page, totalPages, setPage }) { return <div className="pager"><button disabled={page <= 1} onClick={() => setPage(page - 1)}>上一页</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>下一页</button></div>; }
+export function Pager({ page, totalPages, setPage }) { return <div className="pager"><button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous Page</button><span>{page} / {totalPages}</span><button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next Page</button></div>; }
 export function EmptyState({ text }) { return <div className="empty"><Fingerprint size={24} /><span>{text}</span></div>; }
 
-export function SelectAllCheckbox({ ids, selectedIDs, setSelectedIDs, label = "本页记录" }) {
+export function SelectAllCheckbox({ ids, selectedIDs, setSelectedIDs, label = "This page record" }) {
   const allSelected = ids.length > 0 && ids.every((id) => selectedIDs.includes(id));
   const someSelected = ids.some((id) => selectedIDs.includes(id));
   return <input
     className="row-check"
     type="checkbox"
-    aria-label={allSelected ? `取消选择${label}` : `选择${label}`}
-    title={allSelected ? `取消选择${label}` : `选择${label}`}
+    aria-label={allSelected ? `Unselect${label}` : `Selection${label}`}
+    title={allSelected ? `Unselect${label}` : `Selection${label}`}
     checked={allSelected}
     disabled={!ids.length}
     ref={(element) => { if (element) element.indeterminate = someSelected && !allSelected; }}

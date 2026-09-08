@@ -12,37 +12,37 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// FingerprintLoader 指纹加载器
+// FingerprintLoader Fingerprint loader
 type FingerprintLoader struct{}
 
-// NewFingerprintLoader 创建指纹加载器
+// NewFingerprintLoader Create Fingerprint Loader
 func NewFingerprintLoader() *FingerprintLoader {
 	return &FingerprintLoader{}
 }
 
-// LoadDefaultFingerprints 加载默认指纹库（首次启动时）
+// LoadDefaultFingerprints Load default fingerprint library (On first start)
 func (l *FingerprintLoader) LoadDefaultFingerprints() error {
-	// 检查是否已经有指纹数据
+	// Check if there's any fingerprints.
 	var count int64
 	database.DB.Model(&models.Fingerprint{}).Count(&count)
 	
 	if count > 0 {
-		fmt.Printf("数据库中已有 %d 条指纹，跳过自动加载\n", count)
+		fmt.Printf("Existing in database %d A fingerprint., Skip Autoload\n", count)
 		return nil
 	}
 
-	fmt.Println("首次启动，开始加载默认指纹库...")
+	fmt.Println("First start, Start loading default fingerprint library...")
 
-	// 指纹文件路径
+	// Path to fingerprint files
 	fingerprintFile := "configs/fingerprints/finger.yaml"
 	
-	// 检查文件是否存在
+	// Check if the file exists
 	if _, err := os.Stat(fingerprintFile); os.IsNotExist(err) {
-		fmt.Printf("警告：默认指纹文件不存在: %s\n", fingerprintFile)
+		fmt.Printf("Warning: Default fingerprint file does not exist: %s\n", fingerprintFile)
 		return nil
 	}
 
-	// 读取文件
+	// Read File
 	file, err := os.Open(fingerprintFile)
 	if err != nil {
 		return fmt.Errorf("failed to open fingerprint file: %v", err)
@@ -54,23 +54,23 @@ func (l *FingerprintLoader) LoadDefaultFingerprints() error {
 		return fmt.Errorf("failed to read fingerprint file: %v", err)
 	}
 
-	// 解析 YAML
+	// Parsing YAML
 	var rawData map[string]interface{}
 	if err := yaml.Unmarshal(data, &rawData); err != nil {
 		return fmt.Errorf("failed to parse YAML: %v", err)
 	}
 
-	fmt.Printf("成功解析 YAML，共 %d 个指纹定义\n", len(rawData))
+	fmt.Printf("Successfully parsed YAML, Total %d A fingerprint definition.\n", len(rawData))
 
-	// 转换并导入指纹
+	// Convert and import fingerprints
 	imported, skipped, failed := l.importFingerprints(rawData)
 
-	fmt.Printf("指纹加载完成！成功: %d, 跳过: %d, 失败: %d\n", imported, skipped, failed)
+	fmt.Printf("Fingerprint loaded complete.！Success: %d, Skip: %d, Failed: %d\n", imported, skipped, failed)
 	
 	return nil
 }
 
-// importFingerprints 导入指纹数据
+// importFingerprints Importing fingerprint data
 func (l *FingerprintLoader) importFingerprints(rawData map[string]interface{}) (imported, skipped, failed int) {
 	totalFingerprints := len(rawData)
 	processedCount := 0
@@ -78,24 +78,24 @@ func (l *FingerprintLoader) importFingerprints(rawData map[string]interface{}) (
 	for name, value := range rawData {
 		processedCount++
 		if processedCount%1000 == 0 {
-			fmt.Printf("处理进度: %d/%d (成功:%d, 跳过:%d, 失败:%d)\n", 
+			fmt.Printf("Process progress: %d/%d (Success:%d, Skip:%d, Failed:%d)\n",
 				processedCount, totalFingerprints, imported, skipped, failed)
 		}
 		
-		// 跳过空名称
+		// Skip Empty Name
 		if name == "" {
 			failed++
 			continue
 		}
 
-		// 解析指纹对象（包含 dsl 字段）
+		// Parse the fingerprint object, including its DSL fields.
 		fpData, ok := value.(map[string]interface{})
 		if !ok {
 			failed++
 			continue
 		}
 
-		// 获取 dsl 规则数组
+		// Fetch dsl Rule array
 		dslInterface, ok := fpData["dsl"]
 		if !ok {
 			failed++
@@ -108,7 +108,7 @@ func (l *FingerprintLoader) importFingerprints(rawData map[string]interface{}) (
 			continue
 		}
 
-		// 转换为字符串数组
+		// Convert to String Array
 		var dslRules []string
 		for _, item := range dslArray {
 			if str, ok := item.(string); ok {
@@ -121,33 +121,33 @@ func (l *FingerprintLoader) importFingerprints(rawData map[string]interface{}) (
 			continue
 		}
 
-		// 检查是否已存在（根据名称去重）
+		// Check if it exists (Weight by name)
 		var existing models.Fingerprint
 		err := database.DB.Where("name = ?", name).
 			First(&existing).Error
 
 		if err == nil {
-			// 已存在，跳过
+			// Existing, Skip
 			skipped++
 			continue
 		}
 
-		// 创建指纹记录
+		// Create fingerprint log
 		fingerprint := &models.Fingerprint{
 			Name:        name,
-			Category:    "Web", // 默认分类
+			Category:    "Web", // Default Category
 			DSL:         dslRules,
-			Description: fmt.Sprintf("从默认指纹库导入: %s", name),
+			Description: fmt.Sprintf("Import from default fingerprint library: %s", name),
 			IsEnabled:   true,
 		}
 
-		// 插入数据库
+		// Insert Database
 		if err := database.DB.Create(fingerprint).Error; err != nil {
-			// 忽略重复键错误
+			// Ignore duplicate key error
 			if !strings.Contains(err.Error(), "duplicate") && 
 			   !strings.Contains(err.Error(), "unique constraint") {
 				if failed < 100 {
-					fmt.Printf("插入指纹失败: %s - %v\n", name, err)
+					fmt.Printf("Failed to insert fingerprint: %s - %v\n", name, err)
 				}
 			}
 			failed++
@@ -160,16 +160,16 @@ func (l *FingerprintLoader) importFingerprints(rawData map[string]interface{}) (
 	return
 }
 
-// LoadFingerprintsFromFile 从文件加载指纹（供API使用）
+// LoadFingerprintsFromFile Load fingerprints from files (ForAPIUse)
 func (l *FingerprintLoader) LoadFingerprintsFromFile(filePath string) (imported, skipped, failed int, err error) {
-	// 检查文件扩展名
+	// Check file extension
 	ext := strings.ToLower(filepath.Ext(filePath))
 	
 	if ext != ".yaml" && ext != ".yml" {
 		return 0, 0, 0, fmt.Errorf("unsupported file format: %s", ext)
 	}
 
-	// 读取文件
+	// Read File
 	file, err := os.Open(filePath)
 	if err != nil {
 		return 0, 0, 0, fmt.Errorf("failed to open file: %v", err)
@@ -181,15 +181,14 @@ func (l *FingerprintLoader) LoadFingerprintsFromFile(filePath string) (imported,
 		return 0, 0, 0, fmt.Errorf("failed to read file: %v", err)
 	}
 
-	// 解析 YAML
+	// Parsing YAML
 	var rawData map[string]interface{}
 	if err := yaml.Unmarshal(data, &rawData); err != nil {
 		return 0, 0, 0, fmt.Errorf("failed to parse YAML: %v", err)
 	}
 
-	// 导入指纹
+	// Import Fingerprints
 	imported, skipped, failed = l.importFingerprints(rawData)
 	
 	return imported, skipped, failed, nil
 }
-

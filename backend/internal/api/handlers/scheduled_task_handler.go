@@ -13,33 +13,33 @@ import (
 	"gorm.io/gorm"
 )
 
-// ScheduledTaskHandler 计划任务处理器
+// ScheduledTaskHandler Scheduled Task Processor
 type ScheduledTaskHandler struct {
 	service *services.ScheduledTaskService
 }
 
-// NewScheduledTaskHandler 创建计划任务处理器
+// NewScheduledTaskHandler Create the planned task processor
 func NewScheduledTaskHandler(taskService *services.TaskService) *ScheduledTaskHandler {
 	return &ScheduledTaskHandler{service: services.NewScheduledTaskService(taskService)}
 }
 
-// CreateScheduledTaskRequest 创建计划任务请求
+// CreateScheduledTaskRequest Creates the task request
 type CreateScheduledTaskRequest struct {
 	Name        string             `json:"name" binding:"required"`
 	Description string             `json:"description"`
 	CronType    string             `json:"cron_type" binding:"required"`
 	CronExpr    string             `json:"cron_expr"`
-	PolicyID    string             `json:"policy_id"` // 可选：关联的策略ID
-	ScopeID     string             `json:"scope_id"`  // 可选：授权扫描范围；空值使用默认范围
+	PolicyID    string             `json:"policy_id"` // Optional: Linking strategyID
+	ScopeID     string             `json:"scope_id"`  // Optional: Authorized scan range; Empty values use default range
 	TaskOptions models.TaskOptions `json:"task_options" binding:"required"`
 }
 
-// ListScheduledTasks 列出所有计划任务
+// ListScheduledTasks List all planned tasks
 func (h *ScheduledTaskHandler) ListScheduledTasks(c *gin.Context) {
 	cronType := c.Query("cron_type")
 	isEnabled := c.Query("is_enabled")
 
-	// 分页参数
+	// Page Break Parameters
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "20")
 
@@ -92,7 +92,7 @@ func (h *ScheduledTaskHandler) ListScheduledTasks(c *gin.Context) {
 	})
 }
 
-// GetScheduledTask 获取单个计划任务
+// GetScheduledTask Get individual planned tasks
 func (h *ScheduledTaskHandler) GetScheduledTask(c *gin.Context) {
 	id := c.Param("id")
 
@@ -109,7 +109,7 @@ func (h *ScheduledTaskHandler) GetScheduledTask(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
-// CreateScheduledTask 创建计划任务
+// CreateScheduledTask Create Planned Tasks
 func (h *ScheduledTaskHandler) CreateScheduledTask(c *gin.Context) {
 	var req CreateScheduledTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -142,7 +142,7 @@ func writeScheduledTaskError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process scheduled task"})
 }
 
-// UpdateScheduledTask 更新计划任务
+// UpdateScheduledTask Update planned tasks
 func (h *ScheduledTaskHandler) UpdateScheduledTask(c *gin.Context) {
 	id := c.Param("id")
 
@@ -164,7 +164,7 @@ func (h *ScheduledTaskHandler) UpdateScheduledTask(c *gin.Context) {
 	})
 }
 
-// DeleteScheduledTask 删除计划任务
+// DeleteScheduledTask Delete Planned Tasks
 func (h *ScheduledTaskHandler) DeleteScheduledTask(c *gin.Context) {
 	if err := h.service.Delete(c.Param("id")); err != nil {
 		writeScheduledTaskError(c, err)
@@ -174,7 +174,7 @@ func (h *ScheduledTaskHandler) DeleteScheduledTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Scheduled task deleted successfully"})
 }
 
-// ToggleScheduledTaskStatus 切换计划任务状态
+// ToggleScheduledTaskStatus Toggle scheduled task status
 func (h *ScheduledTaskHandler) ToggleScheduledTaskStatus(c *gin.Context) {
 	id := c.Param("id")
 
@@ -200,7 +200,7 @@ func (h *ScheduledTaskHandler) ToggleScheduledTaskStatus(c *gin.Context) {
 	})
 }
 
-// RunScheduledTaskNow 立即运行计划任务
+// RunScheduledTaskNow Run the planned task immediately.
 func (h *ScheduledTaskHandler) RunScheduledTaskNow(c *gin.Context) {
 	task, err := h.service.RunNow(c.Param("id"))
 	if err != nil {
@@ -215,7 +215,7 @@ func (h *ScheduledTaskHandler) RunScheduledTaskNow(c *gin.Context) {
 	})
 }
 
-// GetScheduledTaskLogs 获取计划任务执行日志
+// GetScheduledTaskLogs Fetching the planned task execution log
 func (h *ScheduledTaskHandler) GetScheduledTaskLogs(c *gin.Context) {
 	id := c.Param("id")
 
@@ -234,7 +234,7 @@ func (h *ScheduledTaskHandler) GetScheduledTaskLogs(c *gin.Context) {
 	})
 }
 
-// GetScheduledTaskStats 获取计划任务统计
+// GetScheduledTaskStats Obtaining statistics for planned missions
 func (h *ScheduledTaskHandler) GetScheduledTaskStats(c *gin.Context) {
 	var stats struct {
 		TotalTasks  int64 `gorm:"column:total_tasks"`
@@ -257,7 +257,7 @@ func (h *ScheduledTaskHandler) GetScheduledTaskStats(c *gin.Context) {
 	})
 }
 
-// BatchDeleteScheduledTasks 批量删除计划任务
+// BatchDeleteScheduledTasks Batch Delete Schedule Tasks
 func (h *ScheduledTaskHandler) BatchDeleteScheduledTasks(c *gin.Context) {
 	var req struct {
 		IDs []string `json:"ids" binding:"required"`
@@ -287,7 +287,7 @@ func scheduledTaskDefinition(req CreateScheduledTaskRequest) services.ScheduledT
 	}
 }
 
-// BatchToggleScheduledTasks 批量切换计划任务状态
+// BatchToggleScheduledTasks Batch toggle scheduled task status
 func (h *ScheduledTaskHandler) BatchToggleScheduledTasks(c *gin.Context) {
 	var req struct {
 		IDs       []string `json:"ids" binding:"required"`

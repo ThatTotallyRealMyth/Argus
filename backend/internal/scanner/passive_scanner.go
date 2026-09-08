@@ -17,12 +17,12 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// PassiveScanner 被动扫描器
+// PassiveScanner Passive scanner
 type PassiveScanner struct {
 	client *http.Client
 }
 
-// NewPassiveScanner 创建被动扫描器
+// NewPassiveScanner Create Passive Scanner
 func NewPassiveScanner() *PassiveScanner {
 	return &PassiveScanner{
 		client: &http.Client{
@@ -32,7 +32,7 @@ func NewPassiveScanner() *PassiveScanner {
 	}
 }
 
-// Scan 执行被动扫描
+// Scan Execute Passive Scan
 func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 	targets := ctx.TargetList()
 
@@ -49,10 +49,10 @@ func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 
 		ctx.Logger.Printf("Starting passive scan for: %s", target)
 
-		// 1. 使用各种数据源进行被动收集
+		// 1. Passive collection using various data sources
 		var wg sync.WaitGroup
 
-		// crt.sh 证书透明度
+		// crt.sh Transparency of certificates
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -64,7 +64,7 @@ func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 			}
 		}()
 
-		// DNS解析
+		// DNSParsing
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -76,7 +76,7 @@ func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 			}
 		}()
 
-		// VirusTotal (如果有API key)
+		// VirusTotal (If there is,API key)
 		if apiKey := ps.getAPIKey(ctx, "virustotal"); apiKey != "" {
 			wg.Add(1)
 			go func() {
@@ -90,7 +90,7 @@ func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 			}()
 		}
 
-		// Shodan (如果有API key)
+		// Shodan (If there is,API key)
 		if apiKey := ps.getAPIKey(ctx, "shodan"); apiKey != "" {
 			wg.Add(1)
 			go func() {
@@ -111,7 +111,7 @@ func (ps *PassiveScanner) Scan(ctx *ScanContext) error {
 	return nil
 }
 
-// queryCrtSh 查询证书透明度日志
+// queryCrtSh Query Certificate Transparency Log
 func (ps *PassiveScanner) queryCrtSh(domain string) ([]string, error) {
 	url := fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", domain)
 
@@ -138,7 +138,7 @@ func (ps *PassiveScanner) queryCrtSh(domain string) ([]string, error) {
 		return nil, err
 	}
 
-	// 去重
+	// - Go heavy.
 	domainMap := make(map[string]bool)
 	for _, r := range results {
 		names := strings.Split(r.NameValue, "\n")
@@ -158,7 +158,7 @@ func (ps *PassiveScanner) queryCrtSh(domain string) ([]string, error) {
 	return domains, nil
 }
 
-// queryDNSRecords 查询DNS记录
+// queryDNSRecords QueryDNSRecords
 func (ps *PassiveScanner) queryDNSRecords(domain string) (map[string][]string, error) {
 	name, err := normalizeDNSName(domain)
 	if err != nil {
@@ -263,7 +263,7 @@ func sortedUnique(values []string) []string {
 	return result
 }
 
-// queryVirusTotal 查询VirusTotal
+// queryVirusTotal QueryVirusTotal
 func (ps *PassiveScanner) queryVirusTotal(domain, apiKey string) ([]string, error) {
 	url := fmt.Sprintf("https://www.virustotal.com/vtapi/v2/domain/report?apikey=%s&domain=%s", apiKey, domain)
 
@@ -293,7 +293,7 @@ func (ps *PassiveScanner) queryVirusTotal(domain, apiKey string) ([]string, erro
 	return result.Subdomains, nil
 }
 
-// queryShodan 查询Shodan
+// queryShodan QueryShodan
 func (ps *PassiveScanner) queryShodan(domain, apiKey string) ([]map[string]interface{}, error) {
 	url := fmt.Sprintf("https://api.shodan.io/dns/domain/%s?key=%s", domain, apiKey)
 
@@ -323,7 +323,7 @@ func (ps *PassiveScanner) queryShodan(domain, apiKey string) ([]map[string]inter
 	return result.Data, nil
 }
 
-// saveDomains 保存发现的域名
+// saveDomains Save found domain name
 func (ps *PassiveScanner) saveDomains(ctx *ScanContext, domains []string, source, target string) {
 	domainScanner := NewDomainScanner()
 
@@ -333,40 +333,40 @@ func (ps *PassiveScanner) saveDomains(ctx *ScanContext, domains []string, source
 			continue
 		}
 
-		// 验证域名是否属于目标
+		// Verify whether domain names are targeted
 		if !domainScanner.isSubdomainOf(domain, target) {
 			continue
 		}
 
-		// 解析IP
+		// ParsingIP
 		ips, err := domainScanner.resolveWithRetry(domain)
 		if err == nil && len(ips) > 0 {
 			domainScanner.saveDomain(ctx, domain, source, ips[0])
 
-			// 保存IP
+			// SaveIP
 			for _, ip := range ips {
 				domainScanner.saveIPOptimized(ctx, ip, domain)
 			}
 		} else {
-			// 即使无法解析，也保存域名
+			// Even if it's not possible to parsing, Save domain name also
 			domainScanner.saveDomain(ctx, domain, source, "")
 		}
 	}
 }
 
-// processDNSRecords 处理DNS记录
+// processDNSRecords ProcessingDNSRecords
 func (ps *PassiveScanner) processDNSRecords(ctx *ScanContext, records map[string][]string, target string) {
 	dnsTarget, _ := normalizeDNSName(target)
 	if dnsTarget == "" {
 		dnsTarget = target
 	}
-	// 处理各种DNS记录类型
+	// Dealing with all kindsDNSRecord Type
 	for recordType, values := range records {
 		ctx.Logger.Printf("Processing %s records: %d", recordType, len(values))
 
 		switch recordType {
 		case "A", "AAAA":
-			// IP地址记录
+			// IPAddress log
 			for _, ip := range values {
 				ipModel := &models.IP{
 					TaskID:    ctx.Task.ID,
@@ -376,7 +376,7 @@ func (ps *PassiveScanner) processDNSRecords(ctx *ScanContext, records map[string
 				ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, ip).FirstOrCreate(ipModel)
 			}
 		case "MX":
-			// 邮件服务器记录
+			// Mail Server Records
 			for _, mx := range values {
 				ctx.Logger.Printf("MX record for %s: %s", dnsTarget, mx)
 			}
@@ -385,7 +385,7 @@ func (ps *PassiveScanner) processDNSRecords(ctx *ScanContext, records map[string
 				ctx.Logger.Printf("%s record for %s: %s", recordType, dnsTarget, name)
 			}
 		case "TXT":
-			// TXT记录可能包含SPF、DKIM等信息
+			// TXTThe record may containSPF, DKIMWaiting for information
 			for _, txt := range values {
 				ctx.Logger.Printf("TXT record: %s", txt)
 			}
@@ -393,10 +393,10 @@ func (ps *PassiveScanner) processDNSRecords(ctx *ScanContext, records map[string
 	}
 }
 
-// processShodanResults 处理Shodan结果
+// processShodanResults ProcessingShodanOutcome
 func (ps *PassiveScanner) processShodanResults(ctx *ScanContext, results []map[string]interface{}, target string) {
 	for _, result := range results {
-		// 提取IP地址
+		// ExtractIPAddress
 		if ip, ok := result["ip_str"].(string); ok {
 			ipModel := &models.IP{
 				TaskID:    ctx.Task.ID,
@@ -404,7 +404,7 @@ func (ps *PassiveScanner) processShodanResults(ctx *ScanContext, results []map[s
 				Domain:    target,
 			}
 
-			// 提取位置信息
+			// Extract Location Information
 			if location, ok := result["location"].(map[string]interface{}); ok {
 				if country, ok := location["country_name"].(string); ok {
 					if city, ok := location["city"].(string); ok {
@@ -417,7 +417,7 @@ func (ps *PassiveScanner) processShodanResults(ctx *ScanContext, results []map[s
 
 			ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, ip).FirstOrCreate(ipModel)
 
-			// 提取端口信息
+			// Extract Port Information
 			if port, ok := result["port"].(float64); ok {
 				portModel := &models.Port{
 					TaskID:    ctx.Task.ID,
@@ -426,12 +426,12 @@ func (ps *PassiveScanner) processShodanResults(ctx *ScanContext, results []map[s
 					Protocol:  "tcp",
 				}
 
-				// 提取服务信息
+				// Extracting service information
 				if service, ok := result["product"].(string); ok {
 					portModel.Service = service
 				}
 
-				// 提取版本信息
+				// Extract Version Information
 				if version, ok := result["version"].(string); ok {
 					portModel.Version = version
 				}
@@ -443,7 +443,7 @@ func (ps *PassiveScanner) processShodanResults(ctx *ScanContext, results []map[s
 	}
 }
 
-// getAPIKey 从数据库获取API密钥
+// getAPIKey Retrieve from databaseAPIKey
 func (ps *PassiveScanner) getAPIKey(ctx *ScanContext, keyName string) string {
 	var enabledSetting models.Setting
 	if err := ctx.DB.Where("category = ? AND key = ?", "api", keyName+"_enabled").First(&enabledSetting).Error; err == nil {

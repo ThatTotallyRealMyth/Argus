@@ -28,17 +28,17 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Scheduler 调度器
+// Scheduler Scheduler
 type Scheduler struct {
 	cron               *cron.Cron
 	taskService        *services.TaskService
-	runningMonitors    map[string]bool // 正在执行的监控任务 ID
+	runningMonitors    map[string]bool // Ongoing monitoring tasks ID
 	runningMonitorsMux sync.Mutex
 }
 
 var ErrMonitorAlreadyRunning = errors.New("monitor is already running")
 
-// NewScheduler 创建调度器
+// NewScheduler Create Scheduler
 func NewScheduler(taskService *services.TaskService) *Scheduler {
 	return &Scheduler{
 		cron:            cron.New(),
@@ -47,30 +47,30 @@ func NewScheduler(taskService *services.TaskService) *Scheduler {
 	}
 }
 
-// Start 启动调度器
+// Start Start scheduler
 func (s *Scheduler) Start() {
 	logger.Info("Scheduler started")
 
-	// 启动监控任务检查
+	// Start the surveillance job check.
 	s.cron.AddFunc("@every 1m", s.checkMonitorTasks)
 
-	// 启动计划任务检查
+	// Start the planned task check.
 	s.cron.AddFunc("@every 1m", s.checkScheduledTasks)
 
 	s.cron.Start()
 }
 
-// Stop 停止调度器
+// Stop Stop Scheduler
 func (s *Scheduler) Stop() {
 	s.cron.Stop()
 	logger.Info("Scheduler stopped")
 }
 
-// checkMonitorTasks 检查并执行监控任务
+// checkMonitorTasks Check and perform surveillance tasks
 func (s *Scheduler) checkMonitorTasks() {
 	var monitors []models.Monitor
 
-	// 查询活跃的监控任务
+	// Query active surveillance tasks
 	if err := database.DB.Where("status = ?", models.MonitorStatusActive).Find(&monitors).Error; err != nil {
 		logger.Error("Failed to load active monitors: %v", err)
 		return
@@ -79,14 +79,14 @@ func (s *Scheduler) checkMonitorTasks() {
 	now := time.Now()
 
 	for _, monitor := range monitors {
-		// 检查是否需要执行
+		// Check whether implementation is required
 		if monitor.NextRunTime != nil && now.After(*monitor.NextRunTime) {
 			logger.Info("Executing monitor task: %s (RunCount: %d)", monitor.Name, monitor.RunCount)
 			if err := s.launchMonitor(&monitor, now); err != nil && !errors.Is(err, ErrMonitorAlreadyRunning) {
 				logger.Error("Failed to launch monitor %s: %v", monitor.Name, err)
 			}
 		} else if monitor.NextRunTime == nil {
-			// 首次执行，设置下次运行时间
+			// First implementation, Set the next runtime
 			nextRun := now.Add(time.Duration(monitor.Interval) * time.Second)
 			monitor.NextRunTime = &nextRun
 			if err := database.DB.Save(&monitor).Error; err != nil {
@@ -130,9 +130,9 @@ func (s *Scheduler) launchMonitor(monitor *models.Monitor, now time.Time) error 
 	return nil
 }
 
-// executeMonitorWithErrorHandling 执行监控任务（带错误处理）
+// executeMonitorWithErrorHandling I'm doing a surveillance job. (Bring Error Process)
 func (s *Scheduler) executeMonitorWithErrorHandling(monitor *models.Monitor) {
-	// 执行完成后清理运行标记
+	// Clear running tags after completion of implementation
 	defer func() {
 		s.runningMonitorsMux.Lock()
 		delete(s.runningMonitors, monitor.ID)
@@ -150,14 +150,14 @@ func (s *Scheduler) executeMonitorWithErrorHandling(monitor *models.Monitor) {
 		}
 	}()
 
-	// 执行监控
+	// Execute surveillance.
 	if err := s.executeMonitor(monitor); err != nil {
 		logger.Error("Monitor task failed: %s - %v", monitor.Name, err)
 		publicMessage := publicMonitorError(err)
 		if err := database.DB.Model(monitor).Update("last_error", publicMessage).Error; err != nil {
 			logger.Error("Failed to persist monitor error status: %v", err)
 		}
-		if err := s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "error", Description: fmt.Sprintf("监控 %s 执行失败", monitor.Name), Data: publicMessage}); err != nil {
+		if err := s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "error", Description: fmt.Sprintf("Surveillance %s Implementation Failed", monitor.Name), Data: publicMessage}); err != nil {
 			logger.Error("Failed to persist monitor error result: %v", err)
 		}
 	}
@@ -198,7 +198,7 @@ func (s *Scheduler) recordMonitorResult(monitor *models.Monitor, result *models.
 		severity = "high"
 	}
 	results := notifier.Send(ctx, services.NotificationEvent{
-		Type: result.ChangeType, Title: "资产监控事件", Message: result.Description, Severity: severity,
+		Type: result.ChangeType, Title: "Asset monitoring incidents", Message: result.Description, Severity: severity,
 		Target: monitor.Target, SourceID: monitor.ID, OccurredAt: result.CreatedAt,
 		Data: map[string]any{"monitor_name": monitor.Name, "monitor_type": monitor.Type, "result": result.Data},
 	}, selection)
@@ -210,7 +210,7 @@ func (s *Scheduler) recordMonitorResult(monitor *models.Monitor, result *models.
 	return nil
 }
 
-// executeMonitor 执行监控任务
+// executeMonitor I'm doing a surveillance job.
 func (s *Scheduler) executeMonitor(monitor *models.Monitor) error {
 	logger.Info("Monitor task executing: %s (type: %s)", monitor.Name, monitor.Type)
 	previousScopeID, previousTarget := monitor.ScopeID, monitor.Target
@@ -234,7 +234,7 @@ func (s *Scheduler) executeMonitor(monitor *models.Monitor) error {
 		return s.executeAssetGroupMonitor(monitor, targets)
 	}
 
-	// 根据监控类型执行不同的逻辑
+	// Perform different logics according to the type of surveillance
 	switch monitor.Type {
 	case models.MonitorTypeDomain:
 		return s.executeDomainMonitor(monitor)
@@ -263,7 +263,7 @@ func (s *Scheduler) queueMonitorScan(monitor *models.Monitor, targets []string) 
 		return err
 	}
 	task, err := s.taskService.CreateUniqueTriggeredQueuedTask(
-		fmt.Sprintf("%s (监控扫描)", monitor.Name), target, "", monitor.ScopeID, options,
+		fmt.Sprintf("%s (Monitor Scan)", monitor.Name), target, "", monitor.ScopeID, options,
 		models.TaskOrigin{Source: models.TaskTriggerMonitor, ID: monitor.ID},
 	)
 	if err != nil {
@@ -341,7 +341,7 @@ func (s *Scheduler) executeCVEMonitor(monitor *models.Monitor) error {
 		payload, _ := json.Marshal(map[string]any{"changes": alertChanges, "truncated": len(changes) > len(alertChanges)})
 		if err := s.recordMonitorResult(monitor, &models.MonitorResult{
 			MonitorID: monitor.ID, ChangeType: changeType,
-			Description: fmt.Sprintf("CVE 监控发现 %d 个产品相关更新", len(changes)), Data: string(payload),
+			Description: fmt.Sprintf("CVE Surveillance found. %d Product-related updates", len(changes)), Data: string(payload),
 		}); err != nil {
 			return err
 		}
@@ -351,7 +351,7 @@ func (s *Scheduler) executeCVEMonitor(monitor *models.Monitor) error {
 		return err
 	}
 	return s.recordMonitorResult(monitor, &models.MonitorResult{
-		MonitorID: monitor.ID, ChangeType: "check", Description: fmt.Sprintf("CVE 监控检查 %d 条记录", len(records)), Data: string(snapshot),
+		MonitorID: monitor.ID, ChangeType: "check", Description: fmt.Sprintf("CVE Surveillance and inspection %d Record", len(records)), Data: string(snapshot),
 	})
 }
 
@@ -391,11 +391,11 @@ func (s *Scheduler) executeAssetGroupMonitor(monitor *models.Monitor, targets []
 		return fmt.Errorf("load previous asset group monitor snapshot: %w", err)
 	}
 	if lastResult.Data != "" && lastResult.Data != currentData {
-		if err := s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "modified", Description: fmt.Sprintf("资产组 %s 的 %s 状态发生变化", group.Name, monitor.Type), Data: currentData}); err != nil {
+		if err := s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "modified", Description: fmt.Sprintf("Asset group %s has a %s status change", group.Name, monitor.Type), Data: currentData}); err != nil {
 			return err
 		}
 	}
-	return s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "check", Description: fmt.Sprintf("资产组 %s 检查完成，共 %d 个目标", group.Name, len(targets)), Data: currentData})
+	return s.recordMonitorResult(monitor, &models.MonitorResult{MonitorID: monitor.ID, ChangeType: "check", Description: fmt.Sprintf("Assets group %s Check complete., Total %d Target", group.Name, len(targets)), Data: currentData})
 }
 
 func scanCommonPorts(target string) []int {
@@ -446,17 +446,17 @@ func monitorHTTPClient(monitor *models.Monitor) *http.Client {
 	}
 }
 
-// executeDomainMonitor 执行域名监控
+// executeDomainMonitor Execute domain name monitoring
 func (s *Scheduler) executeDomainMonitor(monitor *models.Monitor) error {
 	logger.Info("Domain monitor: %s", monitor.Target)
 
-	// 查询当前域名解析
+	// Query for the current domain name resolution
 	ips, err := net.LookupHost(monitor.Target)
 	if err != nil {
 		logger.Error("Domain lookup failed: %v", err)
 		return fmt.Errorf("domain lookup failed: %w", err)
 	}
-	// 查询上次的记录
+	// Querying the last record
 	var lastResult models.MonitorResult
 	if err := loadPreviousMonitorResult(monitor.ID, "", &lastResult); err != nil {
 		return fmt.Errorf("load previous domain monitor snapshot: %w", err)
@@ -464,14 +464,14 @@ func (s *Scheduler) executeDomainMonitor(monitor *models.Monitor) error {
 
 	currentIPs := domainMonitorSnapshot(ips)
 
-	// 对比变化
+	// Comparison Change
 	if lastResult.Data != currentIPs && lastResult.Data != "" {
-		// 发现变化
+		// Change detected
 		result := &models.MonitorResult{
 			MonitorID:   monitor.ID,
 			ChangeType:  "modified",
-			Description: fmt.Sprintf("域名 %s 的IP地址发生变化", monitor.Target),
-			Data:        fmt.Sprintf("旧IP: %s, 新IP: %s", lastResult.Data, currentIPs),
+			Description: fmt.Sprintf("The IP addresses for domain %s changed", monitor.Target),
+			Data:        fmt.Sprintf("OldIP: %s, NewIP: %s", lastResult.Data, currentIPs),
 		}
 		if err := s.recordMonitorResult(monitor, result); err != nil {
 			return err
@@ -479,11 +479,11 @@ func (s *Scheduler) executeDomainMonitor(monitor *models.Monitor) error {
 		logger.Info("Domain change detected: %s", monitor.Target)
 	}
 
-	// 保存当前状态
+	// Save Current Status
 	result := &models.MonitorResult{
 		MonitorID:   monitor.ID,
 		ChangeType:  "check",
-		Description: fmt.Sprintf("域名 %s 检查完成", monitor.Target),
+		Description: fmt.Sprintf("Domain name %s Check complete.", monitor.Target),
 		Data:        currentIPs,
 	}
 	return s.recordMonitorResult(monitor, result)
@@ -495,11 +495,11 @@ func domainMonitorSnapshot(ips []string) string {
 	return strings.Join(sortedIPs, ",")
 }
 
-// executeIPMonitor 执行IP监控
+// executeIPMonitor ImplementationIPSurveillance
 func (s *Scheduler) executeIPMonitor(monitor *models.Monitor) error {
 	logger.Info("IP monitor: %s", monitor.Target)
 
-	// 扫描该IP的开放端口（使用快速扫描）
+	// Scan that.IPOpen port (Use Quick Scan)
 	commonPorts := []int{80, 443, 22, 21, 3306, 3389, 8080, 8443}
 	var openPorts []int
 
@@ -512,7 +512,7 @@ func (s *Scheduler) executeIPMonitor(monitor *models.Monitor) error {
 		}
 	}
 
-	// 查询上次的记录
+	// Querying the last record
 	var lastResult models.MonitorResult
 	if err := loadPreviousMonitorResult(monitor.ID, "", &lastResult); err != nil {
 		return fmt.Errorf("load previous IP monitor snapshot: %w", err)
@@ -520,13 +520,13 @@ func (s *Scheduler) executeIPMonitor(monitor *models.Monitor) error {
 
 	currentPorts := fmt.Sprintf("%v", openPorts)
 
-	// 对比变化
+	// Comparison Change
 	if lastResult.Data != currentPorts && lastResult.Data != "" {
 		result := &models.MonitorResult{
 			MonitorID:   monitor.ID,
 			ChangeType:  "modified",
-			Description: fmt.Sprintf("IP %s 的开放端口发生变化", monitor.Target),
-			Data:        fmt.Sprintf("旧端口: %s, 新端口: %s", lastResult.Data, currentPorts),
+			Description: fmt.Sprintf("IP %s Open port changes", monitor.Target),
+			Data:        fmt.Sprintf("Old Port: %s, New Port: %s", lastResult.Data, currentPorts),
 		}
 		if err := s.recordMonitorResult(monitor, result); err != nil {
 			return err
@@ -534,17 +534,17 @@ func (s *Scheduler) executeIPMonitor(monitor *models.Monitor) error {
 		logger.Info("IP ports change detected: %s", monitor.Target)
 	}
 
-	// 保存当前状态
+	// Save Current Status
 	result := &models.MonitorResult{
 		MonitorID:   monitor.ID,
 		ChangeType:  "check",
-		Description: fmt.Sprintf("IP %s 检查完成，开放端口: %v", monitor.Target, openPorts),
+		Description: fmt.Sprintf("IP %s Check complete., Open Port: %v", monitor.Target, openPorts),
 		Data:        currentPorts,
 	}
 	return s.recordMonitorResult(monitor, result)
 }
 
-// executeSiteMonitor 执行站点监控
+// executeSiteMonitor Execute site surveillance
 func (s *Scheduler) executeSiteMonitor(monitor *models.Monitor) error {
 	logger.Info("Site monitor: %s", monitor.Target)
 
@@ -564,18 +564,18 @@ func (s *Scheduler) executeSiteMonitor(monitor *models.Monitor) error {
 	statusCode := resp.StatusCode
 	currentData := siteMonitorData(statusCode, body)
 
-	// 查询上次的记录
+	// Querying the last record
 	var lastResult models.MonitorResult
 	if err := loadPreviousMonitorResult(monitor.ID, "", &lastResult); err != nil {
 		return fmt.Errorf("load previous site monitor snapshot: %w", err)
 	}
 
-	// 对比变化
+	// Comparison Change
 	if lastResult.Data != currentData && lastResult.Data != "" {
 		result := &models.MonitorResult{
 			MonitorID:   monitor.ID,
 			ChangeType:  "modified",
-			Description: fmt.Sprintf("站点 %s 内容发生变化", monitor.Target),
+			Description: fmt.Sprintf("Site %s Content change", monitor.Target),
 			Data:        currentData,
 		}
 		if err := s.recordMonitorResult(monitor, result); err != nil {
@@ -584,11 +584,11 @@ func (s *Scheduler) executeSiteMonitor(monitor *models.Monitor) error {
 		logger.Info("Site change detected: %s", monitor.Target)
 	}
 
-	// 保存当前状态
+	// Save Current Status
 	result := &models.MonitorResult{
 		MonitorID:   monitor.ID,
 		ChangeType:  "check",
-		Description: fmt.Sprintf("站点 %s 检查完成", monitor.Target),
+		Description: fmt.Sprintf("Site %s Check complete.", monitor.Target),
 		Data:        currentData,
 	}
 	return s.recordMonitorResult(monitor, result)
@@ -684,7 +684,7 @@ func (s *Scheduler) executeGithubMonitor(monitor *models.Monitor) error {
 		}
 		if err := s.recordMonitorResult(monitor, &models.MonitorResult{
 			MonitorID: monitor.ID, ChangeType: "new",
-			Description: fmt.Sprintf("GitHub 确认 %d 个新的敏感泄露文件", len(newFindings)), Data: string(eventData),
+			Description: fmt.Sprintf("GitHub Confirm %d A new sensitive leak.", len(newFindings)), Data: string(eventData),
 		}); err != nil {
 			return err
 		}
@@ -696,7 +696,7 @@ func (s *Scheduler) executeGithubMonitor(monitor *models.Monitor) error {
 	}
 	return s.recordMonitorResult(monitor, &models.MonitorResult{
 		MonitorID: monitor.ID, ChangeType: "check",
-		Description: fmt.Sprintf("GitHub 检索 %d 条，核验 %d 条，确认 %d 条", result.TotalCount, snapshot.Inspected, len(snapshot.Findings)), Data: string(snapshotData),
+		Description: fmt.Sprintf("GitHub Search %d Article, Verification %d Article, Confirm %d Article", result.TotalCount, snapshot.Inspected, len(snapshot.Findings)), Data: string(snapshotData),
 	})
 }
 
@@ -736,14 +736,14 @@ func safeGithubResultURL(value string) string {
 	return parsed.String()
 }
 
-// executeWIHMonitor 执行WIH监控
+// executeWIHMonitor ImplementationWIHSurveillance
 func (s *Scheduler) executeWIHMonitor(monitor *models.Monitor) error {
 	logger.Info("WIH monitor: %s", monitor.Target)
 
-	// 创建WIH扫描器
+	// CreateWIHScanner
 	wih := scanner.NewWebInfoHunter("")
 
-	// 执行扫描
+	// Execute Scan
 	ctx := &scanner.ScanContext{
 		Logger: log.Default(),
 		DB:     database.DB,
@@ -761,14 +761,14 @@ func (s *Scheduler) executeWIHMonitor(monitor *models.Monitor) error {
 		return fmt.Errorf("WIH scan failed: %w", err)
 	}
 
-	// 统计发现的信息
+	// Statistically found information
 	totalFindings := 0
 	for _, r := range results {
 		totalFindings += len(r.Subdomains) + len(r.AccessKeys) +
 			len(r.SecretKeys) + len(r.APIKeys) + len(r.APIEndpoints)
 	}
 
-	// 查询上次的记录
+	// Querying the last record
 	var lastResult models.MonitorResult
 	if err := loadPreviousMonitorResult(monitor.ID, "", &lastResult); err != nil {
 		return fmt.Errorf("load previous WIH monitor snapshot: %w", err)
@@ -776,12 +776,12 @@ func (s *Scheduler) executeWIHMonitor(monitor *models.Monitor) error {
 
 	currentData := fmt.Sprintf("%d", totalFindings)
 
-	// 如果发现新信息
+	// If new information is found
 	if lastResult.Data != currentData && totalFindings > 0 {
 		monitorResult := &models.MonitorResult{
 			MonitorID:   monitor.ID,
 			ChangeType:  "new",
-			Description: fmt.Sprintf("WIH发现新的信息: %d 项", totalFindings),
+			Description: fmt.Sprintf("WIHFound New Message: %d Item", totalFindings),
 			Data:        currentData,
 		}
 		if err := s.recordMonitorResult(monitor, monitorResult); err != nil {
@@ -790,11 +790,11 @@ func (s *Scheduler) executeWIHMonitor(monitor *models.Monitor) error {
 		logger.Info("New WIH findings: %s (%d)", monitor.Target, totalFindings)
 	}
 
-	// 保存当前状态
+	// Save Current Status
 	checkResult := &models.MonitorResult{
 		MonitorID:   monitor.ID,
 		ChangeType:  "check",
-		Description: fmt.Sprintf("WIH监控完成: %s", monitor.Target),
+		Description: fmt.Sprintf("WIHSurveillance complete.: %s", monitor.Target),
 		Data:        currentData,
 	}
 	return s.recordMonitorResult(monitor, checkResult)
@@ -819,7 +819,7 @@ func decodeMonitorSnapshot(raw string, destination any) error {
 	return json.Unmarshal([]byte(raw), destination)
 }
 
-// checkScheduledTasks 检查并执行计划任务
+// checkScheduledTasks Inspection and implementation of the plan of work
 func (s *Scheduler) checkScheduledTasks() {
 	now := time.Now()
 	for {
@@ -899,7 +899,7 @@ func (s *Scheduler) claimAndQueueScheduledTask(now time.Time) (bool, error) {
 	} else {
 		queuedTask, queueErr = s.taskService.CreateTaskInScopeTxWithOrigin(
 			tx,
-			fmt.Sprintf("%s (计划任务)", scheduledTask.Name),
+			fmt.Sprintf("%s (Planned tasks)", scheduledTask.Name),
 			scheduledTask.TaskOptions.Target,
 			scheduledTask.PolicyID,
 			scheduledTask.ScopeID,
@@ -950,7 +950,7 @@ func (s *Scheduler) recordScheduledResultTx(tx *gorm.DB, scheduledTaskID string,
 	return tx.Create(entry).Error
 }
 
-// calculateNextRun 计算下次运行时间
+// calculateNextRun Calculate next runtime
 func (s *Scheduler) calculateNextRun(cronExpr, cronType string) (*time.Time, error) {
 	return s.calculateNextRunFrom(cronExpr, cronType, time.Now())
 }

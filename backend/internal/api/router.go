@@ -17,8 +17,8 @@ import (
 	"github.com/reconmaster/backend/internal/services"
 )
 
-// SetupRouter 设置路由
-// mcpHandler 为 MCP HTTP 端点（nil 表示未启用）
+// SetupRouter Set Path
+// mcpHandler Yes. MCP HTTP End (nil Not enabled)
 func SetupRouter(taskService *services.TaskService, enterpriseService *services.EnterpriseService, mcpHandler http.Handler, monitorRunner handlers.MonitorRunner) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -60,19 +60,19 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 		}))
 	}
 
-	// WebSocket处理器（全局单例）
+	// WebSocketProcessor (Global Single)
 	wsHandler := handlers.NewWebSocketHandler()
 
-	// 将 WebSocket handler 传递给 taskService
+	// Will WebSocket handler Send to taskService
 	taskService.SetWebSocketHandler(wsHandler)
 
-	// 健康检查
+	// Health screening
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok", "mcp_enabled": mcpEnabled, "task_workers": taskService.WorkerCount()})
 	})
 	router.GET("/ready", readinessHandler)
 
-	// MCP 端点 — 供 AI 客户端调用（无需 JWT 认证）
+	// MCP End — For AI Client call (No need. JWT Authentication)
 	if mcpHandler != nil {
 		mcpPath := config.GlobalConfig.MCP.Path
 		if mcpPath == "" {
@@ -82,18 +82,18 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 		router.Any(mcpPath+"/*path", gin.WrapH(mcpHandler))
 	}
 
-	// 静态文件服务 - 前端页面（公开）
+	// Static file services - Front Page (Public)
 	router.Static("/assets", "./web/dist/assets")
 	router.Static("/cursors", "./web/dist/cursors")
 	router.StaticFile("/logo.svg", "./web/dist/logo.svg")
 	router.StaticFile("/logo-icon.svg", "./web/dist/logo-icon.svg")
 
-	// 截图 — FlexibleAuth（支持 Authorization header 或 ?token= query 参数）
+	// Screenshot — FlexibleAuth (Support Authorization header or ?token= query Parameters)
 	screenshotsGroup := router.Group("/screenshots")
 	screenshotsGroup.Use(middleware.FlexibleAuth())
 	screenshotsGroup.Static("", "./data/screenshots")
 
-	// 认证接口（不需要token）
+	// Authentication interface (No need.token)
 	authHandler := handlers.NewAuthHandler()
 	auth := router.Group("/api/v1/auth")
 	auth.Use(middleware.RateLimit(middleware.NewRateLimiter(1, 10)))
@@ -106,16 +106,16 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 		}
 	}
 
-	// WebSocket — FlexibleAuth（浏览器 WebSocket 不能设自定义 header）
+	// WebSocket — FlexibleAuth (Browser WebSocket Can not create folder lock on %s: %s header)
 	wsGroup := router.Group("/api/v1")
 	wsGroup.Use(middleware.FlexibleAuth())
 	wsGroup.GET("/ws/progress", wsHandler.HandleWebSocket)
 
-	// API v1（需要严格 Authorization header 认证）
+	// API v1 (It needs to be strict. Authorization header Authentication)
 	v1 := router.Group("/api/v1")
 	v1.Use(middleware.AuthRequired())
 	{
-		// 任务管理
+		// Mission management
 		taskHandler := handlers.NewTaskHandler(taskService)
 		tasks := v1.Group("/tasks")
 		{
@@ -124,11 +124,11 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			tasks.GET("/:id", taskHandler.GetTask)
 			tasks.GET("/:id/logs", taskHandler.GetTaskLogs)
 			tasks.DELETE("/:id", taskHandler.DeleteTask)
-			tasks.POST("/:id/start", taskHandler.StartTask) // 手动启动任务
+			tasks.POST("/:id/start", taskHandler.StartTask) // Manually start the task
 			tasks.POST("/:id/retry", taskHandler.RetryTask)
 			tasks.POST("/:id/cancel", taskHandler.CancelTask)
 			tasks.GET("/stats", taskHandler.GetTaskStats)
-			tasks.POST("/batch/delete", taskHandler.BatchDeleteTasks) //  批量删除
+			tasks.POST("/batch/delete", taskHandler.BatchDeleteTasks) //  Batch Delete
 		}
 
 		scanScopeHandler := handlers.NewScanScopeHandler()
@@ -155,7 +155,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			enterprise.POST("/scans", enterpriseHandler.LaunchScan)
 		}
 
-		// 资产管理
+		// Asset management
 		assetHandler := handlers.NewAssetHandler()
 		assetCatalogHandler := handlers.NewAssetCatalogHandler()
 		assetLeadHandler := handlers.NewAssetLeadHandler()
@@ -179,14 +179,14 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			assets.PUT("/leads/triage", assetLeadHandler.UpdateTriage)
 			assets.POST("/leads/execute-poc", assetLeadHandler.ExecutePoC)
 
-			// 资产画像
+			// Asset portrait
 			assets.GET("/profile", assetProfileHandler.GetAssetProfile)
 			assets.GET("/relations", assetProfileHandler.GetAssetRelations)
 			assets.GET("/graph", assetProfileHandler.GetAssetGraph)
 			assets.GET("/c-segment", assetProfileHandler.AnalyzeCSegment)
 		}
 
-		// 资产标签
+		// Asset label
 		assetTagHandler := handlers.NewAssetTagHandler()
 		tags := v1.Group("/tags")
 		{
@@ -200,7 +200,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			tags.GET("/search", assetTagHandler.SearchAssetsByTag)
 		}
 
-		// 资产分组
+		// Asset Cluster
 		assetGroupHandler := handlers.NewAssetGroupHandler()
 		assetGroups := v1.Group("/asset-groups")
 		{
@@ -213,22 +213,22 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			assetGroups.DELETE("/:id/items/:member_id", assetGroupHandler.DeleteMember)
 		}
 
-		// 监控管理
+		// Control and management
 		monitorHandler := handlers.NewMonitorHandler(monitorRunner)
 		monitors := v1.Group("/monitors")
 		{
 			monitors.POST("", monitorHandler.CreateMonitor)
 			monitors.GET("", monitorHandler.ListMonitors)
 			monitors.GET("/:id", monitorHandler.GetMonitor)
-			monitors.PUT("/:id", monitorHandler.UpdateMonitor) // 🆕 更新监控
+			monitors.PUT("/:id", monitorHandler.UpdateMonitor) // 🆕 Update Monitor
 			monitors.PATCH("/:id/status", monitorHandler.UpdateMonitorStatus)
 			monitors.POST("/:id/run", monitorHandler.RunNow)
 			monitors.DELETE("/:id", monitorHandler.DeleteMonitor)
-			monitors.POST("/batch/delete", monitorHandler.BatchDeleteMonitors) // 🆕 批量删除
+			monitors.POST("/batch/delete", monitorHandler.BatchDeleteMonitors) // 🆕 Batch Delete
 			monitors.GET("/:id/results", monitorHandler.ListMonitorResults)
 		}
 
-		// 导出管理
+		// Export Management
 		exportHandler := handlers.NewExportHandler()
 		exports := v1.Group("/export")
 		{
@@ -236,7 +236,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			exports.GET("/download", exportHandler.DownloadExport)
 		}
 
-		// 用户管理
+		// User management
 		users := v1.Group("/users")
 		{
 			users.GET("/me", authHandler.GetCurrentUser)
@@ -244,7 +244,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			users.PUT("/me/password", authHandler.UpdatePassword)
 			users.POST("/logout", authHandler.Logout)
 
-			// 管理员接口
+			// Administrator Interface
 			admin := users.Group("")
 			admin.Use(middleware.AdminRequired())
 			{
@@ -253,7 +253,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			}
 		}
 
-		// 系统设置（管理员权限）
+		// System Settings (Administrator Permissions)
 		settingHandler := handlers.NewSettingHandler()
 		settings := v1.Group("/settings")
 		settings.Use(middleware.AdminRequired())
@@ -267,13 +267,13 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			settings.DELETE("/:key", settingHandler.DeleteSetting)
 		}
 
-		// 字典管理
+		// Dictionary Management
 		dictionaries := v1.Group("/dictionaries")
 		{
-			// 所有用户都可以查看字典列表
+			// All users can see the dictionary list
 			dictionaries.GET("", settingHandler.ListDictionaries)
 
-			// 以下操作需要管理员权限
+			// The following operation requires administrator privileges
 			admin := dictionaries.Group("")
 			admin.Use(middleware.AdminRequired())
 			{
@@ -283,16 +283,16 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			}
 		}
 
-		// 指纹管理
+		// Fingerprint management
 		fingerprintHandler := handlers.NewFingerprintHandler()
 		fingerprints := v1.Group("/fingerprints")
 		{
-			// 特定路径的路由要放在前面
+			// The route of a particular path must be in front of it.
 			fingerprints.GET("/categories", fingerprintHandler.GetCategories)
 			fingerprints.POST("/batch", fingerprintHandler.BatchCreateFingerprints)
-			fingerprints.POST("/import", fingerprintHandler.ImportFingerprints) // 导入接口
+			fingerprints.POST("/import", fingerprintHandler.ImportFingerprints) // Import Interface
 
-			// 通用路由放在后面
+			// General route behind.
 			fingerprints.GET("", fingerprintHandler.ListFingerprints)
 			fingerprints.POST("", fingerprintHandler.CreateFingerprint)
 			fingerprints.GET("/:id", fingerprintHandler.GetFingerprint)
@@ -314,15 +314,15 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			proxies.POST("/:id/test", proxyHandler.Test)
 		}
 
-		// PoC管理
+		// PoCManagement
 		pocHandler := handlers.NewPoCHandler()
 		pocs := v1.Group("/pocs")
 		{
-			// 特定路径的路由要放在前面
-			pocs.POST("/import/zip", pocHandler.ImportPoCsFromZip) // zip批量导入接口
-			pocs.POST("/import", pocHandler.BatchImportPoCs)       // yaml批量导入接口
+			// The route of a particular path must be in front of it.
+			pocs.POST("/import/zip", pocHandler.ImportPoCsFromZip) // zipBatch Import Interface
+			pocs.POST("/import", pocHandler.BatchImportPoCs)       // yamlBatch Import Interface
 
-			// 通用路由放在后面
+			// General route behind.
 			pocs.GET("", pocHandler.ListPoCs)
 			pocs.GET("/:id", pocHandler.GetPoC)
 			pocs.POST("", pocHandler.CreatePoC)
@@ -335,7 +335,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			pocs.GET("/stats", pocHandler.GetPoCStats)
 		}
 
-		// GitHub监控
+		// GitHubSurveillance
 		githubHandler := handlers.NewGitHubMonitorHandler()
 		github := v1.Group("/github-monitors")
 		{
@@ -351,7 +351,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			github.GET("/stats", githubHandler.GetGitHubMonitorStats)
 		}
 
-		// 计划任务
+		// Planned tasks
 		scheduledTaskHandler := handlers.NewScheduledTaskHandler(taskService)
 		scheduledTasks := v1.Group("/scheduled-tasks")
 		{
@@ -368,7 +368,7 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			scheduledTasks.POST("/batch/toggle", scheduledTaskHandler.BatchToggleScheduledTasks)
 		}
 
-		// 策略配置
+		// Policy Configuration
 		policyHandler := handlers.NewPolicyHandler()
 		policies := v1.Group("/policies")
 		{
@@ -383,11 +383,11 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			policies.GET("/stats", policyHandler.GetStats)
 		}
 
-		// 敏感信息规则
+		// Rule on sensitive information
 		sensitiveRuleHandler := handlers.NewSensitiveRuleHandler()
 		sensitiveRules := v1.Group("/sensitive-rules")
 		{
-			// 规则管理
+			// Rule management
 			sensitiveRules.GET("", sensitiveRuleHandler.ListSensitiveRules)
 			sensitiveRules.GET("/:id", sensitiveRuleHandler.GetSensitiveRule)
 			sensitiveRules.POST("", sensitiveRuleHandler.CreateSensitiveRule)
@@ -398,12 +398,12 @@ func SetupRouter(taskService *services.TaskService, enterpriseService *services.
 			sensitiveRules.POST("/batch/toggle", sensitiveRuleHandler.BatchToggleSensitiveRules)
 			sensitiveRules.GET("/stats", sensitiveRuleHandler.GetSensitiveRuleStats)
 
-			// 匹配记录
+			// Matching records
 			sensitiveRules.GET("/matches", sensitiveRuleHandler.ListSensitiveMatches)
 		}
 	}
 
-	// 前端路由 - 所有非API请求都返回index.html（支持前端路由）
+	// Front router - All non-APIAll requests returned.index.html (Support for front route)
 	router.NoRoute(func(c *gin.Context) {
 		mcpPath := config.GlobalConfig.MCP.Path
 		if mcpPath == "" {

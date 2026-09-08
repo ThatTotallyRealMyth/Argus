@@ -6,51 +6,51 @@ import (
 	"time"
 )
 
-// OSDetector 操作系统检测器
+// OSDetector Operating system detector
 type OSDetector struct {
 	timeout time.Duration
 }
 
-// NewOSDetector 创建OS检测器
+// NewOSDetector CreateOSDetection
 func NewOSDetector() *OSDetector {
 	return &OSDetector{
 		timeout: 5 * time.Second,
 	}
 }
 
-// Detect 检测操作系统
+// Detect Test operating system
 func (od *OSDetector) Detect(ip string, openPorts []int) string {
-	// 基于开放端口和服务特征推断操作系统
+	// Inference of operating systems based on open ports and service characteristics
 
-	// Windows特征
+	// WindowsCharacteristics
 	windowsScore := 0
-	// Linux特征
+	// LinuxCharacteristics
 	linuxScore := 0
-	// 其他特征
+	// Other characteristics
 	otherScore := 0
 
 	for _, port := range openPorts {
 		switch port {
-		case 135, 139, 445, 3389: // Windows常见端口
+		case 135, 139, 445, 3389: // WindowsCommon Port
 			windowsScore += 2
-		case 22, 111, 2049: // Linux常见端口
+		case 22, 111, 2049: // LinuxCommon Port
 			linuxScore += 2
-		case 80, 443, 8080: // 通用端口
-			// 不加分
+		case 80, 443, 8080: // Universal Port
+			// No point.
 		}
 	}
 
-	// 尝试TTL检测
+	// TryTTLTest
 	ttl := od.detectTTL(ip)
 	if ttl > 0 {
 		if ttl <= 64 {
-			linuxScore += 3 // Linux/Unix TTL通常是64
+			linuxScore += 3 // Linux/Unix TTLUsually.64
 		} else if ttl <= 128 {
-			windowsScore += 3 // Windows TTL通常是128
+			windowsScore += 3 // Windows TTLUsually.128
 		}
 	}
 
-	// 根据分数判断
+	// Based on the scores,
 	if windowsScore > linuxScore && windowsScore > otherScore {
 		return "Windows"
 	} else if linuxScore > windowsScore && linuxScore > otherScore {
@@ -60,10 +60,10 @@ func (od *OSDetector) Detect(ip string, openPorts []int) string {
 	return "Unknown"
 }
 
-// detectTTL 检测TTL值
+// detectTTL TestTTLValue
 func (od *OSDetector) detectTTL(ip string) int {
-	// 尝试ping来获取TTL
-	// 这里简化实现，实际需要使用raw socket或调用系统ping命令
+	// TrypingTo getTTL
+	// Simplified here, Actual requirementsraw socketor call systempingCommand
 
 	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:80", ip), od.timeout)
 	if err != nil {
@@ -71,16 +71,16 @@ func (od *OSDetector) detectTTL(ip string) int {
 	}
 	defer conn.Close()
 
-	// 无法直接获取TTL，这里返回0
-	// 实际实现需要使用syscall或解析ping输出
+	// Could not close temporary folder: %sTTL, Back here.0
+	// Actual realization needs to be usedsyscallor parsingpingOutput
 	return 0
 }
 
-// DetectByBanner 通过Banner检测OS
+// DetectByBanner ThroughBannerTestOS
 func (od *OSDetector) DetectByBanner(banner, service string) string {
 	bannerLower := toLower(banner)
 
-	// Windows特征
+	// WindowsCharacteristics
 	if contains(bannerLower, "microsoft") ||
 		contains(bannerLower, "windows") ||
 		contains(bannerLower, "win32") ||
@@ -88,7 +88,7 @@ func (od *OSDetector) DetectByBanner(banner, service string) string {
 		return "Windows"
 	}
 
-	// Linux特征
+	// LinuxCharacteristics
 	if contains(bannerLower, "linux") ||
 		contains(bannerLower, "ubuntu") ||
 		contains(bannerLower, "debian") ||
@@ -98,7 +98,7 @@ func (od *OSDetector) DetectByBanner(banner, service string) string {
 		return "Linux"
 	}
 
-	// Unix特征
+	// UnixCharacteristics
 	if contains(bannerLower, "unix") ||
 		contains(bannerLower, "bsd") ||
 		contains(bannerLower, "freebsd") ||
@@ -107,7 +107,7 @@ func (od *OSDetector) DetectByBanner(banner, service string) string {
 		return "Unix"
 	}
 
-	// Mac特征
+	// MacCharacteristics
 	if contains(bannerLower, "darwin") ||
 		contains(bannerLower, "mac os") ||
 		contains(bannerLower, "macos") {
@@ -117,12 +117,12 @@ func (od *OSDetector) DetectByBanner(banner, service string) string {
 	return ""
 }
 
-// contains 字符串包含检测（忽略大小写）
+// contains String contains detection (Ignore case)
 func contains(s, substr string) bool {
 	return indexOf(s, substr) >= 0
 }
 
-// indexOf 查找子字符串位置
+// indexOf Find substring position
 func indexOf(s, substr string) int {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {
@@ -132,7 +132,7 @@ func indexOf(s, substr string) int {
 	return -1
 }
 
-// toLower 转小写
+// toLower Lowercase
 func toLower(s string) string {
 	result := make([]byte, len(s))
 	for i := 0; i < len(s); i++ {

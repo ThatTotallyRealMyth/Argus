@@ -9,29 +9,29 @@ import (
 	"gorm.io/gorm"
 )
 
-// User 用户模型
+// User User Model
 type User struct {
 	ID                 string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Username           string         `gorm:"type:varchar(50);uniqueIndex;not null" json:"username"`
-	Password           string         `gorm:"type:varchar(255);not null" json:"-"` // 不在JSON中返回
+	Password           string         `gorm:"type:varchar(255);not null" json:"-"` // No, I'm not.JSONBack in
 	Email              string         `gorm:"type:varchar(100);uniqueIndex" json:"email"`
 	Nickname           string         `gorm:"type:varchar(100)" json:"nickname"`
 	Avatar             string         `gorm:"type:varchar(255)" json:"avatar"`
 	Role               string         `gorm:"type:varchar(20);default:'user'" json:"role"`     // admin, user
 	Status             string         `gorm:"type:varchar(20);default:'active'" json:"status"` // active, disabled
-	MustChangePassword bool           `gorm:"default:false" json:"must_change_password"`       // 是否必须修改密码（首次登录）
+	MustChangePassword bool           `gorm:"default:false" json:"must_change_password"`       // Whether passwords must be changed (First Login)
 	LastLogin          *time.Time     `json:"last_login"`
 	CreatedAt          time.Time      `json:"created_at"`
 	UpdatedAt          time.Time      `json:"updated_at"`
 	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (User) TableName() string {
 	return "users"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == "" {
 		u.ID = uuid.New().String()
@@ -39,12 +39,12 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// generateID 生成ID (辅助函数)
+// generateID GenerateID (Auxiliary Functions)
 func generateID(prefix string) string {
 	return fmt.Sprintf("%s_%s", prefix, uuid.New().String())
 }
 
-// SetPassword 设置密码（加密）
+// SetPassword Set Password (Encryption)
 func (u *User) SetPassword(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -54,23 +54,23 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
-// CheckPassword 验证密码
+// CheckPassword Authentication password
 func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
 }
 
-// IsAdmin 是否为管理员
+// IsAdmin Whether to be a administrator
 func (u *User) IsAdmin() bool {
 	return u.Role == "admin"
 }
 
-// IsActive 是否激活
+// IsActive Whether to activate
 func (u *User) IsActive() bool {
 	return u.Status == "active"
 }
 
-// UserSession 用户会话
+// UserSession User Session
 type UserSession struct {
 	ID        string    `gorm:"type:varchar(36);primaryKey" json:"id"`
 	UserID    string    `gorm:"type:varchar(36);index;not null" json:"user_id"`
@@ -81,18 +81,18 @@ type UserSession struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (UserSession) TableName() string {
 	return "user_sessions"
 }
 
-// LoginRequest 登录请求
+// LoginRequest Login request
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-// RegisterRequest 注册请求
+// RegisterRequest Registration requests
 type RegisterRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`
 	Password string `json:"password" binding:"required,min=12,max=72"`
@@ -100,13 +100,13 @@ type RegisterRequest struct {
 	Nickname string `json:"nickname"`
 }
 
-// UpdatePasswordRequest 修改密码请求
+// UpdatePasswordRequest Change password request
 type UpdatePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=12,max=72"`
 }
 
-// UpdateProfileRequest 更新资料请求
+// UpdateProfileRequest Request for updated information
 type UpdateProfileRequest struct {
 	Nickname string `json:"nickname"`
 	Email    string `json:"email" binding:"omitempty,email"`

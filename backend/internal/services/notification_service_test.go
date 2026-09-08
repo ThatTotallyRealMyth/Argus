@@ -34,7 +34,7 @@ func TestNotificationServiceDeliversWebhookWithSignature(t *testing.T) {
 	defer server.Close()
 
 	service := NewNotificationService(NotificationChannelConfig{WebhookEnabled: true, WebhookURL: server.URL, WebhookSecret: "secret"})
-	results := service.Send(context.Background(), NotificationEvent{Type: "monitor_change", Title: "资产变化", Message: "端口发生变化", Severity: "high", OccurredAt: time.Now()}, NotificationSelection{Webhook: true})
+	results := service.Send(context.Background(), NotificationEvent{Type: "monitor_change", Title: "Changes in assets", Message: "Port changes", Severity: "high", OccurredAt: time.Now()}, NotificationSelection{Webhook: true})
 	if len(results) != 1 || !results[0].Success || received.Type != "monitor_change" {
 		t.Fatalf("unexpected delivery: results=%#v event=%#v", results, received)
 	}
@@ -59,7 +59,7 @@ func TestNotificationServiceDeliversSelectedRobotChannels(t *testing.T) {
 		DingTalkEnabled: true, DingTalkWebhook: server.URL + "/dingtalk", DingTalkSecret: "ding-secret",
 		FeishuEnabled: true, FeishuWebhook: server.URL + "/feishu", FeishuSecret: "fei-secret",
 	})
-	results := service.Send(context.Background(), NotificationEvent{Type: "monitor_error", Title: "监控失败", Message: "timeout", Severity: "high"}, NotificationSelection{DingTalk: true, Feishu: true})
+	results := service.Send(context.Background(), NotificationEvent{Type: "monitor_error", Title: "Monitor failed", Message: "timeout", Severity: "high"}, NotificationSelection{DingTalk: true, Feishu: true})
 	if len(results) != 2 {
 		t.Fatalf("unexpected deliveries: %#v", results)
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CORS 跨域中间件
+// CORS Cross-domain Middle
 func CORS() gin.HandlerFunc {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:5173", "http://localhost:3000"}

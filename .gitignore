@@ -23,7 +23,7 @@ frontend/
 /backend/web/*.jpeg
 /backend/web/*.webp
 
-# Documentation - 不上传文档
+# Documentation - Do Not Send Document
 docs/
 *.md.bak
 
@@ -76,5 +76,5 @@ temp/
 *.tmp
 *.bak
 
-# 配置文件（包含敏感信息）
+# Profile (including sensitive information)
 /backend/configs/config.yaml

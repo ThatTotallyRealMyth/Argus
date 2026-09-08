@@ -19,7 +19,7 @@ import (
 
 var DB *gorm.DB
 
-// Config 数据库配置
+// Config Database Configuration
 type Config struct {
 	Host         string
 	Port         int
@@ -31,7 +31,7 @@ type Config struct {
 	MaxOpenConns int
 }
 
-// Initialize 初始化数据库连接
+// Initialize Initialize database connections
 func Initialize(config Config) error {
 	if config.Host == "" {
 		config.Host = "localhost"
@@ -76,22 +76,22 @@ func Initialize(config Config) error {
 		return fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	// 设置连接池
+	// Set connection pool
 	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	// 自动迁移
+	// AutoMove
 	if err := autoMigrate(); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	// 注释掉旧的硬编码指纹初始化，改为使用 YAML 文件加载
+	// Initializes the old hard-coded fingerprint., For Use YAML Load File
 	// if err := InitDefaultFingerprints(); err != nil {
 	// 	log.Printf("Warning: Failed to initialize fingerprints: %v", err)
 	// }
 
-	// 初始化内置敏感信息规则
+	// Initialization of built-in sensitive information rules
 	if err := InitBuiltInSensitiveRules(DB); err != nil {
 		log.Printf("Warning: Failed to initialize built-in sensitive rules: %v", err)
 	}
@@ -100,9 +100,9 @@ func Initialize(config Config) error {
 	return nil
 }
 
-// autoMigrate 自动迁移数据库表
+// autoMigrate AutoMove Database Table
 func autoMigrate() error {
-	// 执行迁移前的数据清理
+	// Data cleansing before the migration is performed
 	if err := migrateOldFingerprints(); err != nil {
 		log.Printf("Warning: Failed to migrate old fingerprints: %v", err)
 	}
@@ -152,20 +152,20 @@ func autoMigrate() error {
 	)
 }
 
-// InitDictionaries 初始化字典数据
+// InitDictionaries Initialize Dictionary Data
 func InitDictionaries() error {
-	// 扫描字典目录
+	// Scan Dictionary Directory
 	dictTypes := []string{"domain", "port", "file"}
 
 	for _, dictType := range dictTypes {
 		dictDir := fmt.Sprintf("./configs/dicts/%s", dictType)
 
-		// 检查目录是否存在
+		// Check if directory exists
 		if _, err := os.Stat(dictDir); os.IsNotExist(err) {
 			continue
 		}
 
-		// 读取目录中的文件
+		// Read files in directory
 		files, err := os.ReadDir(dictDir)
 		if err != nil {
 			log.Printf("Failed to read dict directory %s: %v", dictDir, err)
@@ -179,38 +179,38 @@ func InitDictionaries() error {
 
 			filePath := fmt.Sprintf("%s/%s", dictDir, file.Name())
 
-			// 检查数据库中是否已存在
+			// Check whether the database exists
 			var existingDict models.Dictionary
 			if err := DB.Where("file_path = ?", filePath).First(&existingDict).Error; err == nil {
-				// 已存在，跳过
+				// Existing, Skip
 				continue
 			}
 
-			// 获取文件信息
+			// Fetching file information
 			fileInfo, err := os.Stat(filePath)
 			if err != nil {
 				continue
 			}
 
-			// 统计行数
+			// Number of statistical lines
 			lineCount := countFileLines(filePath)
 
-			// 生成字典名称（去掉时间戳前缀和.txt后缀）
+			// Generate dictionary names (Remove the time stamp prefix and.txtSuffix)
 			name := strings.TrimSuffix(file.Name(), ".txt")
-			// 如果文件名以时间戳_开头，去掉时间戳部分
+			// If file name is stamped with time_Start, Take the time stamp off.
 			if idx := strings.Index(name, "_"); idx > 0 && idx < 15 {
 				name = name[idx+1:]
 			}
 
-			// 创建字典记录
+			// Create Dictionary Records
 			dict := models.Dictionary{
 				Name:        name,
 				Type:        dictType,
 				FilePath:    filePath,
 				Size:        fileInfo.Size(),
 				LineCount:   lineCount,
-				Description: fmt.Sprintf("系统内置%s字典", dictType),
-				IsDefault:   file.Name() == "big.txt", // big.txt 设为默认
+				Description: fmt.Sprintf("System settings%sDictionary", dictType),
+				IsDefault:   file.Name() == "big.txt", // big.txt Set as Default
 				CreatedBy:   "system",
 			}
 
@@ -225,7 +225,7 @@ func InitDictionaries() error {
 	return nil
 }
 
-// countFileLines 统计文件行数
+// countFileLines Number of statistical documents
 func countFileLines(filePath string) int {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -245,15 +245,15 @@ func countFileLines(filePath string) int {
 	return lineCount
 }
 
-// migrateOldFingerprints 迁移旧的指纹数据
+// migrateOldFingerprints Move old fingerprint data
 func migrateOldFingerprints() error {
-	// 检查表是否存在
+	// Check whether the form exists
 	if !DB.Migrator().HasTable(&models.Fingerprint{}) {
 		log.Println("Fingerprints table does not exist yet, skipping migration")
 		return nil
 	}
 
-	// 检查是否有旧字段 rule_type 和 rule_content
+	// Check for old fields rule_type and rule_content
 	hasOldFields := DB.Migrator().HasColumn(&models.Fingerprint{}, "rule_type") ||
 		DB.Migrator().HasColumn(&models.Fingerprint{}, "rule_content")
 
@@ -264,7 +264,7 @@ func migrateOldFingerprints() error {
 
 	log.Println("Detected old fingerprint schema, performing migration...")
 
-	// 删除所有旧指纹数据（因为格式不兼容）
+	// Remove all old fingerprints (Because the format is not compatible.)
 	result := DB.Exec("DELETE FROM fingerprints")
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete old fingerprints: %v", result.Error)
@@ -272,7 +272,7 @@ func migrateOldFingerprints() error {
 
 	log.Printf("Deleted %d old fingerprint records", result.RowsAffected)
 
-	// 删除旧字段
+	// Remove Old Fields
 	oldColumns := []string{"rule_type", "rule_content", "confidence"}
 	for _, col := range oldColumns {
 		if DB.Migrator().HasColumn(&models.Fingerprint{}, col) {
@@ -288,7 +288,7 @@ func migrateOldFingerprints() error {
 	return nil
 }
 
-// Close 关闭数据库连接
+// Close Close Database Connection
 func Close() error {
 	sqlDB, err := DB.DB()
 	if err != nil {

@@ -14,7 +14,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // 允许所有来源（生产环境应该限制）
+		return true // Allow All Sources (The production environment should be limited.)
 	},
 	ReadBufferSize:   1024,
 	WriteBufferSize:  1024,
@@ -22,17 +22,17 @@ var upgrader = websocket.Upgrader{
 }
 
 const (
-	// 客户端写入超时
+	// Client Write Timeout
 	writeWait = 10 * time.Second
-	// 客户端 pong 超时 - 如果在这个时间内没有收到 pong，则断开连接
+	// Client pong Timeout - If you don't get it in that time, pong, Disconnect
 	pongWait = 60 * time.Second
-	// ping 发送间隔 - 服务器发送 ping 的间隔（必须小于 pongWait）
+	// ping Send Interval - Server Send ping Intervals (must be less than pongWait)
 	pingPeriod = 25 * time.Second
-	// 最大消息大小 (增加到 4KB，足够处理进度消息)
+	// Maximum message size (Increase to 4KB, Enough to process progress information)
 	maxMessageSize = 4096
 )
 
-// WebSocketHandler WebSocket处理器
+// WebSocketHandler WebSocketProcessor
 type WebSocketHandler struct {
 	clients       map[*websocket.Conn]*webSocketClient
 	clientsMutex  sync.RWMutex
@@ -77,20 +77,20 @@ func (client *webSocketClient) close() error {
 	return client.conn.Close()
 }
 
-// NewWebSocketHandler 创建WebSocket处理器
+// NewWebSocketHandler CreateWebSocketProcessor
 func NewWebSocketHandler() *WebSocketHandler {
 	handler := &WebSocketHandler{
 		clients:       make(map[*websocket.Conn]*webSocketClient),
 		progressChans: make(map[string]chan *scanner.ScanProgress),
 	}
 
-	// 启动进度分发器
+	// Start progress distributor
 	go handler.progressDispatcher()
 
 	return handler
 }
 
-// HandleWebSocket 处理WebSocket连接
+// HandleWebSocket ProcessingWebSocketConnection
 func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	taskID := c.Query("task_id")
 	if taskID == "" {
@@ -106,22 +106,22 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 
 	client := &webSocketClient{conn: conn, taskID: taskID}
 
-	// 注册客户端
+	// Register Client
 	h.clientsMutex.Lock()
 	h.clients[conn] = client
 	h.clientsMutex.Unlock()
 
-	// 只在生产环境中减少日志
+	// Only in production environments
 	// log.Printf("WebSocket client connected for task: %s", taskID)
 
-	// 配置连接参数
+	// Configure connection parameters
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error {
 		conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 
-	// 发送欢迎消息
+	// Send Welcome Message
 	welcomeMsg := map[string]interface{}{
 		"type":    "connected",
 		"task_id": taskID,
@@ -134,21 +134,21 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	// 启动心跳 goroutine
+	// Start the heartbeat. goroutine
 	done := make(chan struct{})
 	go h.writePump(client, done)
 
-	// 读取客户端消息（会在结束时通过 defer 关闭 done channel）
+	// Read Client Messages (It'll pass at the end. defer Close done channel)
 	h.readPump(conn, taskID, done)
 
-	// 清理（readPump 已经通过 defer 关闭了 done）
+	// Clean (readPump Passed defer It's closed. done)
 	h.removeClient(client)
 
-	// 只在生产环境中减少日志
+	// Only in production environments
 	// log.Printf("WebSocket client disconnected for task: %s", taskID)
 }
 
-// readPump 处理从客户端读取消息
+// readPump Process reading from client
 func (h *WebSocketHandler) readPump(conn *websocket.Conn, taskID string, done chan struct{}) {
 	defer func() {
 		select {
@@ -172,29 +172,29 @@ func (h *WebSocketHandler) readPump(conn *websocket.Conn, taskID string, done ch
 		default:
 		}
 
-		// 移出 select，直接读取消息（避免阻塞）
+		// Move Out select, Read Messages Directly (Avoid blocking)
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			// 只记录真正意外的关闭，正常关闭码（1000, 1001, 1005）不记录
+			// Only the real unexpected shutdown., Normal Close Code (1000, 1001, 1005)Do Not Record
 			if websocket.IsUnexpectedCloseError(err,
-				websocket.CloseNormalClosure,      // 1000 - 正常关闭
-				websocket.CloseGoingAway,          // 1001 - 客户端离开
-				websocket.CloseNoStatusReceived) { // 1005 - 无状态关闭
+				websocket.CloseNormalClosure,      // 1000 - Normal Close
+				websocket.CloseGoingAway,          // 1001 - Client Leaves
+				websocket.CloseNoStatusReceived) { // 1005 - No state close
 				logger.Error("WebSocket unexpected close for task %s: %v", taskID, err)
 			}
-			// 正常关闭不记录日志，保持安静
+			// Normal closes unrecorded logs, Keep quiet.
 			return
 		}
 
-		// 处理客户端消息
+		// Process client messages
 		var msg map[string]interface{}
 		if err := json.Unmarshal(message, &msg); err == nil {
 			if msgType, ok := msg["type"].(string); ok {
 				switch msgType {
 				case "ping":
-					// log.Printf("Received ping from task: %s", taskID) // 减少噪音
+					// log.Printf("Received ping from task: %s", taskID) // Reducing noise
 				case "pong":
-					// 客户端响应pong
+					// Client Responsepong
 					conn.SetReadDeadline(time.Now().Add(pongWait))
 				}
 			}
@@ -202,7 +202,7 @@ func (h *WebSocketHandler) readPump(conn *websocket.Conn, taskID string, done ch
 	}
 }
 
-// writePump 处理向客户端发送心跳
+// writePump Process sending heart beats to client
 func (h *WebSocketHandler) writePump(client *webSocketClient, done chan struct{}) {
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
@@ -242,15 +242,15 @@ func (h *WebSocketHandler) clientsForTask(taskID string) []*webSocketClient {
 	return clients
 }
 
-// RegisterProgressChannel 注册任务的进度通道
+// RegisterProgressChannel Progress Channel for Register Tasks
 func (h *WebSocketHandler) RegisterProgressChannel(taskID string, ch chan *scanner.ScanProgress) {
 	h.chansMutex.Lock()
 	h.progressChans[taskID] = ch
 	h.chansMutex.Unlock()
-	// log.Printf("Progress channel registered for task: %s", taskID) // 减少日志
+	// log.Printf("Progress channel registered for task: %s", taskID) // Decrease Log
 }
 
-// UnregisterProgressChannel 注销任务的进度通道
+// UnregisterProgressChannel Progress trail for write-off tasks
 func (h *WebSocketHandler) UnregisterProgressChannel(taskID string) {
 	h.chansMutex.Lock()
 	if ch, exists := h.progressChans[taskID]; exists {
@@ -258,35 +258,35 @@ func (h *WebSocketHandler) UnregisterProgressChannel(taskID string) {
 		delete(h.progressChans, taskID)
 	}
 	h.chansMutex.Unlock()
-	// log.Printf("Progress channel unregistered for task: %s", taskID) // 减少日志
+	// log.Printf("Progress channel unregistered for task: %s", taskID) // Decrease Log
 }
 
-// progressDispatcher 进度分发器 - 从进度通道读取并广播给WebSocket客户端
+// progressDispatcher Progress Distribution - Read and broadcast from the progress channel toWebSocketClient
 func (h *WebSocketHandler) progressDispatcher() {
-	ticker := time.NewTicker(100 * time.Millisecond) // 每100ms检查一次
+	ticker := time.NewTicker(100 * time.Millisecond) // Every100msCheck it out.
 	defer ticker.Stop()
 
 	for range ticker.C {
 		h.chansMutex.RLock()
 		for taskID, progressChan := range h.progressChans {
-			// 非阻塞读取进度
+			// Non-strict reading progress
 			select {
 			case progress, ok := <-progressChan:
 				if !ok {
-					// 通道已关闭
+					// Passage closed.
 					continue
 				}
-				// 广播进度到所有订阅该任务的客户端
+				// Broadcast to all subscribers of the task
 				h.broadcastProgress(taskID, progress)
 			default:
-				// 没有新进度，跳过
+				// No new progress, Skip
 			}
 		}
 		h.chansMutex.RUnlock()
 	}
 }
 
-// broadcastProgress 广播进度到指定任务的所有客户端
+// broadcastProgress Broadcast progress to all clients of the given task
 func (h *WebSocketHandler) broadcastProgress(taskID string, progress *scanner.ScanProgress) {
 	message := map[string]interface{}{
 		"type":         "progress",
@@ -310,7 +310,7 @@ func (h *WebSocketHandler) broadcastProgress(taskID string, progress *scanner.Sc
 	}
 }
 
-// BroadcastProgress 广播简易进度更新（实现 scanner.ProgressHandler 接口）
+// BroadcastProgress Radio Simple Progress Update (Achieved scanner.ProgressHandler Interface)
 func (h *WebSocketHandler) BroadcastProgress(taskID string, progress int, message string) {
 	msg := map[string]interface{}{
 		"type":     "progress",
@@ -327,7 +327,7 @@ func (h *WebSocketHandler) BroadcastProgress(taskID string, progress int, messag
 	}
 }
 
-// BroadcastTaskComplete 广播任务完成消息
+// BroadcastTaskComplete Radio mission complete.
 func (h *WebSocketHandler) BroadcastTaskComplete(taskID string, status string, message string) {
 	completeMsg := map[string]interface{}{
 		"type":    "task_complete",
@@ -344,7 +344,7 @@ func (h *WebSocketHandler) BroadcastTaskComplete(taskID string, status string, m
 	}
 }
 
-// GetProgressChannel 获取或创建任务的进度通道
+// GetProgressChannel Get or create a progress channel for tasks
 func (h *WebSocketHandler) GetProgressChannel(taskID string) chan *scanner.ScanProgress {
 	h.chansMutex.Lock()
 	defer h.chansMutex.Unlock()

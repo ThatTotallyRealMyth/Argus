@@ -342,10 +342,10 @@ func promoteAssetLeadPoCFinding(db *gorm.DB, asset *models.AssetEntity, lead *As
 	if !exists {
 		finding = models.Vulnerability{
 			TaskID: lead.TaskID, URL: logEntry.Target, Type: "poc_validation", VulnType: fallbackText(poc.Category, "PoC"),
-			Severity: normalizedLeadSeverity(poc.Severity), Title: truncateAssetLeadText("PoC 验证命中："+fallbackText(poc.Name, poc.ID), 255),
+			Severity: normalizedLeadSeverity(poc.Severity), Title: truncateAssetLeadText("PoC Verify hit: "+fallbackText(poc.Name, poc.ID), 255),
 			Description: assetLeadPoCFindingDescription(poc, logEntry),
 			Payload:     fmt.Sprintf("PoC ID: %s\nPoC type: %s", poc.ID, poc.PoCType),
-			Proof:       logEntry.Details, Solution: "复核实际影响与权限边界，修复受影响组件或配置后重新验证。",
+			Proof:       logEntry.Details, Solution: "Review of practical implications and boundaries of competence, Revalidate after restoring the affected component or configuration.",
 			Reference: poc.Reference, Source: "poc-verification",
 			Status: models.VulnerabilityStatusValidated, LastVerifiedAt: &verifiedAt,
 			LastVerificationResult: "vulnerable", LastExecutionLogID: logEntry.ID,
@@ -357,7 +357,7 @@ func promoteAssetLeadPoCFinding(db *gorm.DB, asset *models.AssetEntity, lead *As
 		status := finding.Status
 		updates := map[string]any{
 			"task_id": lead.TaskID, "url": logEntry.Target, "severity": normalizedLeadSeverity(poc.Severity),
-			"title":       truncateAssetLeadText("PoC 验证命中："+fallbackText(poc.Name, poc.ID), 255),
+			"title":       truncateAssetLeadText("PoC Verify hit: "+fallbackText(poc.Name, poc.ID), 255),
 			"description": assetLeadPoCFindingDescription(poc, logEntry), "proof": logEntry.Details,
 			"reference": poc.Reference, "last_verified_at": verifiedAt,
 			"last_verification_result": "vulnerable", "last_execution_log_id": logEntry.ID,
@@ -401,7 +401,7 @@ func promoteAssetLeadPoCFinding(db *gorm.DB, asset *models.AssetEntity, lead *As
 }
 
 func assetLeadPoCFindingDescription(poc *models.PoC, logEntry *models.PoCExecutionLog) string {
-	parts := []string{fmt.Sprintf("授权验证在目标 %s 上命中 PoC %s。", logEntry.Target, fallbackText(poc.Name, poc.ID))}
+	parts := []string{fmt.Sprintf("Authentication in target %s Hit! PoC %s.", logEntry.Target, fallbackText(poc.Name, poc.ID))}
 	if description := strings.TrimSpace(poc.Description); description != "" {
 		parts = append(parts, description)
 	}

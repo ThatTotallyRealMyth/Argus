@@ -24,7 +24,7 @@ export default function LoginPage({ onLogin }) {
       if (text) {
         try { data = JSON.parse(text); } catch { data = {}; }
       }
-      if (!res.ok) throw new Error(data.error || "登录失败");
+      if (!res.ok) throw new Error(data.error || "Login failed");
       onLogin(data.token, data.user);
     } catch (err) {
       setError(err.message);
@@ -55,21 +55,20 @@ export default function LoginPage({ onLogin }) {
       <section className="access-panel">
         <div className="access-status"><span className="status-dot" /> ENCRYPTED CHANNEL <b>01</b></div>
         <form className="login-card" onSubmit={submit}>
-          <div className="access-head"><span>AUTHORIZATION REQUIRED</span><strong>操作员接入</strong></div>
+        <div className="access-head"><span>AUTHORIZATION REQUIRED</span><strong>Operator sign-in</strong></div>
           <label htmlFor="username">
-            识别码 / USER ID
+            Username / USER ID
             <input id="username" name="username" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
           </label>
           <label htmlFor="password">
-            访问密钥 / ACCESS KEY
+            Password / ACCESS KEY
             <input id="password" name="password" autoComplete="current-password" value={password} type="password" onChange={(e) => setPassword(e.target.value)} />
           </label>
           {error && <div className="error-box">{error}</div>}
-          <button className="primary-button" disabled={loading}><span>{loading ? "认证中..." : "建立安全连接"}</span><strong>ENTER // 01</strong></button>
+          <button className="primary-button" disabled={loading}><span>{loading ? "Signing in..." : "Sign in"}</span><strong>ENTER // 01</strong></button>
           <div className="access-foot"><span>256-BIT CHANNEL</span><span>MONITORED NODE</span></div>
         </form>
       </section>
     </div>
   );
 }
-

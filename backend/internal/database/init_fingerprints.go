@@ -6,11 +6,11 @@ import (
 "github.com/reconmaster/backend/internal/models"
 )
 
-// InitDefaultFingerprints 初始化默认指纹库
-// 注意：这个函数已被弃用，现在使用 services.FingerprintLoader.LoadDefaultFingerprints()
-// 从 finger.yaml 文件加载指纹数据
+// InitDefaultFingerprints Initialize default fingerprint library
+// Attention.: This function has been abandoned, Use now services.FingerprintLoader.LoadDefaultFingerprints()
+// From finger.yaml File Loading Fingerprint Data
 func InitDefaultFingerprints() error {
-	// 检查是否已有指纹数据
+	// Check if there's any fingerprints.
 	var count int64
 	DB.Model(&models.Fingerprint{}).Count(&count)
 	if count > 0 {

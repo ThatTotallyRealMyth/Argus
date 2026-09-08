@@ -22,16 +22,16 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// DomainScanner 域名扫描器
+// DomainScanner Domain name scanner
 type DomainScanner struct {
 	dictionaries map[string][]string
 	dnsResolvers []string
 	timeout      time.Duration
 	retryCount   int
-	concurrency  int // 域名爆破并发数（从配置加载）
+	concurrency  int // Domain name explosion and launch (Load from Configuration)
 }
 
-// DomainStats 域名扫描统计
+// DomainStats Domain name scanning statistics
 type DomainStats struct {
 	TotalAttempts   int64
 	ResolvedDomains int64
@@ -39,7 +39,7 @@ type DomainStats struct {
 	StartTime       time.Time
 }
 
-// NewDomainScanner 创建域名扫描器
+// NewDomainScanner Create domain name scanner
 func NewDomainScanner() *DomainScanner {
 	ds := &DomainScanner{
 		dictionaries: make(map[string][]string),
@@ -48,8 +48,8 @@ func NewDomainScanner() *DomainScanner {
 			"8.8.4.4:53",         // Google DNS Secondary
 			"1.1.1.1:53",         // Cloudflare DNS
 			"1.0.0.1:53",         // Cloudflare DNS Secondary
-			"223.5.5.5:53",       // 阿里DNS
-			"223.6.6.6:53",       // 阿里DNS Secondary
+			"223.5.5.5:53",       // Ali.DNS
+			"223.6.6.6:53",       // Ali.DNS Secondary
 			"114.114.114.114:53", // 114DNS
 			"114.114.115.115:53", // 114DNS Secondary
 		},
@@ -57,15 +57,15 @@ func NewDomainScanner() *DomainScanner {
 		retryCount: 2,
 	}
 
-	// 加载字典
+	// Load Dictionary
 	ds.loadDictionaries()
 
 	return ds
 }
 
-// loadDictionaries 加载字典文件
+// loadDictionaries Load Dictionary Files
 func (ds *DomainScanner) loadDictionaries() {
-	// 内置测试字典 - 扩展版
+	// Internal Test Dictionary - Extension
 	ds.dictionaries["test"] = []string{
 		"www", "mail", "ftp", "admin", "test", "dev", "api", "app",
 		"m", "wap", "mobile", "blog", "forum", "bbs", "shop", "store",
@@ -73,17 +73,17 @@ func (ds *DomainScanner) loadDictionaries() {
 		"video", "live", "stream", "download", "upload", "cloud",
 	}
 
-	// 尝试从文件加载大字典
+	// Try loading large dictionary from file
 	bigDictPath := "./configs/dicts/domain/big.txt"
 	if dict, err := ds.loadDictFromFile(bigDictPath); err == nil {
 		ds.dictionaries["big"] = dict
 	} else {
-		// 如果文件不存在，使用生成的大字典
+		// If the file does not exist, Use generated large dictionary
 		ds.dictionaries["big"] = generateBigDict()
 	}
 }
 
-// loadDictFromFile 从文件加载字典
+// loadDictFromFile Load Dictionary from File
 func (ds *DomainScanner) loadDictFromFile(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -93,15 +93,15 @@ func (ds *DomainScanner) loadDictFromFile(path string) ([]string, error) {
 
 	var dict []string
 	scanner := bufio.NewScanner(file)
-	// 增大缓冲区以处理长行
+	// Increase the buffer zone to handle the movement
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1024*1024)
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		// 过滤空行和注释
+		// Filter empty lines and comments
 		if line != "" && !strings.HasPrefix(line, "#") && !strings.HasPrefix(line, "//") {
-			// 验证子域名格式
+			// Authenticate subdomain name formats
 			if ds.isValidSubdomain(line) {
 				dict = append(dict, line)
 			}
@@ -115,21 +115,21 @@ func (ds *DomainScanner) loadDictFromFile(path string) ([]string, error) {
 	return dict, nil
 }
 
-// loadDictFromDatabase 从数据库加载字典
+// loadDictFromDatabase Load Dictionary From Database
 func (ds *DomainScanner) loadDictFromDatabase(ctx *ScanContext, dictName string) ([]string, error) {
-	// 查询数据库获取字典信息
+	// Query database to get dictionary information
 	var dictionary models.Dictionary
 	if err := ctx.DB.Where("name = ? AND type = ?", dictName, "domain").First(&dictionary).Error; err != nil {
 		return nil, fmt.Errorf("dictionary not found: %s", dictName)
 	}
 
-	// 从文件路径加载字典内容
+	// Load dictionary contents from file path
 	return ds.loadDictFromFile(dictionary.FilePath)
 }
 
-// Scan 执行域名扫描
+// Scan Execute domain scan
 func (ds *DomainScanner) Scan(ctx *ScanContext) error {
-	// 🆕 加载扫描器配置
+	// 🆕 Load Scanner Configuration
 	scannerConfig := LoadScannerConfig(ctx)
 	ds.timeout = scannerConfig.DomainTimeout
 	ds.retryCount = scannerConfig.DomainRetry
@@ -144,9 +144,9 @@ func (ds *DomainScanner) Scan(ctx *ScanContext) error {
 			continue
 		}
 
-		// 如果是域名，进行爆破
+		// If it's a domain name,, We're going to blow.
 		if ds.isDomain(target) {
-			// 保存主域名
+			// Save master domain name
 			ds.saveDomain(ctx, target, "target", "")
 
 			if ctx.Task.Options.EnableDomainBrute {
@@ -155,7 +155,7 @@ func (ds *DomainScanner) Scan(ctx *ScanContext) error {
 				}
 			}
 
-			// 使用插件查询域名
+			// Query domain names using plugins
 			if ctx.Task.Options.EnableDomainPlugins {
 				if err := ds.queryDomainPlugins(ctx, target); err != nil {
 					ctx.Logger.Printf("Domain plugins query failed: %v", err)
@@ -164,24 +164,24 @@ func (ds *DomainScanner) Scan(ctx *ScanContext) error {
 		}
 	}
 
-	// 扫描完成后，批量更新IP地理位置
+	// After scan is complete, Batch UpdatesIPGeographical location
 	ctx.Logger.Printf("Updating IP locations in batch...")
 	ds.updateIPLocationsInBatch(ctx)
 
 	return nil
 }
 
-// bruteForceDomain 域名爆破（优化版）
+// bruteForceDomain Domain Blast (Optimizing)
 func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error {
 	dictType := ctx.Task.Options.DomainBruteType
 	if dictType == "" {
-		dictType = "big" // 默认使用big字典
+		dictType = "big" // Default usebigDictionary
 	}
 
-	// 先尝试从内存字典加载
+	// Try loading it from the memory dictionary first
 	dict, exists := ds.dictionaries[dictType]
 
-	// 如果内存中不存在，尝试从数据库加载
+	// If there is no memory, Try loading from database
 	if !exists {
 		ctx.Logger.Printf("Dictionary '%s' not in memory, trying to load from database...", dictType)
 		loadedDict, err := ds.loadDictFromDatabase(ctx, dictType)
@@ -190,7 +190,7 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 			dict = ds.dictionaries["test"]
 		} else {
 			dict = loadedDict
-			ds.dictionaries[dictType] = loadedDict // 缓存到内存
+			ds.dictionaries[dictType] = loadedDict // Cache to Memory
 			ctx.Logger.Printf("Loaded dictionary '%s' from database: %d entries", dictType, len(dict))
 		}
 	}
@@ -203,7 +203,7 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 	ctx.Logger.Printf("Target Domain: %s", domain)
 	ctx.Logger.Printf("Dictionary: %s (%d entries)", dictType, len(dict))
 
-	// 智能字典生成
+	// Smart Dictionary Generation
 	if ctx.Task.Options.SmartDictGen {
 		smartDict := ds.generateSmartDict(ctx, domain)
 		if len(smartDict) > 0 {
@@ -212,17 +212,17 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 		}
 	}
 
-	// 去重并验证
+	// To re-instate and verify
 	uniqueDict := ds.deduplicateAndValidate(dict)
 	ctx.Logger.Printf("Final dictionary size: %d entries (after deduplication)", len(uniqueDict))
 
-	// 初始化统计
+	// Initialization of statistics
 	stats := &DomainStats{
 		TotalAttempts: int64(len(uniqueDict)),
 		StartTime:     time.Now(),
 	}
 
-	// 根据字典大小动态调整并发数
+	// Adjusted and distributed according to dictionary size dynamics
 	concurrency := ds.calculateConcurrency(len(uniqueDict))
 	ctx.Logger.Printf("Concurrency: %d", concurrency)
 	ctx.Logger.Printf("DNS Servers: %d", len(ds.dnsResolvers))
@@ -231,14 +231,14 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, concurrency)
 
-	// 使用带缓冲的结果通道
+	// Use a buffer result channel
 	results := make(chan *DomainResult, 100)
 
-	// 使用context支持取消
+	// UsecontextSupport for Cancel
 	scanCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 启动结果处理goroutine
+	// Start result processinggoroutine
 	var resultWg sync.WaitGroup
 	resultWg.Add(1)
 	go func() {
@@ -246,10 +246,10 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 		ds.processResults(scanCtx, results, ctx, stats)
 	}()
 
-	// 进度报告goroutine
+	// Progress reportgoroutine
 	go ds.reportProgress(scanCtx, stats, ctx)
 
-	// 执行爆破
+	// Execute Blast
 	for _, subdomain := range uniqueDict {
 		select {
 		case <-scanCtx.Done():
@@ -273,10 +273,10 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 				return
 			}
 
-			// 解析域名（带重试）
+			// Resolve domain names (Bring a retry)
 			ips, err := ds.resolveWithRetry(fullDomain)
 			if err == nil && len(ips) > 0 {
-				// 发送结果
+				// Send Results
 				select {
 				case results <- &DomainResult{
 					Domain: fullDomain,
@@ -291,14 +291,14 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 		}(subdomain)
 	}
 
-	// 等待所有扫描完成
+	// Waiting for all scans to be finished
 	wg.Wait()
 	close(results)
 
-	// 等待结果处理完成
+	// Pending outcome processing
 	resultWg.Wait()
 
-	// 最终统计
+	// Final statistics
 	elapsed := time.Since(stats.StartTime)
 	ctx.Logger.Printf("=== Domain Brute Force Completed ===")
 	ctx.Logger.Printf("Resolved: %d", stats.ResolvedDomains)
@@ -310,14 +310,14 @@ func (ds *DomainScanner) bruteForceDomain(ctx *ScanContext, domain string) error
 	return nil
 }
 
-// DomainResult 域名解析结果
+// DomainResult Domain name resolution result
 type DomainResult struct {
 	Domain string
 	IPs    []string
 	Source string
 }
 
-// processResults 处理解析结果
+// processResults Process parsing results
 func (ds *DomainScanner) processResults(ctx context.Context, results chan *DomainResult, scanCtx *ScanContext, stats *DomainStats) {
 	for {
 		select {
@@ -328,13 +328,13 @@ func (ds *DomainScanner) processResults(ctx context.Context, results chan *Domai
 				return
 			}
 
-			// 验证域名有效性
+			// Validate domain names
 			if ds.validateDomain(result.Domain, result.IPs) {
 				atomic.AddInt64(&stats.ResolvedDomains, 1)
 				scanCtx.Logger.Printf("[FOUND] %s -> %s", result.Domain, result.IPs[0])
 				ds.saveDomain(scanCtx, result.Domain, result.Source, result.IPs[0])
 
-				// 保存所有解析到的IP
+				// Save all parsedIP
 				for _, ip := range result.IPs {
 					ds.saveIP(scanCtx, ip, result.Domain)
 				}
@@ -343,12 +343,12 @@ func (ds *DomainScanner) processResults(ctx context.Context, results chan *Domai
 	}
 }
 
-// resolveWithRetry 带重试的DNS解析
+// resolveWithRetry With a retry.DNSParsing
 func (ds *DomainScanner) resolveWithRetry(domain string) ([]string, error) {
 	var lastErr error
 
 	for i := 0; i <= ds.retryCount; i++ {
-		// 使用不同的DNS服务器轮询
+		// Use differentDNSServer rotation
 		dnsServer := ds.dnsResolvers[i%len(ds.dnsResolvers)]
 
 		ips, err := ds.resolveWithDNS(domain, dnsServer)
@@ -358,7 +358,7 @@ func (ds *DomainScanner) resolveWithRetry(domain string) ([]string, error) {
 
 		lastErr = err
 
-		// 重试前短暂延迟
+		// Short delay before retry
 		if i < ds.retryCount {
 			time.Sleep(time.Duration(i+1) * 100 * time.Millisecond)
 		}
@@ -367,7 +367,7 @@ func (ds *DomainScanner) resolveWithRetry(domain string) ([]string, error) {
 	return nil, lastErr
 }
 
-// resolveWithDNS 使用指定DNS服务器解析
+// resolveWithDNS Use AssignedDNSServer Parsing
 func (ds *DomainScanner) resolveWithDNS(domain string, dnsServer string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), ds.timeout)
 	defer cancel()
@@ -387,22 +387,22 @@ func (ds *DomainScanner) resolveWithDNS(domain string, dnsServer string) ([]stri
 		return nil, err
 	}
 
-	// 过滤和去重IP
+	// Filter and weigh.IP
 	return ds.filterIPs(ips), nil
 }
 
-// filterIPs 过滤和去重IP地址
+// filterIPs Filter and weigh.IPAddress
 func (ds *DomainScanner) filterIPs(ips []string) []string {
 	seen := make(map[string]bool)
 	var filtered []string
 
 	for _, ip := range ips {
-		// 跳过本地地址和无效地址
+		// Skip local and invalid addresses
 		if strings.HasPrefix(ip, "127.") || strings.HasPrefix(ip, "0.") {
 			continue
 		}
 
-		// 跳过IPv6地址（可选）
+		// SkipIPv6Address (Optional)
 		if strings.Contains(ip, ":") {
 			continue
 		}
@@ -416,15 +416,15 @@ func (ds *DomainScanner) filterIPs(ips []string) []string {
 	return filtered
 }
 
-// validateDomain 验证域名有效性
+// validateDomain Validate domain names
 func (ds *DomainScanner) validateDomain(domain string, ips []string) bool {
-	// 基本验证
+	// Basic Authentication
 	if len(ips) == 0 {
 		return false
 	}
 
-	// 过滤泛解析（简单检测）
-	// 如果解析到常见的泛解析IP，可能需要过滤
+	// Filter Pan-Parse (Simple Test)
+	// If you parse a common pan-synthesisIP, Could need to filter.
 	wildcardIPs := map[string]bool{
 		"127.0.0.1": true,
 		"0.0.0.0":   true,
@@ -439,7 +439,7 @@ func (ds *DomainScanner) validateDomain(domain string, ips []string) bool {
 	return true
 }
 
-// deduplicateAndValidate 去重并验证字典
+// deduplicateAndValidate To re-establish and verify the dictionary
 func (ds *DomainScanner) deduplicateAndValidate(dict []string) []string {
 	seen := make(map[string]bool)
 	var unique []string
@@ -450,7 +450,7 @@ func (ds *DomainScanner) deduplicateAndValidate(dict []string) []string {
 			continue
 		}
 
-		// 验证子域名格式
+		// Authenticate subdomain name formats
 		if ds.isValidSubdomain(entry) {
 			seen[entry] = true
 			unique = append(unique, entry)
@@ -460,19 +460,19 @@ func (ds *DomainScanner) deduplicateAndValidate(dict []string) []string {
 	return unique
 }
 
-// isValidSubdomain 验证子域名格式
+// isValidSubdomain Authenticate subdomain name formats
 func (ds *DomainScanner) isValidSubdomain(subdomain string) bool {
-	// 长度检查
+	// Length Check
 	if len(subdomain) == 0 || len(subdomain) > 63 {
 		return false
 	}
 
-	// 字符检查：只允许字母、数字、连字符，不能以连字符开头或结尾
+	// Character Check: Only Letters allowed, Numbers, Hyphenation, Can not start or end with hyphen
 	if strings.HasPrefix(subdomain, "-") || strings.HasSuffix(subdomain, "-") {
 		return false
 	}
 
-	// 简单的正则验证
+	// Simple Regular Validation
 	for _, c := range subdomain {
 		if !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-') {
 			return false
@@ -482,31 +482,31 @@ func (ds *DomainScanner) isValidSubdomain(subdomain string) bool {
 	return true
 }
 
-// calculateConcurrency 计算合理的并发数
+// calculateConcurrency Calculate reasonable co-mingling
 func (ds *DomainScanner) calculateConcurrency(dictSize int) int {
-	// 🆕 优先使用配置的并发数
+	// 🆕 Prefer to the number of co-mingled releases of the configuration
 	if ds.concurrency > 0 {
 		return ds.concurrency
 	}
 
-	// 回退到基于字典大小的动态计算
-	// 小字典
+	// Back to Dynamic Calculate Based on Dictionary Size
+	// Small Dictionary
 	if dictSize < 100 {
 		return 20
 	}
-	// 中等字典
+	// Chinese dictionary
 	if dictSize < 1000 {
 		return 50
 	}
-	// 大字典
+	// Big Dictionary
 	if dictSize < 10000 {
 		return 100
 	}
-	// 超大字典
+	// Super Dictionary
 	return 200
 }
 
-// reportProgress 定期报告进度
+// reportProgress Periodic reporting on progress
 func (ds *DomainScanner) reportProgress(ctx context.Context, stats *DomainStats, scanCtx *ScanContext) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -526,7 +526,7 @@ func (ds *DomainScanner) reportProgress(ctx context.Context, stats *DomainStats,
 				elapsed := time.Since(stats.StartTime)
 				rate := float64(attempted) / elapsed.Seconds()
 
-				// 估算剩余时间
+				// Estimated remaining time
 				remaining := time.Duration(0)
 				if rate > 0 {
 					remaining = time.Duration(float64(total-attempted)/rate) * time.Second
@@ -539,11 +539,11 @@ func (ds *DomainScanner) reportProgress(ctx context.Context, stats *DomainStats,
 	}
 }
 
-// generateSmartDict 智能生成字典
+// generateSmartDict Smart Generate Dictionary
 func (ds *DomainScanner) generateSmartDict(ctx *ScanContext, domain string) []string {
 	var dict []string
 
-	// 从已发现的子域名中提取关键词
+	// Extract keywords from found subdomain names
 	var existingDomains []models.Domain
 	ctx.DB.Where("task_id = ? AND domain LIKE ?", ctx.Task.ID, "%."+domain).Limit(100).Find(&existingDomains)
 
@@ -553,12 +553,12 @@ func (ds *DomainScanner) generateSmartDict(ctx *ScanContext, domain string) []st
 
 	keywords := make(map[string]bool)
 	for _, d := range existingDomains {
-		// 提取子域名前缀
+		// Extract subdomain name prefix
 		subdomain := strings.TrimSuffix(d.Domain, "."+domain)
 		parts := strings.Split(subdomain, ".")
 
 		for _, part := range parts {
-			// 提取数字前的关键词
+			// Keyword before extracting numbers
 			base := strings.TrimRight(part, "0123456789-_")
 			if base != "" && len(base) > 1 {
 				keywords[base] = true
@@ -570,7 +570,7 @@ func (ds *DomainScanner) generateSmartDict(ctx *ScanContext, domain string) []st
 		return dict
 	}
 
-	// 基于关键词生成变体
+	// Generate variants based on keywords
 	variations := []string{
 		"", "1", "2", "3", "4", "5",
 		"01", "02", "03",
@@ -587,7 +587,7 @@ func (ds *DomainScanner) generateSmartDict(ctx *ScanContext, domain string) []st
 		}
 	}
 
-	// 添加常见组合
+	// Add Common Group
 	prefixes := []string{"dev", "test", "staging", "prod", "uat", "pre", "demo", "beta", "alpha", "new", "old"}
 	for keyword := range keywords {
 		for _, prefix := range prefixes {
@@ -610,11 +610,11 @@ func (ds *DomainScanner) generateSmartDict(ctx *ScanContext, domain string) []st
 	return dict
 }
 
-// queryDomainPlugins 查询域名插件
+// queryDomainPlugins Query domain name plugin
 func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) error {
 	pluginNames := ctx.Task.Options.DomainPlugins
 	if len(pluginNames) == 0 {
-		// 默认使用一些免费插件
+		// Use some free plugins by default
 		pluginNames = []string{"crtsh", "hackertarget"}
 		ctx.Logger.Printf("⚠️ No plugins specified in task options, using default: %v", pluginNames)
 	}
@@ -623,7 +623,7 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 	ctx.Logger.Printf("Target Domain: %s", domain)
 	ctx.Logger.Printf("Selected Plugins: %v (%d)", pluginNames, len(pluginNames))
 
-	// 从数据库获取 API Keys
+	// Retrieve from database API Keys
 	apiKeys := ds.loadAPIKeys(ctx)
 	ctx.Logger.Printf("Loaded API Keys: %d", len(apiKeys))
 	for key := range apiKeys {
@@ -632,7 +632,7 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 		}
 	}
 
-	// 获取所有可用插件
+	// Get All Available Plugins
 	allPlugins := GetAvailablePlugins(apiKeys)
 	ctx.Logger.Printf("Available Plugins: %d", len(allPlugins))
 	pluginMap := make(map[string]DomainPlugin)
@@ -641,10 +641,10 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 		ctx.Logger.Printf("  - %s", p.Name())
 	}
 
-	// 用于去重
+	// For weight-decomposition
 	foundDomains := make(map[string]bool)
 
-	// 执行插件查询
+	// Execute Plugin Query
 	for _, pluginName := range pluginNames {
 		plugin, exists := pluginMap[pluginName]
 		if !exists {
@@ -661,10 +661,10 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 
 		ctx.Logger.Printf("Plugin %s found %d domains (before filtering)", pluginName, len(domains))
 
-		// 收集需要处理的域名
+		// Collect domain names to process
 		var validDomains []string
 		for _, d := range domains {
-			// 重要：验证域名是否属于目标域名
+			// Important: Verify whether domain names belong to the target domain name
 			if !ds.isSubdomainOf(d, domain) {
 				continue
 			}
@@ -679,7 +679,7 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 			}
 		}
 
-		// 并发处理域名解析和保存
+		// Sending and processing domain names for resolution and saving
 		ctx.Logger.Printf("Plugin %s: processing %d valid domains concurrently", pluginName, len(validDomains))
 		validCount := ds.processDomainsInParallel(ctx, validDomains, "plugin:"+pluginName)
 		ctx.Logger.Printf("Plugin %s: %d valid subdomains saved", pluginName, validCount)
@@ -689,14 +689,14 @@ func (ds *DomainScanner) queryDomainPlugins(ctx *ScanContext, domain string) err
 	return nil
 }
 
-// processDomainsInParallel 并发处理域名解析和保存
+// processDomainsInParallel Sending and processing domain names for resolution and saving
 func (ds *DomainScanner) processDomainsInParallel(ctx *ScanContext, domains []string, source string) int {
 	if len(domains) == 0 {
 		return 0
 	}
 
-	// 使用并发处理，提高效率
-	workers := 50 // 并发数
+	// Use and send hand-out, Efficiency gains
+	workers := 50 // Number of co-existes
 	if len(domains) < workers {
 		workers = len(domains)
 	}
@@ -706,19 +706,19 @@ func (ds *DomainScanner) processDomainsInParallel(ctx *ScanContext, domains []st
 
 	var wg sync.WaitGroup
 
-	// 启动worker
+	// Startworker
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			localSuccess := 0
 			for d := range domainChan {
-				// 解析IP
+				// ParsingIP
 				ips, err := ds.resolveWithRetry(d)
 				if err == nil && len(ips) > 0 {
 					ds.saveDomain(ctx, d, source, ips[0])
 
-					// 保存IP
+					// SaveIP
 					for _, ip := range ips {
 						ds.saveIPOptimized(ctx, ip, d)
 					}
@@ -729,17 +729,17 @@ func (ds *DomainScanner) processDomainsInParallel(ctx *ScanContext, domains []st
 		}()
 	}
 
-	// 发送任务
+	// _Other Organiser
 	for _, d := range domains {
 		domainChan <- d
 	}
 	close(domainChan)
 
-	// 等待完成
+	// Waiting for completion
 	wg.Wait()
 	close(successChan)
 
-	// 统计成功数量
+	// Number of successful statistics
 	totalSuccess := 0
 	for count := range successChan {
 		totalSuccess += count
@@ -748,7 +748,7 @@ func (ds *DomainScanner) processDomainsInParallel(ctx *ScanContext, domains []st
 	return totalSuccess
 }
 
-// saveDomain 保存域名信息
+// saveDomain Save Domain Name Information
 func (ds *DomainScanner) saveDomain(ctx *ScanContext, domain, source, ip string) {
 	d := &models.Domain{
 		TaskID: ctx.Task.ID,
@@ -760,11 +760,11 @@ func (ds *DomainScanner) saveDomain(ctx *ScanContext, domain, source, ip string)
 		d.IPAddress = ip
 	}
 
-	// 使用FirstOrCreate避免重复
+	// UseFirstOrCreateAvoidance of duplication
 	ctx.DB.Where("task_id = ? AND domain = ?", ctx.Task.ID, domain).FirstOrCreate(d)
 }
 
-// saveIP 保存IP信息
+// saveIP SaveIPInformation
 func (ds *DomainScanner) saveIP(ctx *ScanContext, ip, domain string) {
 	ipModel := &models.IP{
 		TaskID:    ctx.Task.ID,
@@ -772,16 +772,16 @@ func (ds *DomainScanner) saveIP(ctx *ScanContext, ip, domain string) {
 		Domain:    domain,
 	}
 
-	// 查询IP地理位置
+	// QueryIPGeographical location
 	if location := getIPLocation(ip); location != "" {
 		ipModel.Location = location
 	}
 
-	// 使用FirstOrCreate避免重复
+	// UseFirstOrCreateAvoidance of duplication
 	ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, ip).FirstOrCreate(ipModel)
 }
 
-// saveIPOptimized 优化版IP保存（批量处理时使用，延迟查询地理位置）
+// saveIPOptimized OptimizingIPSave (Used for batch processing, Delaying query location)
 func (ds *DomainScanner) saveIPOptimized(ctx *ScanContext, ip, domain string) {
 	ipModel := &models.IP{
 		TaskID:    ctx.Task.ID,
@@ -789,16 +789,16 @@ func (ds *DomainScanner) saveIPOptimized(ctx *ScanContext, ip, domain string) {
 		Domain:    domain,
 	}
 
-	// 先不查询地理位置，避免API限流
-	// 地理位置可以后续批量更新
+	// No geometry first., AvoidAPIStream Limit
+	// Geographic location allows subsequent batch updates
 
-	// 使用FirstOrCreate避免重复
+	// UseFirstOrCreateAvoidance of duplication
 	ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, ip).FirstOrCreate(ipModel)
 }
 
-// updateIPLocationsInBatch 批量更新IP地理位置信息
+// updateIPLocationsInBatch Batch UpdatesIPGeolocation information
 func (ds *DomainScanner) updateIPLocationsInBatch(ctx *ScanContext) {
-	// 查询所有没有地理位置的IP
+	// Queries all ungeographically locatedIP
 	var ips []models.IP
 	ctx.DB.Where("task_id = ? AND (location IS NULL OR location = '')", ctx.Task.ID).Find(&ips)
 
@@ -809,25 +809,25 @@ func (ds *DomainScanner) updateIPLocationsInBatch(ctx *ScanContext) {
 
 	ctx.Logger.Printf("Updating location for %d IPs (rate limited to avoid API throttling)", len(ips))
 
-	// 限流：每分钟最多45个请求（ip-api.com的免费限制）
-	ticker := time.NewTicker(1350 * time.Millisecond) // 约44个请求/分钟
+	// Stream Limit: Up to one minute.45One request. (ip-api.comFree restrictions)
+	ticker := time.NewTicker(1350 * time.Millisecond) // NYO44One request./min
 	defer ticker.Stop()
 
 	updatedCount := 0
 	for i, ip := range ips {
-		// 等待限流
+		// Waiting for the limit stream
 		if i > 0 {
 			<-ticker.C
 		}
 
-		// 查询地理位置
+		// Query Geographic Location
 		location := getIPLocation(ip.IPAddress)
 		if location != "" {
 			ctx.DB.Model(&ip).Update("location", location)
 			updatedCount++
 		}
 
-		// 每50个IP记录一次进度
+		// Every50One.IPRecord progress once
 		if (i+1)%50 == 0 {
 			ctx.Logger.Printf("IP location update progress: %d/%d", i+1, len(ips))
 		}
@@ -836,14 +836,14 @@ func (ds *DomainScanner) updateIPLocationsInBatch(ctx *ScanContext) {
 	ctx.Logger.Printf("IP location update completed: %d/%d", updatedCount, len(ips))
 }
 
-// isDomain 判断是否为域名
+// isDomain Determine whether to use domain names
 func (ds *DomainScanner) isDomain(target string) bool {
-	// 简单判断：包含点且不是IP地址
+	// Simple judgment: Include Point and notIPAddress
 	if !strings.Contains(target, ".") {
 		return false
 	}
 
-	// 如果能解析为IP，则不是域名
+	// If you can solve asIP, Not domain name
 	if net.ParseIP(target) != nil {
 		return false
 	}
@@ -851,17 +851,17 @@ func (ds *DomainScanner) isDomain(target string) bool {
 	return true
 }
 
-// isSubdomainOf 判断 subdomain 是否是 domain 的子域名或等于 domain
+// isSubdomainOf Judgement subdomain Is it? domain subdomain name or equal to domain
 func (ds *DomainScanner) isSubdomainOf(subdomain, domain string) bool {
 	subdomain = strings.ToLower(strings.TrimSpace(subdomain))
 	domain = strings.ToLower(strings.TrimSpace(domain))
 
-	// 完全匹配
+	// Perfect match.
 	if subdomain == domain {
 		return true
 	}
 
-	// 子域名必须以 .domain 结尾
+	// Subdomain name must .domain End
 	suffix := "." + domain
 	if strings.HasSuffix(subdomain, suffix) {
 		return true
@@ -870,16 +870,16 @@ func (ds *DomainScanner) isSubdomainOf(subdomain, domain string) bool {
 	return false
 }
 
-// loadAPIKeys 从数据库加载 API Keys
+// loadAPIKeys Load from Database API Keys
 func (ds *DomainScanner) loadAPIKeys(ctx *ScanContext) map[string]string {
 	apiKeys := make(map[string]string)
 
-	// 查询所有 API 类别的设置
+	// Query All API Category Settings
 	var settings []models.Setting
 	ctx.DB.Where("category = ?", "api").Find(&settings)
 
 	for _, setting := range settings {
-		// 如果是加密的，需要解密
+		// If it's encrypted,, Decrypt required
 		value := setting.Value
 		if setting.IsEncrypted && value != "" {
 			decrypted, err := decryptValue(value)
@@ -890,7 +890,7 @@ func (ds *DomainScanner) loadAPIKeys(ctx *ScanContext) map[string]string {
 			value = decrypted
 		}
 
-		// 只有非空值才添加到 apiKeys
+		// Only non-empty values add to apiKeys
 		if value != "" {
 			apiKeys[setting.Key] = value
 		}
@@ -899,7 +899,7 @@ func (ds *DomainScanner) loadAPIKeys(ctx *ScanContext) map[string]string {
 	return apiKeys
 }
 
-// maskKey 遮蔽密钥显示
+// maskKey Hide Key Display
 func maskKey(key string) string {
 	if len(key) <= 8 {
 		return "****"
@@ -907,9 +907,9 @@ func maskKey(key string) string {
 	return key[:4] + "****" + key[len(key)-4:]
 }
 
-// decryptValue 解密加密的值
+// decryptValue Decrypt Encryption Values
 func decryptValue(ciphertext string) (string, error) {
-	// 获取加密密钥，必须显式配置
+	// Get Encryption Keys, Remarkable configuration
 	if config.GlobalConfig == nil {
 		return "", fmt.Errorf("encryption configuration is unavailable")
 	}
@@ -949,9 +949,9 @@ func decryptValue(ciphertext string) (string, error) {
 	return string(plaintext), nil
 }
 
-// generateBigDict 生成内置大字典
+// generateBigDict Generate built-in large dictionary
 func generateBigDict() []string {
-	// 常用前缀
+	// Common Prefix
 	prefixes := []string{
 		"www", "mail", "ftp", "webmail", "smtp", "pop", "pop3", "imap", "admin",
 		"test", "dev", "stage", "staging", "prod", "production", "demo", "beta", "alpha",
@@ -979,11 +979,11 @@ func generateBigDict() []string {
 		"oa", "crm", "erp", "hr", "finance",
 	}
 
-	// 添加数字变体
+	// Add a digital variable
 	var dict []string
 	for _, prefix := range prefixes {
 		dict = append(dict, prefix)
-		// 添加常用数字后缀
+		// Add a common number suffix
 		for i := 1; i <= 10; i++ {
 			dict = append(dict, fmt.Sprintf("%s%d", prefix, i))
 			dict = append(dict, fmt.Sprintf("%s-%d", prefix, i))
@@ -994,14 +994,14 @@ func generateBigDict() []string {
 	return dict
 }
 
-// getIPLocation 查询IP地理位置（使用免费API）
+// getIPLocation QueryIPGeographical location (Free useAPI)
 func getIPLocation(ip string) string {
-	// 跳过私有IP
+	// Skip PrivateIP
 	if isPrivateIP(ip) {
-		return "内网IP"
+		return "IntranetIP"
 	}
 
-	// 使用 ip-api.com 免费API（无需密钥，限制45次/分钟）
+	// Use ip-api.com Free.API (No key required, Limits45Number of times/min)
 	url := fmt.Sprintf("http://ip-api.com/json/%s?lang=zh-CN&fields=status,country,regionName,city,isp", ip)
 
 	client := &http.Client{Timeout: 5 * time.Second, Transport: proxypool.ConfigureTransport(&http.Transport{})}
@@ -1032,7 +1032,7 @@ func getIPLocation(ip string) string {
 		return ""
 	}
 
-	// 组合地理位置信息
+	// Group geolocation information
 	location := result.Country
 	if result.RegionName != "" && result.RegionName != result.Country {
 		location += " " + result.RegionName
@@ -1047,7 +1047,7 @@ func getIPLocation(ip string) string {
 	return location
 }
 
-// isPrivateIP 判断是否为私有IP
+// isPrivateIP To judge whether it's private or not.IP
 func isPrivateIP(ip string) bool {
 	privateIPBlocks := []string{
 		"10.",

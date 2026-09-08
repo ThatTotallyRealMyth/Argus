@@ -7,34 +7,34 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Logger 日志中间件
+// Logger Midpoint Log
 func Logger(logger *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 开始时间
+		// Start Time
 		startTime := time.Now()
 
-		// 处理请求
+		// Processing of requests
 		c.Next()
 
-		// 结束时间
+		// End of time
 		endTime := time.Now()
 
-		// 执行时间
+		// Implementation time
 		latencyTime := endTime.Sub(startTime)
 
-		// 请求方式
+		// Method of request
 		reqMethod := c.Request.Method
 
-		// 请求路由
+		// Request route
 		reqUri := c.Request.RequestURI
 
-		// 状态码
+		// Status Code
 		statusCode := c.Writer.Status()
 
-		// 请求IP
+		// RequestIP
 		clientIP := c.ClientIP()
 
-		// 日志格式
+		// Log Format
 		logger.WithFields(logrus.Fields{
 			"status_code":  statusCode,
 			"latency_time": latencyTime,

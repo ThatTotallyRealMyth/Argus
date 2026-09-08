@@ -182,9 +182,9 @@ func (ss *SiteScanner) probeFileLeakPath(ctx *ScanContext, site models.Site, pat
 	if !path.Known || result.StatusCode != http.StatusOK || result.ContentLength == 0 {
 		return
 	}
-	description := fmt.Sprintf("发现敏感文件: %s (大小: %d bytes, 类型: %s)", targetURL, result.ContentLength, result.ContentType)
+	description := fmt.Sprintf("Discover sensitive files: %s (Size: %d bytes, Type: %s)", targetURL, result.ContentLength, result.ContentType)
 	if result.Truncated {
-		description += "，响应超过探测读取上限"
+		description += ", Response exceeds the maximum detection reading limit"
 	}
 	vulnerability := &models.Vulnerability{
 		TaskID:      ctx.Task.ID,
@@ -193,7 +193,7 @@ func (ss *SiteScanner) probeFileLeakPath(ctx *ScanContext, site models.Site, pat
 		Severity:    path.Severity,
 		Title:       path.Title,
 		Description: description,
-		Solution:    "删除或限制对敏感文件的访问",
+		Solution:    "Delete or limit access to sensitive documents",
 	}
 	ctx.DB.Where("task_id = ? AND url = ? AND type = ?", vulnerability.TaskID, vulnerability.URL, vulnerability.Type).FirstOrCreate(vulnerability)
 }
@@ -332,33 +332,33 @@ func (ss *SiteScanner) probeFileLeakURL(ctx *ScanContext, targetURL string) (fil
 
 func defaultFileLeakPaths() []fileLeakPath {
 	return []fileLeakPath{
-		{Path: "/.git/config", Severity: "high", Title: "Git配置文件泄露", Known: true},
-		{Path: "/.git/HEAD", Severity: "high", Title: "Git仓库泄露", Known: true},
-		{Path: "/.env", Severity: "critical", Title: "环境变量文件泄露", Known: true},
-		{Path: "/.env.local", Severity: "high", Title: "本地环境配置泄露", Known: true},
-		{Path: "/.env.production", Severity: "high", Title: "生产环境配置泄露", Known: true},
-		{Path: "/web.config", Severity: "medium", Title: "IIS配置文件泄露", Known: true},
-		{Path: "/.DS_Store", Severity: "low", Title: "Mac系统文件泄露", Known: true},
-		{Path: "/backup.zip", Severity: "high", Title: "备份文件泄露", Known: true},
-		{Path: "/backup.tar.gz", Severity: "high", Title: "备份文件泄露", Known: true},
-		{Path: "/backup.sql", Severity: "critical", Title: "数据库备份泄露", Known: true},
-		{Path: "/db.sql", Severity: "critical", Title: "数据库文件泄露", Known: true},
-		{Path: "/database.sql", Severity: "critical", Title: "数据库文件泄露", Known: true},
-		{Path: "/.svn/entries", Severity: "high", Title: "SVN信息泄露", Known: true},
-		{Path: "/phpinfo.php", Severity: "medium", Title: "PHP信息泄露", Known: true},
-		{Path: "/info.php", Severity: "medium", Title: "PHP信息泄露", Known: true},
-		{Path: "/test.php", Severity: "low", Title: "测试文件泄露", Known: true},
-		{Path: "/config.php", Severity: "high", Title: "配置文件泄露", Known: true},
-		{Path: "/config.json", Severity: "high", Title: "配置文件泄露", Known: true},
-		{Path: "/config.yml", Severity: "high", Title: "配置文件泄露", Known: true},
-		{Path: "/config.yaml", Severity: "high", Title: "配置文件泄露", Known: true},
-		{Path: "/settings.py", Severity: "high", Title: "Django配置泄露", Known: true},
-		{Path: "/application.properties", Severity: "high", Title: "Spring配置泄露", Known: true},
-		{Path: "/application.yml", Severity: "high", Title: "Spring配置泄露", Known: true},
-		{Path: "/.htaccess", Severity: "medium", Title: "Apache配置泄露", Known: true},
-		{Path: "/robots.txt", Severity: "info", Title: "Robots文件", Known: true},
-		{Path: "/sitemap.xml", Severity: "info", Title: "站点地图", Known: true},
-		{Path: "/README.md", Severity: "low", Title: "README文件泄露", Known: true},
-		{Path: "/CHANGELOG.md", Severity: "low", Title: "变更日志泄露", Known: true},
+		{Path: "/.git/config", Severity: "high", Title: "GitProfile leak", Known: true},
+		{Path: "/.git/HEAD", Severity: "high", Title: "GitRepository leak", Known: true},
+		{Path: "/.env", Severity: "critical", Title: "Environmental variable file leak", Known: true},
+		{Path: "/.env.local", Severity: "high", Title: "Local environment configuration leak", Known: true},
+		{Path: "/.env.production", Severity: "high", Title: "Production environment configuration exposure", Known: true},
+		{Path: "/web.config", Severity: "medium", Title: "IISProfile leak", Known: true},
+		{Path: "/.DS_Store", Severity: "low", Title: "MacSystem File Disconnect", Known: true},
+		{Path: "/backup.zip", Severity: "high", Title: "Backup File Disclosing", Known: true},
+		{Path: "/backup.tar.gz", Severity: "high", Title: "Backup File Disclosing", Known: true},
+		{Path: "/backup.sql", Severity: "critical", Title: "Database backup leak", Known: true},
+		{Path: "/db.sql", Severity: "critical", Title: "Database File Disconnect", Known: true},
+		{Path: "/database.sql", Severity: "critical", Title: "Database File Disconnect", Known: true},
+		{Path: "/.svn/entries", Severity: "high", Title: "SVNInformation leaks", Known: true},
+		{Path: "/phpinfo.php", Severity: "medium", Title: "PHPInformation leaks", Known: true},
+		{Path: "/info.php", Severity: "medium", Title: "PHPInformation leaks", Known: true},
+		{Path: "/test.php", Severity: "low", Title: "Test file leak", Known: true},
+		{Path: "/config.php", Severity: "high", Title: "Profile leak", Known: true},
+		{Path: "/config.json", Severity: "high", Title: "Profile leak", Known: true},
+		{Path: "/config.yml", Severity: "high", Title: "Profile leak", Known: true},
+		{Path: "/config.yaml", Severity: "high", Title: "Profile leak", Known: true},
+		{Path: "/settings.py", Severity: "high", Title: "DjangoConfigure leaks", Known: true},
+		{Path: "/application.properties", Severity: "high", Title: "SpringConfigure leaks", Known: true},
+		{Path: "/application.yml", Severity: "high", Title: "SpringConfigure leaks", Known: true},
+		{Path: "/.htaccess", Severity: "medium", Title: "ApacheConfigure leaks", Known: true},
+		{Path: "/robots.txt", Severity: "info", Title: "RobotsDocumentation", Known: true},
+		{Path: "/sitemap.xml", Severity: "info", Title: "Site Map", Known: true},
+		{Path: "/README.md", Severity: "low", Title: "READMEFile leaks", Known: true},
+		{Path: "/CHANGELOG.md", Severity: "low", Title: "Change log leak", Known: true},
 	}
 }

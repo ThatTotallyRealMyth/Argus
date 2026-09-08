@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config 全局配置
+// Config Global Configuration
 type Config struct {
 	Server     ServerConfig
 	JWT        JWTConfig
@@ -23,7 +23,7 @@ type Config struct {
 	Logging    LoggingConfig
 }
 
-// ServerConfig 服务器配置
+// ServerConfig Server Configuration
 type ServerConfig struct {
 	Host              string
 	Port              string
@@ -37,17 +37,17 @@ type ServerConfig struct {
 	TrustedProxies    []string
 }
 
-// JWTConfig JWT配置
+// JWTConfig JWTConfigure
 type JWTConfig struct {
 	Secret string
 }
 
-// EncryptionConfig 加密配置
+// EncryptionConfig Encryption Configuration
 type EncryptionConfig struct {
 	Key string
 }
 
-// DatabaseConfig 数据库配置
+// DatabaseConfig Database Configuration
 type DatabaseConfig struct {
 	Host         string
 	Port         int
@@ -59,7 +59,7 @@ type DatabaseConfig struct {
 	MaxOpenConns int
 }
 
-// RedisConfig Redis配置
+// RedisConfig RedisConfigure
 type RedisConfig struct {
 	Host     string
 	Port     int
@@ -67,7 +67,7 @@ type RedisConfig struct {
 	DB       int
 }
 
-// ScannerConfig 扫描器配置
+// ScannerConfig Scanner Configuration
 type ScannerConfig struct {
 	MaxConcurrentTasks int
 	Timeout            int
@@ -81,11 +81,11 @@ type ScannerConfig struct {
 	ResultsDir         string
 }
 
-// MCPConfig MCP 服务配置
+// MCPConfig MCP Service Configuration
 type MCPConfig struct {
-	Enabled bool   // 是否启用 MCP HTTP 端点
-	Path    string // MCP 端点路径
-	APIKey  string // 管理级 API 密钥；为空或长度不足时 MCP 不挂载
+	Enabled bool   // Whether to enable MCP HTTP End
+	Path    string // MCP End Path
+	APIKey  string // Management level API Key; When empty or insufficient MCP Do Not Mount
 }
 
 type SecurityConfig struct {
@@ -93,7 +93,7 @@ type SecurityConfig struct {
 	AllowedOrigins    []string
 }
 
-// LoggingConfig 日志配置
+// LoggingConfig Log Configuration
 type LoggingConfig struct {
 	Level      string
 	File       string
@@ -104,7 +104,7 @@ type LoggingConfig struct {
 
 var GlobalConfig *Config
 
-// LoadConfig 加载配置
+// LoadConfig Load Configuration
 func LoadConfig() error {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -112,7 +112,7 @@ func LoadConfig() error {
 	viper.AddConfigPath(".")
 	setDefaults()
 
-	// 读取环境变量
+	// Read Environment Variables
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -202,7 +202,7 @@ func LoadConfig() error {
 	return nil
 }
 
-// IsMissingRequiredConfig 检查是否缺失必要配置
+// IsMissingRequiredConfig Check if the necessary configuration is missing
 func (c *Config) IsMissingRequiredConfig() []string {
 	var missing []string
 	if len(c.JWT.Secret) < 32 || c.JWT.Secret == "change-me-in-production" {
@@ -248,7 +248,7 @@ func (c *Config) IsMissingRequiredConfig() []string {
 	return missing
 }
 
-// setDefaults 设置默认配置
+// setDefaults Set Default Configuration
 func setDefaults() {
 	viper.SetDefault("server.host", "127.0.0.1")
 	viper.SetDefault("server.port", "8080")
@@ -260,8 +260,8 @@ func setDefaults() {
 	viper.SetDefault("server.idle_timeout", 60)
 	viper.SetDefault("server.shutdown_timeout", 20)
 	viper.SetDefault("server.trusted_proxies", []string{})
-	// JWT密钥必须在配置文件中显式设置，不使用默认值
-	// encryption.key 必须显式设置，不使用默认值
+	// JWTKey must be visible in configuration file, Do not use default
+	// encryption.key It must be visible., Do not use default
 	viper.SetDefault("database.host", "localhost")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.user", "admin")
@@ -288,7 +288,7 @@ func setDefaults() {
 	viper.SetDefault("logging.max_age", 30)
 }
 
-// getEnvOrConfig 从环境变量或配置文件获取值
+// getEnvOrConfig Get values from environment variables or profile
 func getEnvOrConfig(envKey, configValue string) string {
 	if value := os.Getenv(envKey); value != "" {
 		return value
@@ -305,14 +305,14 @@ func firstNonEmptyString(values ...string) string {
 	return ""
 }
 
-// getEnvOrConfigInt 从环境变量或配置文件获取整数值
+// getEnvOrConfigInt Get integer values from environment variables or configuration files
 func getEnvOrConfigInt(envKey string, configValue int) int {
 	if value := os.Getenv(envKey); value != "" {
-		// 尝试将环境变量转换为整数
+		// Try to convert the environment variable to integer
 		if intValue, err := strconv.Atoi(value); err == nil {
 			return intValue
 		}
-		// 如果转换失败，使用配置文件的值
+		// If the conversion fails, Use the value of the profile
 		log.Printf("Warning: Failed to parse env var %s as int, using config value", envKey)
 	}
 	return configValue

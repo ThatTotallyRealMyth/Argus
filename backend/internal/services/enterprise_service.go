@@ -202,7 +202,7 @@ func (s *EnterpriseService) LaunchScan(assetIDs []string, name, policyID, scopeI
 		return nil, nil, enterpriseScanInputError{message: "selected assets do not contain scannable domains"}
 	}
 	if strings.TrimSpace(name) == "" {
-		name = fmt.Sprintf("企业资产扫描-%s", time.Now().Format("20060102-150405"))
+		name = fmt.Sprintf("Enterprise asset scanning-%s", time.Now().Format("20060102-150405"))
 	}
 	triggerID := ""
 	if len(assets) > 0 {

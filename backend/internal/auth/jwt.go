@@ -11,18 +11,18 @@ import (
 )
 
 var (
-	// JWTSecret JWT密钥，从配置文件读取
+	// JWTSecret JWTKey, Read From Profile
 	JWTSecret []byte
 
-	// TokenExpiration token过期时间
+	// TokenExpiration tokenExpiration
 	TokenExpiration = 24 * time.Hour
 
 	ErrInvalidToken = errors.New("invalid token")
 	ErrExpiredToken = errors.New("token has expired")
 )
 
-// Init 初始化JWT配置
-// JWT密钥必须显式配置，不允许使用默认值
+// Init InitializationJWTConfigure
+// JWTKeys must be visible, Default value not allowed
 func Init() {
 	if config.GlobalConfig == nil || config.GlobalConfig.JWT.Secret == "" {
 		panic("JWT secret is not configured. Set jwt.secret in config.yaml or JWT_SECRET env var. " +
@@ -31,7 +31,7 @@ func Init() {
 	JWTSecret = []byte(config.GlobalConfig.JWT.Secret)
 }
 
-// Claims JWT声明
+// Claims JWTStatement
 type Claims struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
@@ -39,7 +39,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateToken 生成JWT token
+// GenerateToken GenerateJWT token
 func GenerateToken(userID, username, role string) (string, error) {
 	now := time.Now()
 	claims := Claims{
@@ -58,14 +58,14 @@ func GenerateToken(userID, username, role string) (string, error) {
 	return token.SignedString(JWTSecret)
 }
 
-// ParseToken 解析JWT token
-// 即使 token 过期，也会返回 claims 以便 RefreshToken 使用
+// ParseToken ParsingJWT token
+// Even if token Expiration, And he'll return. claims ♪ To RefreshToken Use
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return JWTSecret, nil
 	}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithIssuer("ARL_Vp3"))
 
-	// 尝试提取 claims（即使 token 无效或过期，claims 可能仍然可用）
+	// Try to extract claims (Even if token Invalid or expired, claims It may still be available.)
 	if token != nil {
 		if claims, ok := token.Claims.(*Claims); ok {
 			if err == nil {
@@ -87,14 +87,14 @@ func ParseToken(tokenString string) (*Claims, error) {
 	return nil, ErrInvalidToken
 }
 
-// RefreshToken 刷新token
+// RefreshToken Refreshtoken
 func RefreshToken(tokenString string) (string, error) {
 	claims, err := ParseToken(tokenString)
 	if err != nil && !errors.Is(err, ErrExpiredToken) {
 		return "", err
 	}
 
-	// 生成新token
+	// Generate newtoken
 	return GenerateToken(claims.UserID, claims.Username, claims.Role)
 }
 

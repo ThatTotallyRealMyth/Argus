@@ -10,12 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// AssetProfileHandler 资产画像处理器
+// AssetProfileHandler Asset image processor
 type AssetProfileHandler struct {
 	service *services.AssetProfileService
 }
 
-// NewAssetProfileHandler 创建资产画像处理器
+// NewAssetProfileHandler Create an asset image processor
 func NewAssetProfileHandler() *AssetProfileHandler {
 	return &AssetProfileHandler{
 		service: services.NewAssetProfileService(),
@@ -39,7 +39,7 @@ func writeAssetProfileError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to build asset intelligence"})
 }
 
-// GetAssetProfile 获取资产画像
+// GetAssetProfile Acquisition of asset portraits
 // GET /api/v1/assets/profile?asset_type=domain&asset_id=xxx
 func (h *AssetProfileHandler) GetAssetProfile(c *gin.Context) {
 	assetType := c.Query("asset_type")
@@ -63,7 +63,7 @@ func (h *AssetProfileHandler) GetAssetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"profile": profile})
 }
 
-// GetAssetRelations 获取资产关系
+// GetAssetRelations Acquisition of assets relationship
 // GET /api/v1/assets/relations?asset_type=domain&asset_id=xxx
 func (h *AssetProfileHandler) GetAssetRelations(c *gin.Context) {
 	assetType := c.Query("asset_type")
@@ -87,7 +87,7 @@ func (h *AssetProfileHandler) GetAssetRelations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"relations": relations})
 }
 
-// GetAssetGraph 获取资产关系图谱
+// GetAssetGraph Access to asset relationship maps
 // GET /api/v1/assets/graph?asset_type=domain&asset_id=xxx&depth=2
 func (h *AssetProfileHandler) GetAssetGraph(c *gin.Context) {
 	assetType := c.Query("asset_type")
@@ -122,7 +122,7 @@ func (h *AssetProfileHandler) GetAssetGraph(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"graph": graph})
 }
 
-// AnalyzeCSegment C段分析
+// AnalyzeCSegment CParagraph analysis
 // GET /api/v1/assets/c-segment?task_id=xxx&ip=192.168.1.100
 func (h *AssetProfileHandler) AnalyzeCSegment(c *gin.Context) {
 	taskID := c.Query("task_id")

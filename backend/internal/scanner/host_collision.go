@@ -11,12 +11,12 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// HostCollisionScanner Host碰撞扫描器
+// HostCollisionScanner HostCollision scanner
 type HostCollisionScanner struct {
 	client *http.Client
 }
 
-// NewHostCollisionScanner 创建Host碰撞扫描器
+// NewHostCollisionScanner CreateHostCollision scanner
 func NewHostCollisionScanner() *HostCollisionScanner {
 	return &HostCollisionScanner{
 		client: &http.Client{
@@ -31,9 +31,9 @@ func NewHostCollisionScanner() *HostCollisionScanner {
 	}
 }
 
-// Scan 执行Host碰撞检测
+// Scan ImplementationHostCollision detection
 func (hcs *HostCollisionScanner) Scan(ctx *ScanContext) error {
-	// 获取所有域名和对应的IP
+	// Get all domain names and correspondingIP
 	var domains []models.Domain
 	ctx.DB.Where("task_id = ? AND ip_address != ''", ctx.Task.ID).Find(&domains)
 
@@ -48,29 +48,29 @@ func (hcs *HostCollisionScanner) Scan(ctx *ScanContext) error {
 			ctx.Logger.Printf("Host collision IP blocked by scan scope: %s", domain.IPAddress)
 			continue
 		}
-		// 直接访问IP
+		// Direct accessIP
 		ipResponse := hcs.requestByIP(domain.IPAddress, 80)
 		if ipResponse == nil {
 			continue
 		}
 
-		// 使用Host头访问
+		// UseHostHeader
 		hostResponse := hcs.requestWithHost(domain.IPAddress, 80, domain.Domain)
 		if hostResponse == nil {
 			continue
 		}
 
-		// 比较响应
+		// Relative response
 		if hcs.isDifferent(ipResponse, hostResponse) {
-			// 发现Host碰撞漏洞
+			// FoundHostCollision gap.
 			vuln := &models.Vulnerability{
 				TaskID:      ctx.Task.ID,
 				URL:         fmt.Sprintf("http://%s", domain.IPAddress),
 				Type:        "host_collision",
 				Severity:    "medium",
-				Title:       "Host头碰撞",
-				Description: fmt.Sprintf("IP %s 对不同的Host头返回不同的内容。可能存在虚拟主机配置不当。测试域名: %s", domain.IPAddress, domain.Domain),
-				Solution:    "检查虚拟主机配置，确保正确配置Host头验证",
+				Title:       "HostHead Collapse",
+				Description: fmt.Sprintf("IP %s For different.HostHead back to different contents.There may be an inappropriate configuration of the virtual host..Test domain name: %s", domain.IPAddress, domain.Domain),
+				Solution:    "Check virtual host configuration, Ensure that configuration is correctHostHeader Authentication",
 			}
 			ctx.DB.Create(vuln)
 			ctx.Logger.Printf("Host collision found: %s -> %s", domain.IPAddress, domain.Domain)
@@ -80,7 +80,7 @@ func (hcs *HostCollisionScanner) Scan(ctx *ScanContext) error {
 	return nil
 }
 
-// requestByIP 直接通过IP访问
+// requestByIP Directly throughIPVisits
 func (hcs *HostCollisionScanner) requestByIP(ip string, port int) *http.Response {
 	url := fmt.Sprintf("http://%s:%d/", ip, port)
 	req, err := http.NewRequest("GET", url, nil)
@@ -96,7 +96,7 @@ func (hcs *HostCollisionScanner) requestByIP(ip string, port int) *http.Response
 	return resp
 }
 
-// requestWithHost 使用指定Host头访问
+// requestWithHost Use AssignedHostHeader
 func (hcs *HostCollisionScanner) requestWithHost(ip string, port int, host string) *http.Response {
 	url := fmt.Sprintf("http://%s:%d/", ip, port)
 	req, err := http.NewRequest("GET", url, nil)
@@ -115,22 +115,22 @@ func (hcs *HostCollisionScanner) requestWithHost(ip string, port int, host strin
 	return resp
 }
 
-// isDifferent 比较两个响应是否不同
+// isDifferent Compare the two responses to be different
 func (hcs *HostCollisionScanner) isDifferent(resp1, resp2 *http.Response) bool {
 	defer resp1.Body.Close()
 	defer resp2.Body.Close()
 
-	// 比较状态码
+	// Compare Status Code
 	if resp1.StatusCode != resp2.StatusCode {
 		return true
 	}
 
-	// 比较Content-Length
+	// ComparisonContent-Length
 	if resp1.ContentLength != resp2.ContentLength && resp1.ContentLength > 0 && resp2.ContentLength > 0 {
 		return true
 	}
 
-	// 读取body并比较
+	// ReadbodyAnd compare
 	body1, err1 := io.ReadAll(resp1.Body)
 	body2, err2 := io.ReadAll(resp2.Body)
 
@@ -138,18 +138,18 @@ func (hcs *HostCollisionScanner) isDifferent(resp1, resp2 *http.Response) bool {
 		return false
 	}
 
-	// 如果长度差异很大，认为是不同的
+	// If the length varies widely, Thinks it's different.
 	if abs(len(body1)-len(body2)) > 100 {
 		return true
 	}
 
-	// 比较关键特征
+	// More critical features
 	return hcs.compareFeatures(string(body1), string(body2))
 }
 
-// compareFeatures 比较响应特征
+// compareFeatures Compare response features
 func (hcs *HostCollisionScanner) compareFeatures(body1, body2 string) bool {
-	// 提取title
+	// Extracttitle
 	title1 := extractTitleFromBody(body1)
 	title2 := extractTitleFromBody(body2)
 
@@ -157,7 +157,7 @@ func (hcs *HostCollisionScanner) compareFeatures(body1, body2 string) bool {
 		return true
 	}
 
-	// 比较关键字出现次数
+	// Number of key occurrences compared
 	keywords := []string{"html", "body", "script", "div"}
 	for _, keyword := range keywords {
 		count1 := strings.Count(strings.ToLower(body1), keyword)
@@ -170,7 +170,7 @@ func (hcs *HostCollisionScanner) compareFeatures(body1, body2 string) bool {
 	return false
 }
 
-// extractTitleFromBody 从body提取title
+// extractTitleFromBody FrombodyExtracttitle
 func extractTitleFromBody(body string) string {
 	start := strings.Index(strings.ToLower(body), "<title>")
 	end := strings.Index(strings.ToLower(body), "</title>")
@@ -182,7 +182,7 @@ func extractTitleFromBody(body string) string {
 	return ""
 }
 
-// abs 绝对值
+// abs Absolute value [u]
 func abs(x int) int {
 	if x < 0 {
 		return -x

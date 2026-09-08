@@ -17,14 +17,14 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// ScreenshotScanner 截图扫描器
+// ScreenshotScanner Screen scanner
 type ScreenshotScanner struct {
 	outputDir      string
 	timeout        time.Duration
 	validateTarget func(string) error
 }
 
-// NewScreenshotScanner 创建截图扫描器
+// NewScreenshotScanner Create a screenshot scanner
 func NewScreenshotScanner(outputDir string) *ScreenshotScanner {
 	return NewScreenshotScannerWithValidator(outputDir, nil)
 }
@@ -34,7 +34,7 @@ func NewScreenshotScannerWithValidator(outputDir string, validateTarget func(str
 		outputDir = "./screenshots"
 	}
 
-	// 确保目录存在
+	// Ensure directory exists
 	os.MkdirAll(outputDir, 0755)
 
 	return &ScreenshotScanner{
@@ -44,31 +44,31 @@ func NewScreenshotScannerWithValidator(outputDir string, validateTarget func(str
 	}
 }
 
-// Screenshot 对URL进行截图
+// Screenshot Yeah.URLTake a screenshot.
 func (s *ScreenshotScanner) Screenshot(url string) (string, error) {
 	if err := s.validateBrowserTarget(url); err != nil {
 		return "", err
 	}
-	// 创建chrome上下文
+	// CreatechromeContext
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
-	// 设置超时
+	// Set Timeout
 	ctx, cancel = context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	// 生成文件名
+	// Generate Filename
 	filename := s.generateFilename(url)
 	filepath := filepath.Join(s.outputDir, filename)
 
-	// 截图
+	// Screenshot
 	var buf []byte
 	blocked := installScreenshotScopeGuard(ctx, s.validateTarget)
 	err := chromedp.Run(ctx,
 		fetch.Enable(),
 		chromedp.EmulateViewport(1920, 1080),
 		chromedp.Navigate(url),
-		chromedp.Sleep(2*time.Second), // 等待页面加载
+		chromedp.Sleep(2*time.Second), // Waiting for page load
 		chromedp.FullScreenshot(&buf, 90),
 	)
 
@@ -79,7 +79,7 @@ func (s *ScreenshotScanner) Screenshot(url string) (string, error) {
 		return "", err
 	}
 
-	// 保存文件
+	// Save File
 	if err := os.WriteFile(filepath, buf, 0644); err != nil {
 		return "", fmt.Errorf("save screenshot failed: %w", err)
 	}
@@ -87,12 +87,12 @@ func (s *ScreenshotScanner) Screenshot(url string) (string, error) {
 	return filepath, nil
 }
 
-// ScreenshotWithHeadless 使用无头模式截图（更快）
+// ScreenshotWithHeadless Use header screenshot (Faster.)
 func (s *ScreenshotScanner) ScreenshotWithHeadless(url string) (string, error) {
 	if err := s.validateBrowserTarget(url); err != nil {
 		return "", err
 	}
-	// 配置chromedp选项
+	// ConfigurechromedpOptions
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("headless", true),
 		chromedp.Flag("disable-gpu", true),
@@ -107,15 +107,15 @@ func (s *ScreenshotScanner) ScreenshotWithHeadless(url string) (string, error) {
 	ctx, cancel := chromedp.NewContext(allocCtx)
 	defer cancel()
 
-	// 设置超时
+	// Set Timeout
 	ctx, cancel = context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	// 生成文件名
+	// Generate Filename
 	filename := s.generateFilename(url)
 	filepath := filepath.Join(s.outputDir, filename)
 
-	// 截图
+	// Screenshot
 	var buf []byte
 	blocked := installScreenshotScopeGuard(ctx, s.validateTarget)
 	err := chromedp.Run(ctx,
@@ -132,7 +132,7 @@ func (s *ScreenshotScanner) ScreenshotWithHeadless(url string) (string, error) {
 		return "", err
 	}
 
-	// 保存文件
+	// Save File
 	if err := os.WriteFile(filepath, buf, 0644); err != nil {
 		return "", fmt.Errorf("save screenshot failed: %w", err)
 	}
@@ -140,7 +140,7 @@ func (s *ScreenshotScanner) ScreenshotWithHeadless(url string) (string, error) {
 	return filepath, nil
 }
 
-// ScreenshotViewport 截取可视区域
+// ScreenshotViewport Intercept visual areas
 func (s *ScreenshotScanner) ScreenshotViewport(url string) (string, error) {
 	if err := s.validateBrowserTarget(url); err != nil {
 		return "", err
@@ -170,7 +170,7 @@ func (s *ScreenshotScanner) ScreenshotViewport(url string) (string, error) {
 		fetch.Enable(),
 		chromedp.Navigate(url),
 		chromedp.Sleep(2*time.Second),
-		chromedp.CaptureScreenshot(&buf), // 只截取可视区域
+		chromedp.CaptureScreenshot(&buf), // Only take visual areas
 	)
 
 	if err != nil {
@@ -260,7 +260,7 @@ func validateScreenshotRequest(validate func(string) error, rawURL string) error
 	}
 }
 
-// BatchScreenshot 批量截图
+// BatchScreenshot Bulk Screenshot
 func (s *ScreenshotScanner) BatchScreenshot(urls []string, concurrency int) map[string]string {
 	if concurrency <= 0 {
 		concurrency = 5
@@ -273,7 +273,7 @@ func (s *ScreenshotScanner) BatchScreenshot(urls []string, concurrency int) map[
 		filepath string
 	}, len(urls))
 
-	// 启动goroutine
+	// Startgoroutine
 	for _, url := range urls {
 		go func(u string) {
 			semaphore <- struct{}{}
@@ -290,7 +290,7 @@ func (s *ScreenshotScanner) BatchScreenshot(urls []string, concurrency int) map[
 		}(url)
 	}
 
-	// 收集结果
+	// Collection of results
 	for i := 0; i < len(urls); i++ {
 		result := <-done
 		results[result.url] = result.filepath
@@ -299,27 +299,27 @@ func (s *ScreenshotScanner) BatchScreenshot(urls []string, concurrency int) map[
 	return results
 }
 
-// generateFilename 生成截图文件名
+// generateFilename Generate screenshot filenames
 func (s *ScreenshotScanner) generateFilename(url string) string {
-	// 使用MD5哈希生成文件名
+	// UseMD5Hash Generate Filename
 	hash := md5Hash(url)
 	timestamp := time.Now().Format("20060102_150405")
 	return fmt.Sprintf("screenshot_%s_%s.png", hash[:16], timestamp)
 }
 
-// md5Hash 计算MD5哈希
+// md5Hash CalculateMD5Hashi.
 func md5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-// GetScreenshotPath 获取截图保存路径
+// GetScreenshotPath Fetch Screenshot Save Path
 func (s *ScreenshotScanner) GetScreenshotPath(filename string) string {
 	return filepath.Join(s.outputDir, filename)
 }
 
-// CleanOldScreenshots 清理旧截图
+// CleanOldScreenshots Clear Old Screenshot
 func (s *ScreenshotScanner) CleanOldScreenshots(days int) error {
 	if days <= 0 {
 		days = 7

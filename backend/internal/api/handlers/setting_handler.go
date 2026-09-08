@@ -29,7 +29,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// SettingHandler 设置处理器
+// SettingHandler Set Processor
 type SettingHandler struct {
 	encryptionKey []byte
 }
@@ -57,7 +57,7 @@ func (h *SettingHandler) TestNotification(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 12*time.Second)
 	defer cancel()
 	results := notifier.Send(ctx, services.NotificationEvent{
-		Type: "notification_test", Title: "Eclipse Recon 通知测试", Message: "通知通道连接测试成功。", Severity: "info", OccurredAt: time.Now(),
+		Type: "notification_test", Title: "Eclipse Recon Notification Test", Message: "Notify channel connection test successful.", Severity: "info", OccurredAt: time.Now(),
 	}, selection)
 	for _, result := range results {
 		if !result.Success {
@@ -72,9 +72,9 @@ func (h *SettingHandler) TestNotification(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "notification sent", "results": results})
 }
 
-// NewSettingHandler 创建设置处理器
+// NewSettingHandler Create Settings Processor
 func NewSettingHandler() *SettingHandler {
-	// 从配置中获取加密密钥，必须显式配置
+	// Fetch encryption keys from configuration, Remarkable configuration
 	key := config.GlobalConfig.Encryption.Key
 	if key == "" {
 		panic("encryption.key is not configured. Set encryption.key in config.yaml. " +
@@ -85,7 +85,7 @@ func NewSettingHandler() *SettingHandler {
 	}
 }
 
-// GetSettings 获取所有设置
+// GetSettings Get All Settings
 func (h *SettingHandler) GetSettings(c *gin.Context) {
 	category := c.Query("category")
 
@@ -107,7 +107,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settings})
 }
 
-// GetSetting 获取单个设置
+// GetSetting Get individual settings
 func (h *SettingHandler) GetSetting(c *gin.Context) {
 	key := c.Param("key")
 
@@ -120,7 +120,7 @@ func (h *SettingHandler) GetSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, settingForResponse(setting))
 }
 
-// UpdateSetting 更新设置
+// UpdateSetting Update Settings
 func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 	var input struct {
 		Category    string `json:"category" binding:"required"`
@@ -153,7 +153,7 @@ func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Setting unchanged", "setting": settingForResponse(setting)})
 		return
 	}
-	// 如果需要加密
+	// If encryption is required
 	if shouldEncrypt && value != "" {
 		encrypted, err := h.encrypt(value)
 		if err != nil {
@@ -164,7 +164,7 @@ func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 	}
 
 	if result.Error != nil {
-		// 创建新设置
+		// Create New Settings
 		setting = models.Setting{
 			Category:    input.Category,
 			Key:         input.Key,
@@ -177,7 +177,7 @@ func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 			return
 		}
 	} else {
-		// 更新现有设置
+		// Update existing settings
 		setting.Category = input.Category
 		setting.Value = value
 		setting.Description = input.Description
@@ -191,7 +191,7 @@ func (h *SettingHandler) UpdateSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Setting updated successfully", "setting": settingForResponse(setting)})
 }
 
-// BatchUpdateSettings 批量更新设置
+// BatchUpdateSettings Batch Update Settings
 func (h *SettingHandler) BatchUpdateSettings(c *gin.Context) {
 	var input struct {
 		Settings []struct {
@@ -312,7 +312,7 @@ func validateSettingValue(key, value string) error {
 	return nil
 }
 
-// DeleteSetting 删除设置
+// DeleteSetting Remove Settings
 func (h *SettingHandler) DeleteSetting(c *gin.Context) {
 	key := c.Param("key")
 
@@ -460,7 +460,7 @@ func (h *SettingHandler) storedSettingValue(key string) (string, error) {
 	return value, nil
 }
 
-// ListDictionaries 列出所有字典
+// ListDictionaries List all dictionarys
 func (h *SettingHandler) ListDictionaries(c *gin.Context) {
 	dictType := c.Query("type")
 
@@ -478,7 +478,7 @@ func (h *SettingHandler) ListDictionaries(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"dictionaries": dictionaries})
 }
 
-// UploadDictionary 上传字典
+// UploadDictionary Upload Dictionary
 func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 26<<20)
 	userID := c.GetString("user_id")
@@ -501,7 +501,7 @@ func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 		return
 	}
 
-	// 获取上传的文件
+	// Fetch Uploaded Files
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File is required"})
@@ -512,17 +512,17 @@ func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 		return
 	}
 
-	// 防止路径穿越
+	// Prevent the passage of the path.
 	if containsPathTraversal(dictType) || containsPathTraversal(file.Filename) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type or filename"})
 		return
 	}
 
-	// 创建字典目录
+	// Create Dictionary Directory
 	dictDir := filepath.Join("./configs/dicts", dictType)
 	os.MkdirAll(dictDir, 0755)
 
-	// 保存文件
+	// Save File
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
 	filePath := filepath.Join(dictDir, filename)
 
@@ -551,13 +551,13 @@ func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 		}
 	}
 
-	// 统计行数
+	// Number of statistical lines
 	lineCount, err := h.countLines(filePath)
 	if err != nil {
 		lineCount = 0
 	}
 
-	// 创建字典记录
+	// Create Dictionary Records
 	dict := models.Dictionary{
 		Name:        name,
 		Type:        dictType,
@@ -569,7 +569,7 @@ func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&dict).Error; err != nil {
-		os.Remove(filePath) // 删除文件
+		os.Remove(filePath) // Delete File
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create dictionary record"})
 		return
 	}
@@ -577,7 +577,7 @@ func (h *SettingHandler) UploadDictionary(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Dictionary uploaded successfully", "dictionary": dict})
 }
 
-// DeleteDictionary 删除字典
+// DeleteDictionary Remove Dictionary
 func (h *SettingHandler) DeleteDictionary(c *gin.Context) {
 	id := c.Param("id")
 
@@ -592,7 +592,7 @@ func (h *SettingHandler) DeleteDictionary(c *gin.Context) {
 		return
 	}
 
-	// 先删除记录；文件删除失败只会留下可清理的孤立文件，不会破坏数据库引用。
+	// Delete the record first.; Failed file deletion only leaves isolated files that can be cleaned up, It won't destroy the database..
 	if err := database.DB.Delete(&dict).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete dictionary"})
 		return
@@ -604,7 +604,7 @@ func (h *SettingHandler) DeleteDictionary(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Dictionary deleted successfully"})
 }
 
-// SetDefaultDictionary 设置默认字典
+// SetDefaultDictionary Set Default Dictionary
 func (h *SettingHandler) SetDefaultDictionary(c *gin.Context) {
 	id := c.Param("id")
 
@@ -637,7 +637,7 @@ func (h *SettingHandler) SetDefaultDictionary(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Default dictionary set successfully"})
 }
 
-// encrypt 加密字符串
+// encrypt Encryption Strings
 func (h *SettingHandler) encrypt(plaintext string) (string, error) {
 	block, err := aes.NewCipher(h.encryptionKey)
 	if err != nil {
@@ -658,7 +658,7 @@ func (h *SettingHandler) encrypt(plaintext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-// decrypt 解密字符串
+// decrypt Decrypt String
 func (h *SettingHandler) decrypt(ciphertext string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
@@ -689,7 +689,7 @@ func (h *SettingHandler) decrypt(ciphertext string) (string, error) {
 	return string(plaintext), nil
 }
 
-// countLines 统计文件行数
+// countLines Number of statistical documents
 func (h *SettingHandler) countLines(filePath string) (int, error) {
 	file, err := os.Open(filePath)
 	if err != nil {

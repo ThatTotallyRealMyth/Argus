@@ -130,7 +130,7 @@ func (s *ScanScopeService) validateWithDB(db *gorm.DB, scopeID, target string) (
 	if scope == nil {
 		decisions := make([]ScanScopeTargetDecision, 0, len(targets))
 		for _, target := range targets {
-			decisions = append(decisions, ScanScopeTargetDecision{Input: target.input, Normalized: target.canonical, Allowed: true, Reason: "未配置默认范围，按兼容模式放行"})
+			decisions = append(decisions, ScanScopeTargetDecision{Input: target.input, Normalized: target.canonical, Allowed: true, Reason: "No default range configured, Release in compatible mode"})
 		}
 		return &ScanScopeValidation{Allowed: true, Enforced: false, NormalizedTarget: joinScanTargets(targets), Targets: decisions}, nil
 	}
@@ -239,15 +239,15 @@ func validateParsedTargets(scope models.ScanScope, targets []scanTarget) (*ScanS
 		if rule := firstMatchingRule(denyRules, target); rule != nil {
 			decision.Allowed = false
 			decision.MatchedRule = rule.raw
-			decision.Reason = "命中排除规则"
+			decision.Reason = "The Ejection Rule"
 			result.Allowed = false
 		} else if rule := firstMatchingRule(allowRules, target); rule != nil {
 			decision.Allowed = true
 			decision.MatchedRule = rule.raw
-			decision.Reason = "命中允许规则"
+			decision.Reason = "The rules allowed by the hit."
 		} else {
 			decision.Allowed = false
-			decision.Reason = "不在授权范围内"
+			decision.Reason = "Not within the scope of the mandate."
 			result.Allowed = false
 		}
 		result.Targets = append(result.Targets, decision)
@@ -473,7 +473,7 @@ func ScanScopeBlockedError(validation *ScanScopeValidation) error {
 	if len(blocked) > 5 {
 		blocked = append(blocked[:5], fmt.Sprintf("and %d more", len(blocked)-5))
 	}
-	return scanScopeInputErrorf("目标超出授权范围“%s”：%s", validation.ScopeName, strings.Join(blocked, ", "))
+	return scanScopeInputErrorf("Targets are beyond the scope of the mandate."%s": %s", validation.ScopeName, strings.Join(blocked, ", "))
 }
 
 func SaveScanScope(db *gorm.DB, scope *models.ScanScope) error {

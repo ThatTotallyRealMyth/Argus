@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Setting 系统设置模型
+// Setting System Settings Model
 type Setting struct {
 	ID          string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Category    string         `gorm:"type:varchar(50);not null;index" json:"category"` // api, notification, scanner, dictionary
@@ -15,18 +15,18 @@ type Setting struct {
 	Value       string         `gorm:"type:text" json:"value"`
 	Configured  bool           `gorm:"-" json:"configured,omitempty"`
 	Description string         `gorm:"type:varchar(255)" json:"description"`
-	IsEncrypted bool           `gorm:"default:false" json:"is_encrypted"` // 是否加密存储（API Key等）
+	IsEncrypted bool           `gorm:"default:false" json:"is_encrypted"` // Whether or not to encrypt storage (API KeyWait.)
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (Setting) TableName() string {
 	return "settings"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (s *Setting) BeforeCreate(tx *gorm.DB) error {
 	if s.ID == "" {
 		s.ID = uuid.New().String()
@@ -34,14 +34,14 @@ func (s *Setting) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// Dictionary 字典模型
+// Dictionary Dictionary Model
 type Dictionary struct {
 	ID          string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Name        string         `gorm:"type:varchar(100);not null" json:"name"`
 	Type        string         `gorm:"type:varchar(50);not null" json:"type"` // domain, port, file_leak
 	FilePath    string         `gorm:"type:varchar(255);not null" json:"file_path"`
-	Size        int64          `json:"size"`       // 文件大小（字节）
-	LineCount   int            `json:"line_count"` // 行数
+	Size        int64          `json:"size"`       // File Size (Bytes)
+	LineCount   int            `json:"line_count"` // Lines
 	IsDefault   bool           `gorm:"default:false" json:"is_default"`
 	Description string         `gorm:"type:text" json:"description"`
 	CreatedBy   string         `gorm:"type:varchar(36)" json:"created_by"`
@@ -50,12 +50,12 @@ type Dictionary struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (Dictionary) TableName() string {
 	return "dictionaries"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (d *Dictionary) BeforeCreate(tx *gorm.DB) error {
 	if d.ID == "" {
 		d.ID = uuid.New().String()
@@ -63,7 +63,7 @@ func (d *Dictionary) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// SettingCategory 设置分类常量
+// SettingCategory Set classification constant
 const (
 	SettingCategoryAPI          = "api"
 	SettingCategoryNotification = "notification"
@@ -72,9 +72,9 @@ const (
 	SettingCategorySecurity     = "security"
 )
 
-// 默认设置键名
+// Default setting keyname
 const (
-	// API配置
+	// APIConfigure
 	SettingKeyFOFAEmail             = "fofa_email"
 	SettingKeyFOFAKey               = "fofa_key"
 	SettingKeyHunterKey             = "hunter_api_key"
@@ -90,7 +90,7 @@ const (
 	SettingKeyEnterpriseICPHeaders  = "enterprise_icp_api_headers"
 	SettingKeyEnterpriseICPEnabled  = "enterprise_icp_enabled"
 
-	// 通知配置
+	// Notification Configuration
 	SettingKeyWebhookEnabled  = "webhook_enabled"
 	SettingKeyWebhookURL      = "webhook_url"
 	SettingKeyWebhookSecret   = "webhook_secret"
@@ -107,12 +107,12 @@ const (
 	SettingKeyEmailPassword   = "email_password"
 	SettingKeyEmailFrom       = "email_from"
 
-	// 扫描器配置
+	// Scanner Configuration
 	SettingKeyDomainBruteConcurrent = "domain_brute_concurrent"
 	SettingKeyPortScanConcurrent    = "port_scan_concurrent"
 	SettingKeySiteDetectConcurrent  = "site_detect_concurrent"
 
-	// 安全配置
+	// Security Configuration
 	SettingKeyBlackIPs     = "black_ips"
 	SettingKeyBlackDomains = "black_domains"
 )

@@ -13,21 +13,21 @@ import (
 )
 
 type LibraryListInput struct {
-	Library  string `json:"library" jsonschema:"required,库类型: fingerprints 或 pocs"`
-	Search   string `json:"search" jsonschema:"按名称、产品、CVE或分类搜索"`
-	Page     int    `json:"page" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size" jsonschema:"每页数量，默认20，最大100"`
+	Library  string `json:"library" jsonschema:"required,Library type: fingerprints or pocs"`
+	Search   string `json:"search" jsonschema:"By Name, Products, CVEor Category Search"`
+	Page     int    `json:"page" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type LibraryIDInput struct {
-	Library string `json:"library" jsonschema:"required,库类型: fingerprints 或 pocs"`
-	ID      string `json:"id" jsonschema:"required,记录 ID"`
+	Library string `json:"library" jsonschema:"required,Library type: fingerprints or pocs"`
+	ID      string `json:"id" jsonschema:"required,Records ID"`
 }
 
 type LibraryWriteInput struct {
-	Library string         `json:"library" jsonschema:"required,库类型: fingerprints 或 pocs"`
-	ID      string         `json:"id" jsonschema:"更新指定记录时填写；为空时按规则身份新增或覆盖"`
-	Data    map[string]any `json:"data" jsonschema:"required,指纹或PoC字段"`
+	Library string         `json:"library" jsonschema:"required,Library type: fingerprints or pocs"`
+	ID      string         `json:"id" jsonschema:"Fill in when updating the specified record; Add or overwrite as rule-based when empty"`
+	Data    map[string]any `json:"data" jsonschema:"required,Fingerprint orPoCFields"`
 }
 
 type fingerprintSummary struct {
@@ -54,7 +54,7 @@ func RegisterLibraryTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_library_records",
-		Description: "分页读取指纹库或漏洞库摘要。列表不返回完整DSL或PoC内容；需要内容时调用get_library_record。",
+		Description: "Read fingerprint library or leak library summaries by page.List does not return completeDSLorPoCContents; Call when content is requiredget_library_record.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input LibraryListInput) (*mcp.CallToolResult, any, error) {
 		result, err := listLibraryRecords(input)
@@ -66,7 +66,7 @@ func RegisterLibraryTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_library_record",
-		Description: "按ID读取一条完整指纹或PoC记录，包括DSL或PoC模板内容。",
+		Description: "PressIDRead a full fingerprint orPoCRecords, IncludingDSLorPoCTemplate Contents.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input LibraryIDInput) (*mcp.CallToolResult, any, error) {
 		record, err := getLibraryRecord(input.Library, input.ID)
@@ -78,7 +78,7 @@ func RegisterLibraryTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "write_library_record",
-		Description: "新增或更新指纹/PoC。ID为空时，同名指纹会覆盖；名称、CVE、产品和影响版本均相同的PoC会覆盖。",
+		Description: "Add or update fingerprints/PoC.IDTime, The same name prints will cover.; Name, CVE, The product and impact versions are the same.PoCOverride.",
 		Annotations: &mcp.ToolAnnotations{OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input LibraryWriteInput) (*mcp.CallToolResult, any, error) {
 		log.Printf("[MCP audit] library=%s action=write id=%s", input.Library, input.ID)
@@ -91,7 +91,7 @@ func RegisterLibraryTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "delete_library_record",
-		Description: "直接删除一条指纹或PoC记录，不需要二次确认。",
+		Description: "Just delete a fingerprint orPoCRecords, No secondary confirmation required..",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input LibraryIDInput) (*mcp.CallToolResult, any, error) {
 		resource, err := libraryResource(input.Library)

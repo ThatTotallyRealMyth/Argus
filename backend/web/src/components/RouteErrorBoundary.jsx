@@ -17,6 +17,6 @@ export default class RouteErrorBoundary extends React.Component {
 
   render() {
     if (!this.state.error) return <React.Fragment key={this.state.retryKey}>{this.props.children}</React.Fragment>;
-    return <section className="panel route-error"><ShieldAlert size={28} /><div><h2>模块加载失败</h2><p>{this.state.error.message || "页面发生未知错误"}</p></div><button className="primary-button" onClick={() => this.setState((state) => ({ error: null, retryKey: state.retryKey + 1 }))}><RefreshCw size={15} />重新加载模块</button></section>;
+    return <section className="panel route-error"><ShieldAlert size={28} /><div><h2>Module Load Failed</h2><p>{this.state.error.message || "Unknown error on page"}</p></div><button className="primary-button" onClick={() => this.setState((state) => ({ error: null, retryKey: state.retryKey + 1 }))}><RefreshCw size={15} />Reload Module</button></section>;
   }
 }

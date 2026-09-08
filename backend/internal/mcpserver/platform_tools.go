@@ -19,66 +19,66 @@ import (
 )
 
 type PlatformListInput struct {
-	Resource string `json:"resource" jsonschema:"required,资源类型: monitors, monitor_results, github_monitors, github_results, scheduled_tasks, scheduled_logs, policies, pocs, fingerprints, sensitive_rules, sensitive_matches, tags, dictionaries, settings"`
-	ParentID string `json:"parent_id" jsonschema:"父级 ID，例如监控 ID 或计划任务 ID"`
-	TaskID   string `json:"task_id" jsonschema:"任务 ID 过滤"`
-	Search   string `json:"search" jsonschema:"名称、目标或内容搜索"`
-	Page     int    `json:"page" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size" jsonschema:"每页数量，默认20，最大100"`
+	Resource string `json:"resource" jsonschema:"required,Type of resources: monitors, monitor_results, github_monitors, github_results, scheduled_tasks, scheduled_logs, policies, pocs, fingerprints, sensitive_rules, sensitive_matches, tags, dictionaries, settings"`
+	ParentID string `json:"parent_id" jsonschema:"Parent ID, Like surveillance. ID Or plan a mission. ID"`
+	TaskID   string `json:"task_id" jsonschema:"Tasks ID Filter"`
+	Search   string `json:"search" jsonschema:"Name, Target or content search"`
+	Page     int    `json:"page" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type AssetProfileInput struct {
-	AssetType string `json:"asset_type" jsonschema:"required,资产类型: domain, ip, site, port"`
-	AssetID   string `json:"asset_id" jsonschema:"required,资产 ID"`
-	Depth     int    `json:"depth" jsonschema:"关系图深度，默认2，最大3"`
+	AssetType string `json:"asset_type" jsonschema:"required,Asset type: domain, ip, site, port"`
+	AssetID   string `json:"asset_id" jsonschema:"required,Assets ID"`
+	Depth     int    `json:"depth" jsonschema:"Relationship Diagram Depth, Default2, Max3"`
 }
 
 type CSegmentInput struct {
-	TaskID string `json:"task_id" jsonschema:"required,任务 ID"`
-	IP     string `json:"ip" jsonschema:"required,IPv4 地址"`
+	TaskID string `json:"task_id" jsonschema:"required,Tasks ID"`
+	IP     string `json:"ip" jsonschema:"required,IPv4 Address"`
 }
 
 type ManageRecordInput struct {
-	Resource string         `json:"resource" jsonschema:"required,资源类型: policies, monitors, github_monitors, pocs, fingerprints, sensitive_rules, tags"`
-	Action   string         `json:"action" jsonschema:"required,操作: create, update, delete, toggle, run"`
-	ID       string         `json:"id,omitempty" jsonschema:"update/delete/toggle/run 时必填"`
-	Data     map[string]any `json:"data,omitempty" jsonschema:"create/update 的字段对象"`
-	Confirm  bool           `json:"confirm" jsonschema:"required,监控变更/运行和所有删除操作必须明确设为 true"`
+	Resource string         `json:"resource" jsonschema:"required,Type of resources: policies, monitors, github_monitors, pocs, fingerprints, sensitive_rules, tags"`
+	Action   string         `json:"action" jsonschema:"required,Operation: create, update, delete, toggle, run"`
+	ID       string         `json:"id,omitempty" jsonschema:"update/delete/toggle/run Time to fill in."`
+	Data     map[string]any `json:"data,omitempty" jsonschema:"create/update Field object(s)"`
+	Confirm  bool           `json:"confirm" jsonschema:"required,Monitor Change/Run and all delete operations must be clearly set as true"`
 }
 
 type ManageScheduledScanInput struct {
-	Action      string             `json:"action" jsonschema:"required,操作: create, update, enable, disable, run, delete"`
-	ID          string             `json:"id,omitempty" jsonschema:"update/enable/disable/run/delete 时必填"`
-	Name        string             `json:"name,omitempty" jsonschema:"计划任务名称；create/update 时必填"`
-	Description string             `json:"description,omitempty" jsonschema:"计划任务说明"`
-	Target      string             `json:"target,omitempty" jsonschema:"扫描目标；create/update 时必填"`
-	CronType    string             `json:"cron_type,omitempty" jsonschema:"运行周期: once, daily, weekly, monthly, custom"`
-	CronExpr    string             `json:"cron_expr,omitempty" jsonschema:"custom 使用六段 Cron: 秒 分 时 日 月 周；最短周期一分钟"`
-	PolicyID    string             `json:"policy_id,omitempty" jsonschema:"可选扫描策略 ID"`
-	ScopeID     string             `json:"scope_id,omitempty" jsonschema:"可选授权扫描范围 ID；空值使用默认范围"`
-	Options     models.TaskOptions `json:"options,omitempty" jsonschema:"扫描选项；端口扫描始终开启"`
-	Confirm     bool               `json:"confirm,omitempty" jsonschema:"create/update/enable/run/delete 必须明确设为 true"`
+	Action      string             `json:"action" jsonschema:"required,Operation: create, update, enable, disable, run, delete"`
+	ID          string             `json:"id,omitempty" jsonschema:"update/enable/disable/run/delete Time to fill in."`
+	Name        string             `json:"name,omitempty" jsonschema:"Name of the scheduled task; create/update Time to fill in."`
+	Description string             `json:"description,omitempty" jsonschema:"Mission statement of the plan"`
+	Target      string             `json:"target,omitempty" jsonschema:"Scan target; create/update Time to fill in."`
+	CronType    string             `json:"cron_type,omitempty" jsonschema:"Run cycle: once, daily, weekly, monthly, custom"`
+	CronExpr    string             `json:"cron_expr,omitempty" jsonschema:"custom Use six paragraphs Cron: sec min Hour Day Month Week; One minute minimum cycle"`
+	PolicyID    string             `json:"policy_id,omitempty" jsonschema:"Optional Scan Policy ID"`
+	ScopeID     string             `json:"scope_id,omitempty" jsonschema:"Optional authorized scan range ID; Empty values use default range"`
+	Options     models.TaskOptions `json:"options,omitempty" jsonschema:"Scan Options; Port scans are open at all times."`
+	Confirm     bool               `json:"confirm,omitempty" jsonschema:"create/update/enable/run/delete It must be clearly defined. true"`
 }
 
 type HTTPTransactionListInput struct {
-	TaskID        string `json:"task_id" jsonschema:"任务 ID 过滤"`
-	URL           string `json:"url" jsonschema:"URL 关键词过滤"`
-	Source        string `json:"source" jsonschema:"来源过滤，例如 crawler,file_leak"`
-	StatusCode    int    `json:"status_code" jsonschema:"响应状态码过滤"`
-	ContentType   string `json:"content_type" jsonschema:"响应 Content-Type 过滤"`
-	BodySearch    string `json:"body_search" jsonschema:"响应正文关键词过滤；只匹配已存储文本正文"`
-	BodyStored    string `json:"body_stored" jsonschema:"true/false，是否存储了响应正文"`
-	BodyTruncated string `json:"body_truncated" jsonschema:"true/false，响应正文是否被截断"`
-	MinLength     int64  `json:"min_length" jsonschema:"最小响应长度"`
-	MaxLength     int64  `json:"max_length" jsonschema:"最大响应长度，0表示不限制"`
-	SortBy        string `json:"sort_by" jsonschema:"排序字段: created_at,url,response_status_code,response_content_length,response_time_ms"`
-	SortOrder     string `json:"sort_order" jsonschema:"排序方向: asc或desc"`
-	Page          int    `json:"page" jsonschema:"页码，默认1"`
-	PageSize      int    `json:"page_size" jsonschema:"每页数量，默认20，最大100"`
+	TaskID        string `json:"task_id" jsonschema:"Tasks ID Filter"`
+	URL           string `json:"url" jsonschema:"URL Keyword filter"`
+	Source        string `json:"source" jsonschema:"Source Filter, For example... crawler,file_leak"`
+	StatusCode    int    `json:"status_code" jsonschema:"Response State Code Filter"`
+	ContentType   string `json:"content_type" jsonschema:"Response Content-Type Filter"`
+	BodySearch    string `json:"body_search" jsonschema:"Respond to Text Key Filter; Match only stored text body"`
+	BodyStored    string `json:"body_stored" jsonschema:"true/false, Whether the response text is stored"`
+	BodyTruncated string `json:"body_truncated" jsonschema:"true/false, Whether the text of the response has been cut"`
+	MinLength     int64  `json:"min_length" jsonschema:"Minimum Response Length"`
+	MaxLength     int64  `json:"max_length" jsonschema:"Maximum Response Length, 0Expressing unlimited"`
+	SortBy        string `json:"sort_by" jsonschema:"Sort Fields: created_at,url,response_status_code,response_content_length,response_time_ms"`
+	SortOrder     string `json:"sort_order" jsonschema:"Sort Direction: ascordesc"`
+	Page          int    `json:"page" jsonschema:"Page Number, Default1"`
+	PageSize      int    `json:"page_size" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type HTTPTransactionIDInput struct {
-	ID string `json:"id" jsonschema:"required,HTTP 记录 ID"`
+	ID string `json:"id" jsonschema:"required,HTTP Records ID"`
 }
 
 func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
@@ -88,7 +88,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "platform_capabilities",
-		Description: "返回 Eclipse Recon MCP 已覆盖的猎人工作流、功能域、资源名称和操作约束。需要规划操作时先调用此工具。",
+		Description: "Back Eclipse Recon MCP The overcovered hunters' workflow, Function Fields, Resource name and operation constraints.Call this tool first when you need to plan an operation.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 		result := map[string]any{
@@ -141,7 +141,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_platform_data",
-		Description: "分页读取平台管理数据，包括监控、计划任务、PoC、指纹、敏感规则、标签、字典和设置。",
+		Description: "Page-by-page reading of Platform management data, Including surveillance., Planned tasks, PoC, Fingerprints, Sensitive rules, Label, Dictionary and Settings.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input PlatformListInput) (*mcp.CallToolResult, any, error) {
 		result, err := listPlatformData(input)
@@ -153,7 +153,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_asset_profile",
-		Description: "获取单个域名、IP、端口或站点的风险画像和关联统计。",
+		Description: "Fetching a single domain name, IP, Risk portrait and association statistics of ports or sites.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input AssetProfileInput) (*mcp.CallToolResult, any, error) {
 		profile, err := services.NewAssetProfileService().GetAssetProfile(input.AssetType, input.AssetID)
@@ -165,7 +165,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_asset_relations",
-		Description: "获取单个资产的直接关系，结果有硬上限以保护客户端。",
+		Description: "Direct relationship to individual asset acquisition, And it turns out there's a hard ceiling to protect clients..",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input AssetProfileInput) (*mcp.CallToolResult, any, error) {
 		relations, err := services.NewAssetProfileService().GetAssetRelations(input.AssetType, input.AssetID)
@@ -177,7 +177,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_asset_profile_graph",
-		Description: "获取指定资产出发的有限深度关系图，最多500节点和1000条边。",
+		Description: "Get a limited depth relationship map of the specified asset to start, Up to500Nodes and1000Side.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input AssetProfileInput) (*mcp.CallToolResult, any, error) {
 		depth := input.Depth
@@ -196,7 +196,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze_c_segment",
-		Description: "按任务分析 IPv4 所在 C 段的已有资产、端口和站点分布。",
+		Description: "Analysis by mandate IPv4 Where? C Assets in the existing sector, Port and site distribution.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input CSegmentInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(input.TaskID) == "" {
@@ -211,7 +211,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_platform_record",
-		Description: "创建、更新、切换、删除平台记录，或立即运行监控。监控变更、监控运行和所有删除操作必须 confirm=true。",
+		Description: "Create, Update, Toggle, Remove Platform Records, Or run surveillance immediately..Monitor Change, Monitor running and all removal operations must confirm=true.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ManageRecordInput) (*mcp.CallToolResult, any, error) {
 		log.Printf("[MCP audit] resource=%s action=%s id=%s", input.Resource, input.Action, input.ID)
@@ -242,7 +242,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "manage_scheduled_scan",
-		Description: "创建、修改、启停、立即运行或删除自动扫描计划。所有会创建或扩大外部网络访问的操作都要求 confirm=true，并在执行前重新校验授权范围。",
+		Description: "Create, Modify, Stop, Run or remove auto-scanning plan immediately.All operations that create or expand access to external networks require confirm=true, and recheck the range of authorization before it is executed.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ManageScheduledScanInput) (*mcp.CallToolResult, any, error) {
 		manager := scheduledTaskManager(deps)
@@ -301,7 +301,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_http_transactions",
-		Description: "分页筛选扫描保存的 HTTP 请求/响应记录；列表只返回摘要，不返回正文，避免大结果卡死客户端。",
+		Description: "Page-scanning scans saved HTTP Request/Response log; List returns only summary, Do Not Return Body, Avoiding a big result that's stuck to a client..",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input HTTPTransactionListInput) (*mcp.CallToolResult, any, error) {
 		result, err := listHTTPTransactions(input)
@@ -313,7 +313,7 @@ func RegisterPlatformTools(server *mcp.Server, deps *Deps) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_http_transaction",
-		Description: "按 ID 读取单条 HTTP 请求/响应详情，包含已保存的响应正文。",
+		Description: "Press ID Read Single HTTP Request/Details of the response, Include saved response body.",
 		Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input HTTPTransactionIDInput) (*mcp.CallToolResult, any, error) {
 		var item models.HTTPTransaction

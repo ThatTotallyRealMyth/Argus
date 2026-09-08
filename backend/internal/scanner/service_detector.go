@@ -7,37 +7,37 @@ import (
 	"github.com/lcvvvv/gonmap"
 )
 
-// ServiceDetector 服务识别器（基于gonmap）
+// ServiceDetector Service identifier (Basedgonmap)
 type ServiceDetector struct {
 	timeout time.Duration
 }
 
-// NewServiceDetector 创建服务识别器
+// NewServiceDetector Create Service Identification
 func NewServiceDetector() *ServiceDetector {
 	return &ServiceDetector{
 		timeout: 5 * time.Second,
 	}
 }
 
-// DetectService 识别单个端口的服务
+// DetectService Services to identify individual ports
 func (sd *ServiceDetector) DetectService(ip string, port int) (service, version, product string) {
-	// 使用gonmap进行服务探测
+	// UsegonmapService detection
 	scanner := gonmap.New()
 
-	// 设置超时
+	// Set Timeout
 	scanner.SetTimeout(sd.timeout)
 
-	// 扫描单个端口
+	// Scan individual ports
 	status, response := scanner.ScanTimeout(ip, port, sd.timeout)
 
 	if status == gonmap.Matched && response != nil && response.FingerPrint != nil {
-		// 成功匹配到服务指纹
+		// We've got a service print match.
 		fp := response.FingerPrint
 		service = fp.Service
 		version = fp.Version
 		product = fp.ProductName
 
-		// 如果没有版本信息，尝试从Info字段获取
+		// Can not open message, Try fromInfoField Fetch
 		if version == "" && fp.Info != "" {
 			version = fp.Info
 		}
@@ -45,25 +45,25 @@ func (sd *ServiceDetector) DetectService(ip string, port int) (service, version,
 		return service, version, product
 	}
 
-	// 未匹配到指纹，返回基本信息
+	// No fingerprints match., Returns Basic Information
 	if status == gonmap.Open {
-		// 端口开放但无法识别服务
+		// Port open but not identifiable service
 		service = guessServiceByPort(port)
 		return service, "", ""
 	}
 
-	// 默认返回 unknown
+	// Default return unknown
 	return "unknown", "", ""
 }
 
-// DetectServices 批量识别多个端口的服务
+// DetectServices Batch recognition services for multiple ports
 func (sd *ServiceDetector) DetectServices(results []*PortScanResult) []*PortScanResult {
 	fmt.Printf("🔍 Starting service detection for %d ports...\n", len(results))
 
 	for i, result := range results {
 		service, version, product := sd.DetectService(result.IP, result.Port)
 
-		// 更新服务信息
+		// Update Service Information
 		result.Service = service
 		if version != "" {
 			result.Version = version
@@ -72,7 +72,7 @@ func (sd *ServiceDetector) DetectServices(results []*PortScanResult) []*PortScan
 			result.Product = product
 		}
 
-		// 打印进度
+		// Print Progress
 		if (i+1)%10 == 0 || i == len(results)-1 {
 			fmt.Printf("  ✓ Detected %d/%d services\n", i+1, len(results))
 		}
@@ -82,7 +82,7 @@ func (sd *ServiceDetector) DetectServices(results []*PortScanResult) []*PortScan
 	return results
 }
 
-// guessServiceByPort 根据端口号猜测服务类型（fallback）
+// guessServiceByPort Guess the service type by port number (fallback)
 func guessServiceByPort(port int) string {
 	commonPorts := map[int]string{
 		20:    "ftp-data",

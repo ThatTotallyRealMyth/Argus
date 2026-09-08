@@ -11,41 +11,41 @@ import (
 	"github.com/reconmaster/backend/internal/models"
 )
 
-// AuthRequired 认证中间件
+// AuthRequired Authenticate intermediates
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 从请求头获取token
+		// Fetch from Requesttoken
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "未提供认证令牌"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No authentication medals provided"})
 			c.Abort()
 			return
 		}
 
-		// Bearer token格式
+		// Bearer tokenFormat
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "认证令牌格式错误"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication token format error"})
 			c.Abort()
 			return
 		}
 
 		token := parts[1]
 
-		// 解析token
+		// Parsingtoken
 		claims, err := auth.ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "无效的认证令牌"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authentication token"})
 			c.Abort()
 			return
 		}
 		if !hasActiveSession(token, claims.UserID) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "会话已失效"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session expired"})
 			c.Abort()
 			return
 		}
 
-		// 将用户信息存入上下文
+		// Place user information in context
 		c.Set("user_id", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
@@ -54,12 +54,12 @@ func AuthRequired() gin.HandlerFunc {
 	}
 }
 
-// AdminRequired 管理员权限中间件
+// AdminRequired restricts a route to administrators.
 func AdminRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("role")
 		if !exists || role != "admin" {
-			c.JSON(http.StatusForbidden, gin.H{"error": "需要管理员权限"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "Require administrator privileges"})
 			c.Abort()
 			return
 		}
@@ -67,7 +67,7 @@ func AdminRequired() gin.HandlerFunc {
 	}
 }
 
-// GetCurrentUserID 获取当前用户ID
+// GetCurrentUserID Fetch Current UserID
 func GetCurrentUserID(c *gin.Context) string {
 	if userID, exists := c.Get("user_id"); exists {
 		return userID.(string)
@@ -75,7 +75,7 @@ func GetCurrentUserID(c *gin.Context) string {
 	return ""
 }
 
-// GetCurrentUsername 获取当前用户名
+// GetCurrentUsername Fetching current username
 func GetCurrentUsername(c *gin.Context) string {
 	if username, exists := c.Get("username"); exists {
 		return username.(string)
@@ -83,14 +83,14 @@ func GetCurrentUsername(c *gin.Context) string {
 	return ""
 }
 
-// FlexibleAuth 灵活认证中间件
-// 支持 Authorization header (Bearer) 和 ?token= query 参数
-// 用于 WebSocket 和静态文件等在浏览器中无法设置自定义 header 的场景
+// FlexibleAuth Flexible authentication intermediates
+// Support Authorization header (Bearer) and ?token= query Parameters
+// For WebSocket Could not set custom in browser with static files etc. header The scene.
 func FlexibleAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := ""
 
-		// 1. 优先从 Authorization header 获取
+		// 1. Priority from Authorization header Fetch
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" {
 			parts := strings.SplitN(authHeader, " ", 2)
@@ -99,25 +99,25 @@ func FlexibleAuth() gin.HandlerFunc {
 			}
 		}
 
-		// 2. 回退到 query 参数（WebSocket / img 标签场景）
+		// 2. Back to query Parameters (WebSocket / img Tag scene)
 		if token == "" {
 			token = c.Query("token")
 		}
 
 		if token == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "未提供认证令牌"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No authentication medals provided"})
 			c.Abort()
 			return
 		}
 
 		claims, err := auth.ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "无效的认证令牌"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authentication token"})
 			c.Abort()
 			return
 		}
 		if !hasActiveSession(token, claims.UserID) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "会话已失效"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session expired"})
 			c.Abort()
 			return
 		}
@@ -147,7 +147,7 @@ func hasActiveSession(token, userID string) bool {
 	return user.IsActive()
 }
 
-// IsAdmin 是否为管理员
+// IsAdmin Whether to be a administrator
 func IsAdmin(c *gin.Context) bool {
 	if role, exists := c.Get("role"); exists {
 		return role == "admin"

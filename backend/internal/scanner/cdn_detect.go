@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-// CDNDetector CDN检测器
+// CDNDetector CDNDetection
 type CDNDetector struct {
 	cdnCNAMEs []string
 	cdnIPs    []string
 }
 
-// NewCDNDetector 创建CDN检测器
+// NewCDNDetector CreateCDNDetection
 func NewCDNDetector() *CDNDetector {
 	return &CDNDetector{
 		cdnCNAMEs: []string{
@@ -32,7 +32,7 @@ func NewCDNDetector() *CDNDetector {
 			"wscloudcdn.com",
 		},
 		cdnIPs: []string{
-			// Cloudflare IP ranges (部分)
+			// Cloudflare IP ranges (Part)
 			"103.21.244.",
 			"103.22.200.",
 			"103.31.4.",
@@ -60,7 +60,7 @@ func NewCDNDetector() *CDNDetector {
 			"172.69.",
 			"172.70.",
 			"172.71.",
-			// Akamai (部分)
+			// Akamai (Part)
 			"23.32.",
 			"23.33.",
 			"23.34.",
@@ -69,21 +69,21 @@ func NewCDNDetector() *CDNDetector {
 			"23.37.",
 			"23.38.",
 			"23.39.",
-			// Fastly (部分)
+			// Fastly (Part)
 			"151.101.",
 			"199.27.",
 		},
 	}
 }
 
-// IsCDN 检测是否为CDN
+// IsCDN Check whether toCDN
 func (d *CDNDetector) IsCDN(domain string) bool {
-	// 检查CNAME
+	// InspectionCNAME
 	if d.checkCNAME(domain) {
 		return true
 	}
 
-	// 检查IP
+	// InspectionIP
 	if d.checkIP(domain) {
 		return true
 	}
@@ -91,7 +91,7 @@ func (d *CDNDetector) IsCDN(domain string) bool {
 	return false
 }
 
-// checkCNAME 检查CNAME记录
+// checkCNAME InspectionCNAMERecords
 func (d *CDNDetector) checkCNAME(domain string) bool {
 	cname, err := net.LookupCNAME(domain)
 	if err != nil {
@@ -108,14 +108,14 @@ func (d *CDNDetector) checkCNAME(domain string) bool {
 	return false
 }
 
-// checkIP 检查IP地址
+// checkIP InspectionIPAddress
 func (d *CDNDetector) checkIP(domain string) bool {
 	ips, err := net.LookupHost(domain)
 	if err != nil {
 		return false
 	}
 
-	// 如果有多个不同C段的IP，很可能是CDN
+	// If there are many differentCParagraphIP, Probably.CDN
 	if len(ips) >= 3 {
 		cBlocks := make(map[string]bool)
 		for _, ip := range ips {
@@ -130,7 +130,7 @@ func (d *CDNDetector) checkIP(domain string) bool {
 		}
 	}
 
-	// 检查IP是否在已知CDN范围内
+	// InspectionIPIs there a knownCDNScope
 	for _, ip := range ips {
 		for _, cdnIP := range d.cdnIPs {
 			if strings.HasPrefix(ip, cdnIP) {
@@ -142,7 +142,7 @@ func (d *CDNDetector) checkIP(domain string) bool {
 	return false
 }
 
-// GetCDNName 获取CDN名称
+// GetCDNName FetchCDNName
 func (d *CDNDetector) GetCDNName(domain string) string {
 	cname, err := net.LookupCNAME(domain)
 	if err != nil {
@@ -160,7 +160,7 @@ func (d *CDNDetector) GetCDNName(domain string) string {
 		"amazonaws.com":    "AWS",
 		"azureedge.net":    "Azure CDN",
 		"chinacache.net":   "ChinaCache",
-		"cdn.aliyuncs.com": "阿里云CDN",
+		"cdn.aliyuncs.com": "Ariun.CDN",
 		"cdn.jsdelivr.net": "jsDelivr",
 	}
 
@@ -170,7 +170,7 @@ func (d *CDNDetector) GetCDNName(domain string) string {
 		}
 	}
 
-	// 根据IP检测
+	// According toIPTest
 	ips, err := net.LookupHost(domain)
 	if err == nil {
 		for _, ip := range ips {

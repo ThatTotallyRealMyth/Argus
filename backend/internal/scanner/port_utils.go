@@ -1,21 +1,21 @@
 package scanner
 
-// PortScanResult 端口扫描结果
+// PortScanResult Port Scan Results
 type PortScanResult struct {
 	IP       string
 	Port     int
 	Protocol string
 	Open     bool
 	Service  string
-	Version  string // 服务版本（通过gonmap识别）
-	Product  string // 产品名称（通过gonmap识别）
+	Version  string // Service version (ThroughgonmapIdentification)
+	Product  string // Product Name (ThroughgonmapIdentification)
 	Banner   string
 }
 
-// getCommonPortServices 获取常见端口和服务映射 (共享函数)
+// getCommonPortServices Get common port and service map (Shared Functions)
 func getCommonPortServices() map[int]string {
 	return map[int]string{
-		// Web服务
+		// WebServices
 		80:   "http",
 		443:  "https",
 		8000: "http-alt",
@@ -27,7 +27,7 @@ func getCommonPortServices() map[int]string {
 		8888: "http-alt",
 		9000: "http-alt",
 
-		// 数据库
+		// Database
 		3306:  "mysql",
 		5432:  "postgresql",
 		1433:  "mssql",
@@ -39,14 +39,14 @@ func getCommonPortServices() map[int]string {
 		9200:  "elasticsearch",
 		9300:  "elasticsearch-cluster",
 
-		// 远程访问
+		// Remote access
 		22:   "ssh",
 		23:   "telnet",
 		3389: "rdp",
 		5900: "vnc",
 		5901: "vnc",
 
-		// 邮件服务
+		// Mail services
 		25:  "smtp",
 		110: "pop3",
 		143: "imap",
@@ -55,7 +55,7 @@ func getCommonPortServices() map[int]string {
 		993: "imaps",
 		995: "pop3s",
 
-		// 文件服务
+		// Documentation services
 		21:   "ftp",
 		20:   "ftp-data",
 		69:   "tftp",
@@ -63,12 +63,12 @@ func getCommonPortServices() map[int]string {
 		445:  "smb",
 		2049: "nfs",
 
-		// DNS和目录服务
+		// DNSand directory services
 		53:  "dns",
 		389: "ldap",
 		636: "ldaps",
 
-		// 中间件和应用服务器
+		// Intermediate and application servers
 		8009: "ajp13",
 		8161: "activemq",
 		9043: "websphere-admin",
@@ -77,19 +77,19 @@ func getCommonPortServices() map[int]string {
 		9080: "websphere",
 		9090: "websphere-admin",
 
-		// 消息队列
+		// Message Queue
 		5672:  "amqp/rabbitmq",
 		61616: "activemq",
 		9092:  "kafka",
 		4369:  "rabbitmq-epmd",
 
-		// 容器和编排
+		// Packaging and organization
 		2375:  "docker",
 		2376:  "docker-ssl",
 		6443:  "kubernetes-api",
 		10250: "kubelet",
 
-		// 其他常见服务
+		// Other common services
 		161:   "snmp",
 		162:   "snmptrap",
 		514:   "syslog",
@@ -111,7 +111,7 @@ func getCommonPortServices() map[int]string {
 	}
 }
 
-// min 返回两个整数中的较小值
+// min Returns the smaller of two integer values
 func min(a, b int) int {
 	if a < b {
 		return a

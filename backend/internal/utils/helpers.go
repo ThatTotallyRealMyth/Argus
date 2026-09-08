@@ -12,26 +12,26 @@ import (
 	"time"
 )
 
-// GenerateID 生成随机ID
+// GenerateID Generate RandomID
 func GenerateID(prefix string) string {
 	timestamp := time.Now().Unix()
 	random := rand.Intn(100000)
 	return fmt.Sprintf("%s_%d_%d", prefix, timestamp, random)
 }
 
-// MD5Hash 计算MD5哈希
+// MD5Hash CalculateMD5Hashi.
 func MD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
 }
 
-// SHA256Hash 计算SHA256哈希
+// SHA256Hash CalculateSHA256Hashi.
 func SHA256Hash(text string) string {
 	hash := sha256.Sum256([]byte(text))
 	return hex.EncodeToString(hash[:])
 }
 
-// IsPrivateIP 判断是否为内网IP
+// IsPrivateIP To judge whether it's an intranet.IP
 func IsPrivateIP(ip string) bool {
 	// 10.0.0.0/8
 	if strings.HasPrefix(ip, "10.") {
@@ -58,9 +58,9 @@ func IsPrivateIP(ip string) bool {
 	return false
 }
 
-// SanitizeFilename 清理文件名
+// SanitizeFilename Clear File Name
 func SanitizeFilename(filename string) string {
-	// 移除不安全的字符
+	// Remove unsafe characters
 	unsafe := []string{"..", "/", "\\", ":", "*", "?", "\"", "<", ">", "|"}
 	for _, char := range unsafe {
 		filename = strings.ReplaceAll(filename, char, "_")
@@ -68,7 +68,7 @@ func SanitizeFilename(filename string) string {
 	return filename
 }
 
-// TruncateString 截断字符串
+// TruncateString Cut String
 func TruncateString(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s
@@ -79,7 +79,7 @@ func TruncateString(s string, maxLen int) string {
 	return s[:maxLen-3] + "..."
 }
 
-// Contains 检查切片是否包含元素
+// Contains Check if the slice contains elements
 func Contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
@@ -89,7 +89,7 @@ func Contains(slice []string, item string) bool {
 	return false
 }
 
-// RemoveDuplicates 移除重复元素
+// RemoveDuplicates Remove duplicate elements
 func RemoveDuplicates(slice []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}
@@ -102,12 +102,12 @@ func RemoveDuplicates(slice []string) []string {
 	return list
 }
 
-// ParseTarget 解析目标
+// ParseTarget Parsing target
 func ParseTarget(target string) ([]string, error) {
 	return ParseTargetContext(context.Background(), target)
 }
 
-// ParseTargetContext 解析目标，并在展开大 CIDR 时响应取消信号。
+// ParseTargetContext parses a target and expands CIDR ranges when requested.
 func ParseTargetContext(ctx context.Context, target string) ([]string, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -184,21 +184,21 @@ func incrementIP(ip net.IP) {
 	}
 }
 
-// FormatDuration 格式化时间间隔
+// FormatDuration Format Time Interval
 func FormatDuration(d time.Duration) string {
 	if d < time.Minute {
-		return fmt.Sprintf("%.0f秒", d.Seconds())
+		return fmt.Sprintf("%.0fsec", d.Seconds())
 	}
 	if d < time.Hour {
-		return fmt.Sprintf("%.0f分钟", d.Minutes())
+		return fmt.Sprintf("%.0fmin", d.Minutes())
 	}
 	if d < 24*time.Hour {
-		return fmt.Sprintf("%.1f小时", d.Hours())
+		return fmt.Sprintf("%.1fHours", d.Hours())
 	}
-	return fmt.Sprintf("%.1f天", d.Hours()/24)
+	return fmt.Sprintf("%.1fJesus.", d.Hours()/24)
 }
 
-// GeneratePassword 生成随机密码
+// GeneratePassword Generate Random Password
 func GeneratePassword(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
 	rand.Seed(time.Now().UnixNano())
@@ -210,7 +210,7 @@ func GeneratePassword(length int) string {
 	return string(b)
 }
 
-// IsValidDomain 验证域名格式
+// IsValidDomain Authenticate domain name format
 func IsValidDomain(domain string) bool {
 	if domain == "" || len(domain) > 255 {
 		return false
@@ -224,7 +224,7 @@ func IsValidDomain(domain string) bool {
 	return true
 }
 
-// IsValidIP 验证IP格式
+// IsValidIP AuthenticationIPFormat
 func IsValidIP(ip string) bool {
 	parts := strings.Split(ip, ".")
 	if len(parts) != 4 {
@@ -234,12 +234,12 @@ func IsValidIP(ip string) bool {
 		if len(part) == 0 || len(part) > 3 {
 			return false
 		}
-		// 简单验证，实际应该更严格
+		// Simple Authentication, It should actually be more rigorous.
 	}
 	return true
 }
 
-// ChunkSlice 将切片分块
+// ChunkSlice Split Slicing
 func ChunkSlice(slice []string, chunkSize int) [][]string {
 	var chunks [][]string
 	for i := 0; i < len(slice); i += chunkSize {
@@ -252,7 +252,7 @@ func ChunkSlice(slice []string, chunkSize int) [][]string {
 	return chunks
 }
 
-// MergeMap 合并map
+// MergeMap Mergemap
 func MergeMap(maps ...map[string]string) map[string]string {
 	result := make(map[string]string)
 	for _, m := range maps {

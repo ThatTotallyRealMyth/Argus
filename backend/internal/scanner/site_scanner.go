@@ -14,26 +14,26 @@ import (
 	"github.com/reconmaster/backend/internal/proxypool"
 )
 
-// SiteScanner 站点扫描器
+// SiteScanner Site Scanner
 type SiteScanner struct {
 	client      *http.Client
 	crawler     *Crawler
 	fingerprint bool
 }
 
-// NewSiteScanner 创建站点扫描器
+// NewSiteScanner Create Site Scanner
 func NewSiteScanner() *SiteScanner {
-	// 初始化指纹库
+	// Initialization of fingerprint library
 	InitFingerprints()
 
 	return &SiteScanner{
 		client: &http.Client{
-			Timeout: 5 * time.Second, // 优化：降低HTTP超时时间到5秒
+			Timeout: 5 * time.Second, // Optimize: LowerHTTPTimeout's up.5sec
 			Transport: proxypool.ConfigureTransport(&http.Transport{
 				TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-				MaxIdleConns:        100,              // 优化：增加连接池
-				MaxIdleConnsPerHost: 10,               // 优化：增加每个host的连接数
-				IdleConnTimeout:     30 * time.Second, // 优化：连接复用
+				MaxIdleConns:        100,              // Optimize: Increase connection pool
+				MaxIdleConnsPerHost: 10,               // Optimize: Add eachhostNumber of connections
+				IdleConnTimeout:     30 * time.Second, // Optimize: Connection Reuse
 			}),
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				if len(via) >= 5 {
@@ -47,14 +47,14 @@ func NewSiteScanner() *SiteScanner {
 	}
 }
 
-// Detect 识别站点
+// Detect Identification of sites
 func (ss *SiteScanner) Detect(ctx *ScanContext) error {
-	// 🆕 加载扫描器配置
+	// 🆕 Load Scanner Configuration
 	scannerConfig := LoadScannerConfig(ctx)
 	ss.client.Timeout = scannerConfig.SiteTimeout
 	ss.client.CheckRedirect = scopedRedirectPolicy(ctx.ValidateTarget)
 
-	// 🆕 使用配置重新创建爬虫
+	// 🆕 Recreate crawler using configuration
 	ss.crawler = NewCrawlerWithConfig(CrawlerConfig{
 		MaxDepth:    scannerConfig.CrawlerMaxDepth,
 		MaxPages:    scannerConfig.CrawlerMaxPages,
@@ -67,7 +67,7 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 
 	ctx.Logger.Printf("Detecting sites for %d ports", len(ports))
 
-	// 🆕 使用配置的并发数
+	// 🆕 Use configured co-mingled numbers
 	concurrency := scannerConfig.SiteConcurrency
 	if len(ports) < concurrency {
 		concurrency = len(ports)
@@ -79,7 +79,7 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 	semaphore := make(chan struct{}, concurrency)
 
 	for _, port := range ports {
-		// 检查任务是否被取消
+		// Check if the task has been cancelled
 		select {
 		case <-ctx.Ctx.Done():
 			ctx.Logger.Printf("Site detection cancelled by user")
@@ -98,7 +98,7 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 			}
 			defer func() { <-semaphore }()
 
-			// 检查取消状态
+			// Check for de-status
 			select {
 			case <-ctx.Ctx.Done():
 				return
@@ -114,21 +114,21 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 	return nil
 }
 
-// detectSiteForPort 检测单个端口的站点
+// detectSiteForPort Checking for a single port
 func (ss *SiteScanner) detectSiteForPort(ctx *ScanContext, port models.Port) {
 	schemes := []string{"http"}
 	if port.Port == 443 || port.Port == 8443 {
 		schemes = []string{"https"}
 	} else if port.Port == 80 || port.Port == 8080 || port.Port == 8888 {
-		// 尝试两种协议
+		// Try two protocols.
 		schemes = []string{"http", "https"}
 	}
 
-	// 查找该IP对应的域名
+	// Find thisIPThe corresponding domain name
 	var domains []models.Domain
 	ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, port.IPAddress).Find(&domains)
 
-	// 优先使用域名，如果没有域名则使用IP
+	// Priority use of domain names, Use if no domain name existsIP
 	hosts := make([]string, 0)
 	for _, domain := range domains {
 		hosts = append(hosts, domain.Domain)
@@ -146,18 +146,18 @@ func (ss *SiteScanner) detectSiteForPort(ctx *ScanContext, port models.Port) {
 				ctx.DB.Create(siteInfo)
 				ctx.Logger.Printf("Site detected: %s - %s", url, siteInfo.Title)
 
-				// 如果启用了爬虫
+				// If the crawler are activated,
 				if ctx.Task.Options.EnableCrawler {
 					ss.crawlSite(ctx, url)
 				}
 
-				break // 成功后不再尝试其他协议
+				break // And when it works, no more agreements.
 			}
 		}
 	}
 }
 
-// probeSite 探测站点
+// probeSite Stations
 func (ss *SiteScanner) probeSite(ctx *ScanContext, url string) *models.Site {
 	if err := ctx.ValidateNetworkTarget(url); err != nil {
 		ctx.Logger.Printf("Site target blocked by scan scope: %s", url)
@@ -172,7 +172,7 @@ func (ss *SiteScanner) probeSite(ctx *ScanContext, url string) *models.Site {
 		return nil
 	}
 
-	// 设置User-Agent
+	// SettingsUser-Agent
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
 	resp, err := ss.client.Do(req)
@@ -181,17 +181,17 @@ func (ss *SiteScanner) probeSite(ctx *ScanContext, url string) *models.Site {
 	}
 	defer resp.Body.Close()
 
-	// 限量读取body用于指纹识别，避免单个站点响应耗尽扫描进程内存。
+	// Limited readbodyFor fingerprinting., Avoid individual site responses that exhaust the scanning process memory.
 	body, _, err := readHTTPBody(resp, maxCrawlerCaptureBytes)
 	if err != nil {
 		return nil
 	}
 	bodyStr := string(body)
 
-	// 提取标题
+	// Extract Title
 	title := ExtractTitle(bodyStr)
 
-	// 获取所有headers
+	// Get Allheaders
 	headers := make(map[string]string)
 	for k, v := range resp.Header {
 		if len(v) > 0 {
@@ -199,36 +199,36 @@ func (ss *SiteScanner) probeSite(ctx *ScanContext, url string) *models.Site {
 		}
 	}
 
-	// 指纹识别
+	// Fingerprint recognition.
 	fingerprints := MatchFingerprints(headers, bodyStr, title)
 
-	// 合并指纹为字符串
+	// Merge fingerprints as strings
 	fingerprintStr := ""
 	if len(fingerprints) > 0 {
 		fingerprintStr = fingerprints[0]
-		for i := 1; i < len(fingerprints) && i < 5; i++ { // 最多显示5个
+		for i := 1; i < len(fingerprints) && i < 5; i++ { // Show at most5One.
 			fingerprintStr += ", " + fingerprints[i]
 		}
 	}
 
-	// CDN检测
+	// CDNTest
 	isCDN := IsCDN(headers, "")
 
-	// 从URL中提取IP
+	// FromURLDrawIP
 	ip := ExtractIPFromURL(url)
 
 	site := &models.Site{
 		URL:          url,
 		StatusCode:   resp.StatusCode,
-		IP:           ip, // 添加IP
+		IP:           ip, // AddIP
 		ContentType:  resp.Header.Get("Content-Type"),
 		Server:       resp.Header.Get("Server"),
 		Title:        title,
-		Fingerprint:  fingerprintStr, // 添加单个指纹字符串
-		Fingerprints: fingerprints,   // 保留数组
+		Fingerprint:  fingerprintStr, // Add a single fingerprint string
+		Fingerprints: fingerprints,   // Keep arrays
 	}
 
-	// 记录CDN信息到Server字段
+	// RecordsCDNMessage toServerFields
 	if isCDN {
 		site.Server += " [CDN]"
 	}
@@ -236,11 +236,11 @@ func (ss *SiteScanner) probeSite(ctx *ScanContext, url string) *models.Site {
 	return site
 }
 
-// crawlSite 爬取站点
+// crawlSite Climbing site
 func (ss *SiteScanner) crawlSite(ctx *ScanContext, url string) {
 	ctx.Logger.Printf("Starting crawler for site: %s", url)
 
-	// 使用任务选项配置爬虫
+	// Configure crawler with task options
 	config := CrawlerConfig{
 		MaxDepth:    3,
 		MaxPages:    100,
@@ -248,7 +248,7 @@ func (ss *SiteScanner) crawlSite(ctx *ScanContext, url string) {
 		ValidateURL: ctx.ValidateTarget,
 	}
 
-	// 如果任务选项中有爬虫配置，使用它们
+	// If the task option contains a crawler configuration, Use them.
 	if ctx.Task.Options.CrawlerDepth > 0 {
 		config.MaxDepth = ctx.Task.Options.CrawlerDepth
 	}
@@ -266,7 +266,7 @@ func (ss *SiteScanner) crawlSite(ctx *ScanContext, url string) {
 	ctx.Logger.Printf("[Crawler] Completed for %s", url)
 }
 
-// TakeScreenshots 站点截图
+// TakeScreenshots Site Screenshot
 func (ss *SiteScanner) TakeScreenshots(ctx *ScanContext) error {
 	var sites []models.Site
 	if err := ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&sites).Error; err != nil {
@@ -280,11 +280,11 @@ func (ss *SiteScanner) TakeScreenshots(ctx *ScanContext) error {
 
 	ctx.Logger.Printf("Taking screenshots for %d sites", len(sites))
 
-	// 创建截图扫描器
+	// Create a screenshot scanner
 	screenshotDir := "./data/screenshots"
 	screenshotScanner := NewScreenshotScannerWithValidator(screenshotDir, ctx.ValidateTarget)
 
-	// 并发截图（限制并发数为3，避免资源占用过高）
+	// And send a screenshot. (Limit Simultaneous Numbers To3, Avoid overexploitation of resources)
 	concurrency := 3
 	semaphore := make(chan struct{}, concurrency)
 	var wg sync.WaitGroup
@@ -302,7 +302,7 @@ func (ss *SiteScanner) TakeScreenshots(ctx *ScanContext) error {
 
 			ctx.Logger.Printf("Taking screenshot: %s", s.URL)
 
-			// 使用可视区域截图（更快）
+			// Use visual area screenshot (Faster.)
 			screenshotPath, err := screenshotScanner.ScreenshotViewport(s.URL)
 			if err != nil {
 				ctx.Logger.Printf("Screenshot failed for %s: %v", s.URL, err)
@@ -312,10 +312,10 @@ func (ss *SiteScanner) TakeScreenshots(ctx *ScanContext) error {
 				return
 			}
 
-			// 只保存文件名，不保存完整路径
+			// Save only filenames, Do not save full path
 			filename := filepath.Base(screenshotPath)
 
-			// 更新数据库中的截图路径
+			// Update the screenshot path in the database
 			if err := ctx.DB.Model(&models.Site{}).
 				Where("id = ?", s.ID).
 				Update("screenshot", filename).Error; err != nil {
@@ -351,47 +351,47 @@ func scopedRedirectPolicy(validate func(string) error) func(*http.Request, []*ht
 	}
 }
 
-// checkFileLeaksLegacy 保留旧实现用于兼容测试；新任务使用字典驱动实现。
+// checkFileLeaksLegacy Keep old realization for compatibility tests; New Tasks Using Dictionary-Driving.
 func (ss *SiteScanner) checkFileLeaksLegacy(ctx *ScanContext) error {
 	var sites []models.Site
 	ctx.DB.Where("task_id = ?", ctx.Task.ID).Find(&sites)
 
 	ctx.Logger.Printf("Checking file leaks for %d sites", len(sites))
 
-	// 敏感文件路径
+	// Path to sensitive files
 	leakPaths := []struct {
 		path     string
 		severity string
 		desc     string
 	}{
-		{"/.git/config", "high", "Git配置文件泄露"},
-		{"/.git/HEAD", "high", "Git仓库泄露"},
-		{"/.env", "critical", "环境变量文件泄露"},
-		{"/.env.local", "high", "本地环境配置泄露"},
-		{"/.env.production", "high", "生产环境配置泄露"},
-		{"/web.config", "medium", "IIS配置文件泄露"},
-		{"/.DS_Store", "low", "Mac系统文件泄露"},
-		{"/backup.zip", "high", "备份文件泄露"},
-		{"/backup.tar.gz", "high", "备份文件泄露"},
-		{"/backup.sql", "critical", "数据库备份泄露"},
-		{"/db.sql", "critical", "数据库文件泄露"},
-		{"/database.sql", "critical", "数据库文件泄露"},
-		{"/.svn/entries", "high", "SVN信息泄露"},
-		{"/phpinfo.php", "medium", "PHP信息泄露"},
-		{"/info.php", "medium", "PHP信息泄露"},
-		{"/test.php", "low", "测试文件泄露"},
-		{"/config.php", "high", "配置文件泄露"},
-		{"/config.json", "high", "配置文件泄露"},
-		{"/config.yml", "high", "配置文件泄露"},
-		{"/config.yaml", "high", "配置文件泄露"},
-		{"/settings.py", "high", "Django配置泄露"},
-		{"/application.properties", "high", "Spring配置泄露"},
-		{"/application.yml", "high", "Spring配置泄露"},
-		{"/.htaccess", "medium", "Apache配置泄露"},
-		{"/robots.txt", "info", "Robots文件"},
-		{"/sitemap.xml", "info", "站点地图"},
-		{"/README.md", "low", "README文件泄露"},
-		{"/CHANGELOG.md", "low", "变更日志泄露"},
+		{"/.git/config", "high", "GitProfile leak"},
+		{"/.git/HEAD", "high", "GitRepository leak"},
+		{"/.env", "critical", "Environmental variable file leak"},
+		{"/.env.local", "high", "Local environment configuration leak"},
+		{"/.env.production", "high", "Production environment configuration exposure"},
+		{"/web.config", "medium", "IISProfile leak"},
+		{"/.DS_Store", "low", "MacSystem File Disconnect"},
+		{"/backup.zip", "high", "Backup File Disclosing"},
+		{"/backup.tar.gz", "high", "Backup File Disclosing"},
+		{"/backup.sql", "critical", "Database backup leak"},
+		{"/db.sql", "critical", "Database File Disconnect"},
+		{"/database.sql", "critical", "Database File Disconnect"},
+		{"/.svn/entries", "high", "SVNInformation leaks"},
+		{"/phpinfo.php", "medium", "PHPInformation leaks"},
+		{"/info.php", "medium", "PHPInformation leaks"},
+		{"/test.php", "low", "Test file leak"},
+		{"/config.php", "high", "Profile leak"},
+		{"/config.json", "high", "Profile leak"},
+		{"/config.yml", "high", "Profile leak"},
+		{"/config.yaml", "high", "Profile leak"},
+		{"/settings.py", "high", "DjangoConfigure leaks"},
+		{"/application.properties", "high", "SpringConfigure leaks"},
+		{"/application.yml", "high", "SpringConfigure leaks"},
+		{"/.htaccess", "medium", "ApacheConfigure leaks"},
+		{"/robots.txt", "info", "RobotsDocumentation"},
+		{"/sitemap.xml", "info", "Site Map"},
+		{"/README.md", "low", "READMEFile leaks"},
+		{"/CHANGELOG.md", "low", "Change log leak"},
 	}
 
 	for _, site := range sites {
@@ -406,8 +406,8 @@ func (ss *SiteScanner) checkFileLeaksLegacy(ctx *ScanContext) error {
 					Type:        "file_leak",
 					Severity:    leak.severity,
 					Title:       leak.desc,
-					Description: fmt.Sprintf("发现敏感文件: %s (大小: %d bytes, 类型: %s)", url, size, contentType),
-					Solution:    "删除或限制对敏感文件的访问",
+					Description: fmt.Sprintf("Discover sensitive files: %s (Size: %d bytes, Type: %s)", url, size, contentType),
+					Solution:    "Delete or limit access to sensitive documents",
 				}
 				ctx.DB.Create(vuln)
 				ctx.Logger.Printf("File leak found: %s [%s]", url, leak.severity)
@@ -418,7 +418,7 @@ func (ss *SiteScanner) checkFileLeaksLegacy(ctx *ScanContext) error {
 	return nil
 }
 
-// checkURLDetailed 详细检查URL
+// checkURLDetailed Detailed checkURL
 func (ss *SiteScanner) checkURLDetailed(url string) (int, string, int64) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -433,13 +433,13 @@ func (ss *SiteScanner) checkURLDetailed(url string) (int, string, int64) {
 	}
 	defer resp.Body.Close()
 
-	// 读取body获取大小
+	// ReadbodyFetch Size
 	body, _ := io.ReadAll(resp.Body)
 
 	return resp.StatusCode, resp.Header.Get("Content-Type"), int64(len(body))
 }
 
-// RunNuclei 已废弃 - 使用智能PoC检测替代
+// RunNuclei Abandoned - Use SmartPoCTesting substitution
 func (ss *SiteScanner) RunNuclei(ctx *ScanContext) error {
 	ctx.Logger.Printf("RunNuclei is deprecated, use smart PoC detection instead")
 	return nil

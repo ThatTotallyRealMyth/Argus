@@ -16,12 +16,12 @@ import (
 const hunterLeadCandidateLimit = 1000
 
 type CanonicalAssetListInput struct {
-	Kind     string `json:"kind,omitempty" jsonschema:"资产类型: domain, ip, port, site；默认全部"`
-	Status   string `json:"status,omitempty" jsonschema:"资产状态过滤"`
-	Search   string `json:"search,omitempty" jsonschema:"按资产值或 canonical key 搜索"`
-	MinRisk  int    `json:"min_risk,omitempty" jsonschema:"最低风险分，默认0"`
-	Page     int    `json:"page,omitempty" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size,omitempty" jsonschema:"每页数量，默认20，最大100"`
+	Kind     string `json:"kind,omitempty" jsonschema:"Asset type: domain, ip, port, site; Default All"`
+	Status   string `json:"status,omitempty" jsonschema:"Asset Status Filter"`
+	Search   string `json:"search,omitempty" jsonschema:"By asset value or canonical key Search"`
+	MinRisk  int    `json:"min_risk,omitempty" jsonschema:"Minimum risk score, Default0"`
+	Page     int    `json:"page,omitempty" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size,omitempty" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type CanonicalAssetIDInput struct {
@@ -29,44 +29,44 @@ type CanonicalAssetIDInput struct {
 }
 
 type HuntingLeadListInput struct {
-	Status   string `json:"status,omitempty" jsonschema:"状态: all, open, new, investigating, validated, ignored"`
-	Severity string `json:"severity,omitempty" jsonschema:"严重性: critical, high, medium, low, info"`
-	Type     string `json:"type,omitempty" jsonschema:"线索类型过滤"`
-	Search   string `json:"search,omitempty" jsonschema:"按资产、标题、原因、动作或备注搜索"`
-	Page     int    `json:"page,omitempty" jsonschema:"页码，默认1"`
-	PageSize int    `json:"page_size,omitempty" jsonschema:"每页数量，默认20，最大100"`
+	Status   string `json:"status,omitempty" jsonschema:"Status: all, open, new, investigating, validated, ignored"`
+	Severity string `json:"severity,omitempty" jsonschema:"Severity: critical, high, medium, low, info"`
+	Type     string `json:"type,omitempty" jsonschema:"Thread Type Filter"`
+	Search   string `json:"search,omitempty" jsonschema:"By asset, Title, Reason, Action or Note Search"`
+	Page     int    `json:"page,omitempty" jsonschema:"Page Number, Default1"`
+	PageSize int    `json:"page_size,omitempty" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type UpdateLeadTriageInput struct {
-	AssetID      string                              `json:"asset_id" jsonschema:"required,主线索 canonical asset ID"`
-	LeadID       string                              `json:"lead_id" jsonschema:"required,主线索 ID"`
-	Status       string                              `json:"status" jsonschema:"required,状态: new, investigating, validated, ignored"`
-	Note         string                              `json:"note,omitempty" jsonschema:"研判备注，最大5000字符"`
-	RelatedLeads []services.AssetLeadTriageReference `json:"related_leads,omitempty" jsonschema:"聚类线索中需要同步更新的资产与线索引用，最多99条"`
+	AssetID      string                              `json:"asset_id" jsonschema:"required,Main Thread canonical asset ID"`
+	LeadID       string                              `json:"lead_id" jsonschema:"required,Main Thread ID"`
+	Status       string                              `json:"status" jsonschema:"required,Status: new, investigating, validated, ignored"`
+	Note         string                              `json:"note,omitempty" jsonschema:"Remarks, Max5000Character"`
+	RelatedLeads []services.AssetLeadTriageReference `json:"related_leads,omitempty" jsonschema:"Assets and thread references in cluster threads that need to be updated in sync, Up to99Article"`
 }
 
 type AssetChangeListInput struct {
-	AssetID   string `json:"asset_id,omitempty" jsonschema:"canonical asset ID；为空时查看全局变化"`
-	EventType string `json:"event_type,omitempty" jsonschema:"事件类型过滤，例如 modified"`
-	Page      int    `json:"page,omitempty" jsonschema:"页码，默认1"`
-	PageSize  int    `json:"page_size,omitempty" jsonschema:"每页数量，默认20，最大100"`
+	AssetID   string `json:"asset_id,omitempty" jsonschema:"canonical asset ID; View global changes for empty hours"`
+	EventType string `json:"event_type,omitempty" jsonschema:"Event type, for example modified"`
+	Page      int    `json:"page,omitempty" jsonschema:"Page Number, Default1"`
+	PageSize  int    `json:"page_size,omitempty" jsonschema:"Number of pages per page, Default20, Max100"`
 }
 
 type AttackEvidenceInput struct {
 	AssetID string `json:"asset_id" jsonschema:"required,canonical asset ID"`
-	LeadID  string `json:"lead_id" jsonschema:"required,该资产上的线索 ID"`
+	LeadID  string `json:"lead_id" jsonschema:"required,The asset leads. ID"`
 }
 
 type ExecuteLeadPoCInput struct {
 	AssetID string `json:"asset_id" jsonschema:"required,canonical asset ID"`
-	LeadID  string `json:"lead_id" jsonschema:"required,必须是带 PoC 的线索 ID"`
-	Confirm bool   `json:"confirm" jsonschema:"required,确认目标已获授权并执行外部 PoC 请求"`
+	LeadID  string `json:"lead_id" jsonschema:"required,It must be. PoC The clues. ID"`
+	Confirm bool   `json:"confirm" jsonschema:"required,Identification of objectives mandated and implemented external PoC Request"`
 }
 
 type UpdateFindingTriageInput struct {
-	VulnerabilityID string `json:"vulnerability_id" jsonschema:"required,漏洞证据 ID"`
-	Status          string `json:"status" jsonschema:"required,状态: new, validated, submitted, resolved, false_positive, regressed"`
-	Note            string `json:"note,omitempty" jsonschema:"人工研判备注，最大5000字符"`
+	VulnerabilityID string `json:"vulnerability_id" jsonschema:"required,Plugging evidence. ID"`
+	Status          string `json:"status" jsonschema:"required,Status: new, validated, submitted, resolved, false_positive, regressed"`
+	Note            string `json:"note,omitempty" jsonschema:"Artificial research comment., Max5000Character"`
 }
 
 type hunterRelationView struct {
@@ -104,7 +104,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	readOnly := &mcp.ToolAnnotations{ReadOnlyHint: true, OpenWorldHint: boolPtr(false)}
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "list_canonical_assets", Description: "分页查询跨任务去重后的全局资产清单，并按类型、状态、风险和关键词筛选。", Annotations: readOnly,
+		Name: "list_canonical_assets", Description: "Page-by-page query for global asset lists after task, and by type, Status, Risk and keyword screening.", Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input CanonicalAssetListInput) (*mcp.CallToolResult, any, error) {
 		page, pageSize := normalizePage(input.Page, input.PageSize)
 		query := database.DB.Model(&models.AssetEntity{}).Where("scope_id = ?", models.DefaultAssetScope)
@@ -132,7 +132,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "get_canonical_asset", Description: "打开 canonical asset 工作台，返回当前快照、观测、关系、变化、漏洞证据和派生攻击线索。", Annotations: readOnly,
+		Name: "get_canonical_asset", Description: "Open canonical asset Workstation, Returns current snapshot, Observation, Relations, Change, We have a leaking evidence and a trail of an attack by a derivative..", Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input CanonicalAssetIDInput) (*mcp.CallToolResult, any, error) {
 		result, err := loadCanonicalAssetWorkbench(strings.TrimSpace(input.AssetID))
 		if err != nil {
@@ -142,7 +142,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "list_hunting_leads", Description: "返回全局聚类、排序并叠加研判状态的攻击线索队列，适合挑选下一步验证目标。", Annotations: readOnly,
+		Name: "list_hunting_leads", Description: "Return to Global Cluster, Sort and superimpose attack thread queues, Suits for next verification target.", Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input HuntingLeadListInput) (*mcp.CallToolResult, any, error) {
 		page, pageSize := normalizePage(input.Page, input.PageSize)
 		var candidateTotal int64
@@ -184,7 +184,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "update_lead_triage", Description: "更新一条或一个聚类内多条攻击线索的研判状态和备注。",
+		Name: "update_lead_triage", Description: "Update the status and note of multiple attack clues in one or one cluster.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), IdempotentHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input UpdateLeadTriageInput) (*mcp.CallToolResult, any, error) {
 		saved, updatedCount, err := services.UpdateAssetLeadTriages(database.DB, services.AssetLeadTriageUpdate{
@@ -197,7 +197,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "update_finding_triage", Description: "更新漏洞证据的人工状态和备注；已解决或误报会从资产风险分中排除。",
+		Name: "update_finding_triage", Description: "Update of the manual status and note of the leaked evidence; Addressed or misreported will exclude asset risk.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(false), IdempotentHint: true, OpenWorldHint: boolPtr(false)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input UpdateFindingTriageInput) (*mcp.CallToolResult, any, error) {
 		finding, assetIDs, err := services.UpdateFindingTriage(database.DB, services.FindingTriageInput{
@@ -210,7 +210,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "list_asset_changes", Description: "分页查看 canonical asset 的新增与字段变化时间线，可限定单个资产。", Annotations: readOnly,
+		Name: "list_asset_changes", Description: "Page Break View canonical asset Add to field changes the time line, Capability of limiting individual assets.", Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input AssetChangeListInput) (*mcp.CallToolResult, any, error) {
 		page, pageSize := normalizePage(input.Page, input.PageSize)
 		query := database.DB.Model(&models.AssetChange{})
@@ -232,7 +232,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "get_attack_evidence", Description: "返回指定资产线索的完整可复核证据，包括资产快照、漏洞证明、PoC 验证日志、变化记录和线索上下文。", Annotations: readOnly,
+		Name: "get_attack_evidence", Description: "Return complete re-readable evidence to the specified asset trail, Including asset snapshots, The bug proof., PoC Validate Log, Change records and thread context.", Annotations: readOnly,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input AttackEvidenceInput) (*mcp.CallToolResult, any, error) {
 		asset, lead, err := loadAssetLead(strings.TrimSpace(input.AssetID), strings.TrimSpace(input.LeadID))
 		if err != nil {
@@ -254,7 +254,7 @@ func RegisterHunterTools(server *mcp.Server) {
 	})
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "execute_lead_poc", Description: "对带有已匹配 PoC 的攻击线索执行一次实际验证并写入执行日志；必须 confirm=true。",
+		Name: "execute_lead_poc", Description: "& Match PoC Attack thread performed a physical check and entered into the executory log; Yes. confirm=true.",
 		Annotations: &mcp.ToolAnnotations{DestructiveHint: boolPtr(true), OpenWorldHint: boolPtr(true)},
 	}, func(ctx context.Context, req *mcp.CallToolRequest, input ExecuteLeadPoCInput) (*mcp.CallToolResult, any, error) {
 		if !input.Confirm {

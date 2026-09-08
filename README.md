@@ -1,163 +1,157 @@
 # Eclipse Recon
 
-Eclipse Recon 是一个面向授权安全测试和资产运营的资产侦察平台。它将任务编排、资产管理、HTTP 记录、指纹与 PoC 库、代理池、测绘 API 配置和 MCP 工具集中在一个 Web 控制台中。
+Eclipse Recon is an asset reconnaissance platform for authorized security testing and attack-surface operations. It brings scan orchestration, asset management, HTTP observations, fingerprint and proof-of-concept (PoC) libraries, proxy management, internet intelligence providers, and MCP tools into one web console.
 
-项目由 Go 后端和 React/Vite 前端组成，使用 PostgreSQL 持久化业务数据，Redis 保存运行时状态与缓存。界面采用深色 ctOS 风格，前端按路由懒加载。
+The application uses a Go backend and a React/Vite frontend. PostgreSQL stores application data, while Redis stores runtime state and cache data. The interface uses a dark ctOS-inspired design with route-level lazy loading.
 
-> 仅对你拥有或明确获准测试的资产使用扫描、PoC、代理和 MCP 能力。
+> Use the scanning, PoC, proxy, and MCP features only against assets that you own or are explicitly authorized to test.
 
-## 功能概览
+Some detection resources intentionally retain source-language strings. Chinese product signatures in `backend/configs/fingerprints/finger.yaml` and provider terms in `backend/configs/dicts/domain/big.txt` are matching data, not interface text; translating them would reduce detection coverage.
 
-- 任务编排：创建、启动、取消、删除和导出扫描任务，支持策略和实时进度。
-- 授权范围护栏：按项目维护精确域名、通配子域、IP 与 CIDR 允许/排除规则；默认或显式范围贯穿手工任务、企业下发、计划任务、连续监控、手工 PoC 和 MCP，并在每条主动网络路径执行前复核。
-- 持久化执行队列：任务先入库排队，再由受全局并发限制的 Worker 原子领取；服务重启不会丢失等待中的任务。
-- 资产管理：跨任务规范化域名、IP、端口与站点，保留观测、关系证据和语义变化时间线，并聚合漏洞与暴露面风险；同时支持 URL、HTTP 记录和资产分组。
-- 狩猎线索：从确认漏洞、接管候选、敏感服务、管理入口、PoC 匹配和攻击面变化中生成全局优先级队列，支持调查状态、个人笔记和资产工作台联动；Web 与 MCP 的线索验证共用来源任务授权范围，并保存可回看的结构化执行审计链。PoC 命中会原子固化为去重的漏洞证据、关联资产风险并更新研判状态，可直接进入任务报告。
-- 赏金证据：任务风险支持独立查看、单项复制和完整证据包复制；可导出带完整证明的离线安全 HTML 报告。
-- 侦察能力：域名发现、端口探测、服务识别、站点探测、爬虫、截图、指纹匹配、文件泄露检测和 PoC 检测。
-- 库管理：编辑和导入指纹 DSL、Nuclei 与受控 Custom HTTP PoC，支持分类、严重级别和匹配模式。
-- 代理池：HTTP、HTTPS、SOCKS5，支持认证、批量导入、批量验证、健康检查、轮询和自动轮换。
-- 空间测绘：预置 FOFA、Hunter、360 Quake、ZoomEye、Shodan、VirusTotal、GitHub，可逐条保存、启停和验证凭据；加密凭据不会回传浏览器。
-- 企业资产发现：通过可插拔 ICP_Query 协议查询网站、APP、小程序和快应用；任务持久化排队，域名可批量同步到全局资产清单/资产分组或下发扫描，并保留企业来源观测与语义变化。
-- 自动化：资产监控、NVD CVE 产品关键词监控、计划任务、执行记录和日志；支持定时或立即执行并复用通知通道。
-- MCP：可选的 Streamable HTTP MCP 端点，提供任务、资产、库、配置和导出工具。
-- 高级检索：支持字段限定、括号、双引号、AND、OR、NOT 和表头单列筛选。
-- 模块化前端：视图、组件、接口、状态、工具和样式分层，路由级按需加载。
+## Features
 
-## 技术栈
+- **Scan orchestration:** Create, start, cancel, retry, delete, and export scan tasks with reusable policies and real-time progress.
+- **Authorization guardrails:** Maintain per-project allow and exclude rules for exact domains, wildcard subdomains, IP addresses, and CIDR ranges. Default or explicit scopes apply to manual tasks, enterprise dispatches, scheduled tasks, continuous monitoring, manual PoC runs, and MCP operations. Every active network path is revalidated before use.
+- **Durable execution queue:** Tasks are persisted before execution and atomically claimed by workers subject to a global concurrency limit. Queued work survives service restarts.
+- **Asset inventory:** Normalize domains, IP addresses, ports, and sites across tasks. Preserve observations, relationship evidence, and semantic change timelines while aggregating findings and exposure risk. URL and HTTP records and asset groups are also supported.
+- **Hunting leads:** Build a global priority queue from confirmed findings, takeover candidates, sensitive services, administrative interfaces, PoC matches, and attack-surface changes. Web and MCP validation share the source task's authorization scope and retain a structured audit trail. PoC hits are stored as deduplicated finding evidence and linked to asset risk and reports.
+- **Evidence packages:** Review findings independently, copy individual evidence fields or a complete evidence package, and export a self-contained HTML security report.
+- **Reconnaissance:** Domain discovery, port scanning, service and site detection, crawling, screenshots, fingerprinting, exposed-file checks, and PoC validation.
+- **Library management:** Edit and import fingerprint DSL rules, Nuclei templates, and constrained Custom HTTP PoCs with categories, severities, and matching modes.
+- **Proxy pool:** HTTP, HTTPS, and SOCKS5 proxies with authentication, bulk import, bulk validation, health checks, round-robin selection, and automatic rotation.
+- **Internet intelligence:** Built-in configuration for FOFA, Hunter, 360 Quake, ZoomEye, Shodan, VirusTotal, and GitHub. Credentials can be saved, enabled, and tested individually; encrypted values are never returned to the browser.
+- **Enterprise discovery:** Query sites, apps, mini programs, and quick apps through pluggable ICP_Query-compatible providers. Results can be synchronized into the global asset inventory or dispatched as scan tasks while preserving provenance.
+- **Automation:** Asset monitoring, NVD CVE keyword monitoring, scheduled tasks, execution history, logs, and reusable notification channels.
+- **MCP:** An optional Streamable HTTP MCP endpoint for task, asset, library, configuration, validation, and export operations.
+- **Advanced search:** Field-qualified terms, parentheses, quoted phrases, `AND`, `OR`, `NOT`, and per-column filters.
 
-- Backend：Go 1.24、Gin、GORM、PostgreSQL、Redis
-- Frontend：React 19、Vite、Tailwind CSS 4、Lucide、Motion
-- Browser automation：Chromium、chromedp
-- Protocol：REST、WebSocket、Streamable HTTP MCP
+## Technology stack
 
-## 快速开始
+- Backend: Go 1.24, Gin, GORM, PostgreSQL, Redis
+- Frontend: React 19, Vite, Tailwind CSS 4, Lucide, Motion
+- Browser automation: Chromium, chromedp
+- Protocols: REST, WebSocket, Streamable HTTP MCP
+
+## Quick start
 
 ### Docker Compose
 
-前置条件：
+Prerequisites:
 
 - Docker Engine 24+
 - Docker Compose v2
-- 至少 2 GB 可用内存；大规模扫描或截图任务建议更多
+- At least 2 GB of available memory; allow more for large scans or screenshot workloads
 
-克隆并创建环境文件：
+Clone the repository and create the environment file:
 
 ~~~bash
-git clone https://github.com/Gi1gamesh123/Eclipse-Recon.git
-cd Eclipse-Recon
+git clone https://github.com/ThatTotallyRealMyth/Argus.git
+cd Argus
 cp .env.example .env
 ~~~
 
-编辑 .env，至少替换以下值：
+Edit `.env` and replace at least these values:
 
 ~~~dotenv
-DB_PASSWORD=一段随机数据库密码
-REDIS_PASSWORD=一段随机Redis密码
+DB_PASSWORD=a-random-database-password
+REDIS_PASSWORD=a-random-redis-password
 ADMIN_USERNAME=admin
 ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=至少12个字符的管理员密码
+ADMIN_PASSWORD=an-administrator-password-with-at-least-12-characters
 ~~~
 
-构建并启动。推荐使用发布脚本，它会先校验配置；已有数据库运行时会在自动迁移前创建压缩备份，并等待 PostgreSQL、Redis 和后端全部就绪：
+Build and start the stack. The release script validates configuration first, backs up an existing database before automatic migrations, and waits for PostgreSQL, Redis, and the backend to become ready:
 
 ~~~bash
 ./scripts/production-up.sh
 ~~~
 
-也可以直接运行 `docker compose up -d --build`。平台可直接通过 HTTP 暴露；如 UI 和 API 使用同一地址，`CORS_ALLOWED_ORIGINS` 保持为空。分离部署前端时再填写明确的来源列表，禁止使用 `*`。
+You can instead run `docker compose up -d --build` directly. When the UI and API share an origin, leave `CORS_ALLOWED_ORIGINS` empty. For a separately deployed frontend, provide an explicit origin allowlist; do not use `*`.
 
-服务地址：
+Service endpoints:
 
-- Web 控制台：http://localhost:5003
-- 健康检查：http://localhost:5003/health
-- 依赖就绪检查：http://localhost:5003/ready
-- PostgreSQL：仅绑定本机 127.0.0.1:15432
-- Redis：仅绑定本机 127.0.0.1:16379
+- Web console: http://localhost:5003
+- Liveness check: http://localhost:5003/health
+- Dependency readiness check: http://localhost:5003/ready
+- PostgreSQL: localhost only at 127.0.0.1:15432
+- Redis: localhost only at 127.0.0.1:16379
 
-首次启动时 init-admin 容器会创建管理员。JWT 和加密密钥会自动生成到 Docker 数据卷中。不要删除 .storage/app/data，否则已有加密配置可能无法恢复。
+On first startup, the `init-admin` container creates the administrator account. JWT and encryption keys are generated in the Docker data volume. Do not delete `.storage/app/data`; doing so can make previously encrypted configuration unrecoverable.
 
-手工创建数据库备份：
+Create a database backup manually:
 
 ~~~bash
 ./scripts/backup.sh
 ~~~
 
-备份保存在 `.storage/backups/`。发布脚本不会自动删除历史备份。
+Backups are stored in `.storage/backups/`. The release script does not automatically delete historical backups.
 
-停止服务：
+Stop the stack:
 
 ~~~bash
 docker compose down
 ~~~
 
-删除所有本地数据会永久清空数据库、密钥和日志：
+The following commands permanently delete the local database, keys, logs, and other runtime data:
 
 ~~~bash
 docker compose down -v
 rm -rf .storage
 ~~~
 
-### 启用 MCP
+### Enable MCP
 
-MCP 只有在启用开关和密钥同时有效时才会挂载。Docker 可在 `.env` 中配置至少 32 个字符的密钥：
+The MCP endpoint is mounted only when MCP is enabled and a valid key is configured. For Docker, set a key of at least 32 characters in `.env`:
 
 ~~~dotenv
-MCP_API_KEY=请生成一段至少32字符的随机密钥
+MCP_API_KEY=replace-with-a-random-key-of-at-least-32-characters
 ~~~
 
-重启后端并确认状态：
+Restart the backend and confirm its status:
 
 ~~~bash
 docker compose up -d backend
 curl http://localhost:5003/health
 ~~~
 
-健康检查返回 mcp_enabled: true 后，MCP 地址为：
-
-~~~text
-http://localhost:5003/mcp
-~~~
-
-MCP 请求必须携带：
+When the health response contains `mcp_enabled: true`, MCP is available at `http://localhost:5003/mcp`. Requests must include:
 
 ~~~http
 Authorization: Bearer <MCP_API_KEY>
 ~~~
 
-本地直接运行时无需 Docker，后端配置已开启 MCP，启动进程时传入密钥即可：
+For a direct local run without Docker:
 
 ~~~bash
 cd backend
-MCP_API_KEY='请替换为至少32字符的随机密钥' go run ./cmd/server
+MCP_API_KEY='replace-with-a-random-key-of-at-least-32-characters' go run ./cmd/server
 ~~~
 
-也可用 `MCP_ENABLED=false` 临时关闭端点。当前 MCP 优先支持全局资产清单、聚类攻击线索、证据工作台、研判状态和授权 PoC 验证工作流。
+Set `MCP_ENABLED=false` to disable the endpoint temporarily. MCP currently focuses on the global asset inventory, clustered attack leads, the evidence workbench, triage state, and authorized PoC validation workflows.
 
-## 本地开发
+## Local development
 
-需要 PostgreSQL、Redis、Go 1.24+、Node.js 20+ 和 npm。
+Local development requires PostgreSQL, Redis, Go 1.24+, Node.js 20+, and npm.
 
-### 后端
+### Backend
 
 ~~~bash
 cd backend
 cp configs/config.docker.yaml configs/config.yaml
-# 按本机环境修改 database、redis、server 等配置
+# Adjust database, Redis, server, and other settings for the local environment.
 go run ./cmd/init-admin
 go run ./cmd/server
 ~~~
 
-本地配置文件 backend/configs/config.yaml 不会被提交。如果 JWT 或加密密钥为空，服务会在 data/.jwt-secret 和 data/.encryption-key 自动生成权限为 0600 的随机密钥。
+The local file `backend/configs/config.yaml` is not committed. If the JWT or encryption key is empty, the service generates a random key in `data/.jwt-secret` or `data/.encryption-key` with `0600` permissions.
 
-重置管理员密码：
+Reset an administrator password:
 
 ~~~bash
-cd backend
 go run ./cmd/init-admin --reset-password admin
 ~~~
 
-### 前端
+### Frontend
 
 ~~~bash
 cd backend/web
@@ -165,33 +159,29 @@ npm install
 npm run dev
 ~~~
 
-Vite 默认运行在 http://localhost:5173，API 开发代理配置见 [backend/web/vite.config.js](backend/web/vite.config.js)。
-
-生产构建：
+Vite runs at http://localhost:5173 by default. The development API proxy is configured in [backend/web/vite.config.js](backend/web/vite.config.js).
 
 ~~~bash
 npm run build
 npm run preview -- --port 4173
 ~~~
 
-## 检索语法
+## Search syntax
 
-任务、资产、HTTP、指纹和 PoC 列表支持高级检索。运算优先级为 NOT、AND、OR，空格等同于 AND，字段名以当前页面问号提示中的列表为准。
+The task, asset, HTTP, fingerprint, and PoC lists support advanced search. Operator precedence is `NOT`, `AND`, then `OR`; whitespace is equivalent to `AND`. Use each page's help control to see its available fields.
 
 ~~~text
 nginx && admin
 nginx && !test
-title:"管理系统" || product:tomcat
+title:"admin portal" || product:tomcat
 (status=200 || status=302) && !url:logout
 ~~~
 
-表头单列筛选会和顶部表达式合并后发送到后端。非法表达式会返回错误位置、示例和允许字段；查询使用参数化 SQL。
+Per-column filters are combined with the main expression before being sent to the backend. Invalid expressions return the error position, an example, and supported fields. Database queries are parameterized.
 
-## 代理池行为
+## Proxy-pool behavior
 
-代理节点只有在启用、验证成功且状态为 healthy 时，才会进入扫描请求的轮询集合。
-
-支持格式：
+A proxy is included in the scan request pool only when enabled, successfully validated, and marked `healthy`.
 
 ~~~text
 http://host:port
@@ -200,17 +190,17 @@ socks5://host:port
 http://user:password@host:port
 ~~~
 
-批量导入时每行一个 URL，最多 1000 行。格式错误会逐行返回索引和原因。
+Bulk imports accept one URL per line, up to 1,000 lines. Validation errors report the line index and reason.
 
-- 健康检查默认每 30 秒运行一次。
-- 自动轮换默认每 30 秒切换轮询起点。
-- 两项功能都能在“设置 → 扫描引擎”关闭或调整。
-- 配置修改只影响新启动的任务。
-- 测绘 API 凭据验证同样使用已启用的健康代理节点。
+- Health checks run every 30 seconds by default.
+- Automatic rotation advances the round-robin starting point every 30 seconds by default.
+- Both features can be adjusted under **Settings → Scan engine**.
+- Configuration changes affect newly started tasks only.
+- Internet-intelligence credential checks also use enabled, healthy proxies.
 
-## Custom HTTP PoC
+## Custom HTTP PoCs
 
-Custom PoC 使用 YAML 或 JSON 描述同源 HTTP 请求，不执行 Shell、Python 或任意本机命令。支持 `status`、`word`、`regex` 和 `size` 匹配器：
+A Custom HTTP PoC uses YAML or JSON to describe same-origin HTTP requests. It cannot execute shell commands, Python, or arbitrary local programs. Supported matchers are `status`, `word`, `regex`, and `size`:
 
 ~~~yaml
 requests:
@@ -231,48 +221,48 @@ requests:
         regex: ['Server: .*Example']
 ~~~
 
-可用占位符为 `{{BaseURL}}`、`{{Scheme}}`、`{{Host}}` 和 `{{Hostname}}`。每个模板最多 10 个请求，请求必须保持在目标同源范围内，跨主机 URL 与跨主机重定向会被拒绝，单个响应最多读取 2 MiB。
+Available placeholders are `{{BaseURL}}`, `{{Scheme}}`, `{{Host}}`, and `{{Hostname}}`. A template may contain at most 10 requests. Requests must remain same-origin; cross-host URLs and redirects are rejected. At most 2 MiB is read from one response.
 
-## CVE 持续监控
+## Continuous CVE monitoring
 
-“自动化 → 资产监控”可创建 CVE 类型监控，目标填写产品关键词，多个关键词使用逗号或换行分隔。平台按 NVD `lastModified` 时间窗口拉取最近变化，首次运行建立基线，后续区分新 CVE 与已知 CVE 修订，并通过已选择的 Webhook、钉钉或飞书通道发送一次合并告警。
+Create a CVE monitor under **Automation → Asset monitoring** and enter product keywords separated by commas or newlines. The platform fetches NVD changes using the `lastModified` window. The first run establishes a baseline; later runs distinguish new CVEs from revisions and send one combined alert through the selected webhook, DingTalk, or Feishu channel.
 
-每个监控最多接受 5 个去重关键词，单轮保存最近 500 条 CVE 摘要；响应大小和单次告警条数均有限制。自动化列表的“执行”按钮与 MCP `manage_platform_record(action=run)` 共用同一调度器并发保护。
+Each monitor accepts up to five unique keywords and stores up to 500 recent CVE summaries per run. Response size and alert-entry counts are capped. The UI's **Run** action and MCP `manage_platform_record(action=run)` share scheduler concurrency protection.
 
-## GitHub 泄露监控
+## GitHub exposure monitoring
 
-“测绘”页面配置并启用 GitHub Personal Access Token 后，可在“自动化 → 资产监控”创建 GitHub 查询。平台每轮最多检索 30 个候选，并发核验其中 12 个文件；只有文件内容中确认存在凭据特征时才生成发现，搜索命中但内容核验失败或未发现凭据不会记为漏洞。
+After configuring and enabling a GitHub Personal Access Token on the internet-intelligence page, create a GitHub query under **Automation → Asset monitoring**. Each run retrieves up to 30 candidates and concurrently verifies up to 12 files. A finding is created only when file content confirms a credential pattern; a search hit alone is not recorded as a vulnerability.
 
-监控快照只保存仓库、路径、可信 `github.com` 证据链接、严重级别和凭据类别计数，不保存原始 Token、私钥或匹配文本。变化判断使用脱敏证据指纹，不再通过搜索结果总数产生误报。
+Snapshots store only the repository, path, trusted `github.com` evidence URL, severity, and credential-category counts. They do not store raw tokens, private keys, or matched text. Change detection uses a redacted evidence fingerprint rather than result totals.
 
-## 凭据存储与回显
+## Credential storage
 
-API Key、Token、Webhook 地址与签名密钥、自定义测绘/ICP 接口地址和请求头均强制加密存储。设置查询只返回 `configured` 状态，加密值始终为空；编辑框显示“已保存，留空保持不变”，验证已保存凭据时由后端直接解密并请求供应商，浏览器不会重新取得明文。
+API keys, tokens, webhook URLs and signing secrets, custom intelligence or ICP endpoints, and request headers are encrypted at rest. Settings responses return only a `configured` state; encrypted values are returned as empty strings. Leaving a saved field blank preserves its value. Saved credentials are decrypted by the backend only when contacting the provider and are not returned to the browser.
 
-批量保存设置使用单个数据库事务，任一项加密或写入失败时整批回滚。敏感键是否加密由后端固定规则决定，客户端不能通过提交 `is_encrypted=false` 降级为明文。
+Bulk setting updates use one transaction. If encryption or persistence fails for any item, the whole update is rolled back. The backend determines which keys are sensitive; clients cannot force plaintext storage with `is_encrypted=false`.
 
-## 漏洞证据与安全报告
+## Finding evidence and reports
 
-任务详情的“风险”页通过独立证据窗口展示漏洞描述、Payload、Proof、修复建议和参考资料，避免长证据挤压表格。每个字段可单独复制，也可生成包含目标、级别、类型、来源和全部证明的提交素材。
+The **Findings** tab presents descriptions, payloads, proof, remediation guidance, and references in a separate evidence window. Fields can be copied individually or assembled into a submission package containing the target, severity, type, source, and proof.
 
-“导出安全报告”生成 Eclipse Recon 离线 HTML 报告。任务名、目标、站点信息和漏洞证据全部通过上下文感知模板转义；站点链接只接受无凭据的 HTTP/HTTPS URL。报告内置严格 CSP、以附件方式下载并使用 `0600` 文件权限。CSV 导出继续中和公式前缀，避免打开扫描结果时触发电子表格公式注入。
+**Export security report** generates a self-contained HTML report. User-controlled values are escaped with context-aware templates. Site links accept only credential-free HTTP or HTTPS URLs. Reports use a strict CSP, download as attachments, and are written with `0600` permissions. CSV exports neutralize formula prefixes to prevent spreadsheet formula injection.
 
-生产 Web 服务统一返回 CSP、`X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、无引用来源和禁用摄像头/麦克风/定位的权限策略。表格列宽依赖内联样式，因此 CSP 仅对样式保留必要的 `unsafe-inline`。
+Production responses include a CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, a no-referrer policy, and a permissions policy disabling camera, microphone, and geolocation. Inline styles remain allowed only for dynamic table column widths.
 
-## 企业资产闭环
+## Enterprise asset workflow
 
-“企业”工作台通过兼容 ICP_Query 的 HTTP 数据源检索网站、APP、小程序和快应用。数据源在“测绘”页面配置；本机地址直连，远程地址复用健康代理池。查询由 PostgreSQL 队列持久化，服务重启会标记中断任务，单次响应受超时、8 MiB 响应体和 10000 条结果限制。
+The enterprise workbench queries sites, apps, mini programs, and quick apps through an ICP_Query-compatible HTTP source. Configure it on the internet-intelligence page. Local endpoints are contacted directly; remote endpoints reuse the healthy proxy pool. PostgreSQL persists the queue. Each response is subject to a timeout, an 8 MiB body limit, and a 10,000-result limit.
 
-带域名的企业结果可批量执行两种互不混淆的动作：
+Enterprise results containing domains support two distinct bulk actions:
 
-- 同步资产：只写入跨任务去重的 canonical asset，可选加入已有分组或创建新分组，不产生网络扫描。
-- 下发扫描：创建原生待执行扫描任务，由用户在任务页确认后启动。
+- **Synchronize assets:** Write deduplicated canonical assets, optionally adding them to a group. This performs no network scan.
+- **Dispatch scan:** Create a pending scan task for review and manual start on the Tasks page.
 
-同步使用事务与 advisory lock 保证并发一致性，同一企业观测和分组成员重复提交保持幂等。`origin_type=enterprise_query`、原始响应、语义状态哈希和变化时间线共同保留来源证据；REST 与 MCP 同步只记录操作者、数量和分组 ID，不在审计日志中写入目标域名或凭据。
+Synchronization uses a transaction and advisory lock. Repeated observations and group memberships are idempotent. `origin_type=enterprise_query`, original responses, semantic-state hashes, and change timelines preserve provenance. REST and MCP audit entries record only the operator, count, and group ID—not domains or credentials.
 
-## 授权范围护栏
+## Authorization scopes
 
-“策略 → 授权范围”用于定义一次赏金项目或授权测试的强制边界。允许规则至少一条，排除规则优先级更高；支持以下格式：
+Use **Policies → Authorization scopes** to define the mandatory boundary of an authorized assessment. At least one allow rule is required; exclude rules take precedence.
 
 ~~~text
 example.com
@@ -282,85 +272,68 @@ example.com
 2001:db8::/32
 ~~~
 
-`*.example.com` 只匹配子域，不自动包含根域；需要同时允许根域时应再添加 `example.com`。URL 目标按主机或 IP 判断边界，但保留原始路径用于任务执行；范围规则是主机/网络级边界，因此不接受带路径、查询串或片段的 URL 规则。
+`*.example.com` matches subdomains only, not the apex domain. Add `example.com` separately when both are authorized. URL targets are checked by host or IP while retaining the original path. Scope rules define host or network boundaries, so rules containing paths, query strings, or fragments are rejected.
 
-首个范围会自动成为默认范围。默认范围自动应用于未指定 `scope_id` 的手工任务、企业扫描下发、计划任务、网络监控、手工 PoC 和 MCP `create_scan_task`；也可以为单次任务选择其他范围。后端会在创建、入队和 Worker 真正执行前复核目标，范围修改后已存在的待执行任务也不能绕过。Worker 复核后为该任务生成不可变的规则快照，避免每个端口请求查询数据库，也避免并发任务互相覆盖扫描器状态。未配置任何范围时保持兼容模式，已有部署不会被突然阻断。
+The first scope becomes the default. It applies to manual tasks without a `scope_id`, enterprise scan dispatches, scheduled tasks, network monitors, manual PoC runs, and MCP `create_scan_task` calls. The backend revalidates targets at creation, queueing, and worker claim. The worker then creates an immutable scope snapshot for the task. Existing installations remain in compatibility mode when no scopes are configured.
 
-护栏不仅检查任务入口。域名爆破和插件发现的子域、CIDR/C 段展开地址、端口与服务探测、站点跳转、爬虫页面和 JavaScript、文件泄露探测、截图导航与 HTTP/WebSocket 子请求、WIH、Host 碰撞、接管验证和 PoC 目标都会在网络 I/O 前校验。越界重定向会在第二跳发出前终止。域名规则不会自动授权其解析出的 IP；需要主动扫描解析地址时，应同时加入对应 IP 或 CIDR 规则，避免误扫共享 CDN 或第三方托管地址。
+Guardrails also cover discovered subdomains, expanded CIDR or C-class addresses, port and service probes, redirects, crawled pages and JavaScript, exposed-file probes, screenshot navigation and subrequests, WIH, host-collision checks, takeover validation, and PoC targets. Out-of-scope redirects stop before the next request. A domain rule does not automatically authorize resolved IPs; add relevant IP or CIDR rules when active scanning of those addresses is intended.
 
-受范围约束的任务只运行同源 Custom HTTP PoC。无法注入网络校验器的 Nuclei/Neutron 模板会跳过，自定义脚本会直接拒绝；兼容模式仍保留原有行为。手工 PoC 执行同样先解析默认或显式 `scope_id`，范围生效时只允许同源 Custom HTTP PoC。
+Scope-constrained tasks run only same-origin Custom HTTP PoCs. Nuclei or Neutron templates that cannot accept the network validator are skipped, and custom scripts are rejected. Compatibility mode retains prior behavior. MCP clients can call `list_scan_scopes` and then use the local, read-only `validate_scan_scope` tool; preflight validation performs no DNS, HTTP, or port requests.
 
-MCP 可先调用 `list_scan_scopes` 获取范围，再用本地只读的 `validate_scan_scope` 预检目标。目标预检不会发起 DNS、HTTP 或端口请求。
+## API and authentication
 
-## API 与认证
+- `GET /health`: public liveness check
+- `POST /api/v1/auth/login`: authenticate and receive a JWT
+- Other `/api/v1/*`: require `Authorization: Bearer <JWT>`
+- `/api/v1/ws/progress`: task progress over WebSocket
+- `/mcp`: mounted only with a valid, separate MCP bearer key
 
-- GET /health：公开健康检查。
-- POST /api/v1/auth/login：登录并返回 JWT。
-- 其他 /api/v1/*：需要 Authorization: Bearer <JWT>。
-- /api/v1/ws/progress：任务实时进度 WebSocket。
-- /mcp：只在 MCP 密钥有效时挂载，使用独立 Bearer 密钥。
+Routes are defined in [backend/internal/api/router.go](backend/internal/api/router.go). Error responses contain an `error` field; search errors also return an `example` and `supported_fields`.
 
-路由集中在 [backend/internal/api/router.go](backend/internal/api/router.go)。错误响应包含 error 字段；检索语法错误还会提供 example 和 supported_fields。
-
-## 项目结构
+## Project structure
 
 ~~~text
 backend/
-  cmd/                  server 与 init-admin 入口
-  internal/api/         Gin 路由和 HTTP handlers
-  internal/mcpserver/   MCP handler 与工具
-  internal/proxypool/   代理健康检查、轮询和请求接入
-  internal/scanner/     扫描引擎与结果保存
-  internal/searchquery/ 检索表达式解析器
-  internal/services/    领域服务
-  configs/              配置模板、字典和默认指纹
-  web/src/app/          应用壳和懒加载路由
-  web/src/components/   共享 UI 与视觉组件
+  cmd/                  server and init-admin entry points
+  internal/api/         Gin routes and HTTP handlers
+  internal/mcpserver/   MCP handler and tools
+  internal/proxypool/   proxy health checks and request integration
+  internal/scanner/     scan engine and result persistence
+  internal/searchquery/ search-expression parser
+  internal/services/    domain services
+  configs/              templates, dictionaries, and default fingerprints
+  web/src/app/          application shell and lazy-loaded routes
+  web/src/components/   shared UI components
   web/src/hooks/        React hooks
-  web/src/lib/          API、常量和检索工具
-  web/src/pages/        路由页面
+  web/src/lib/          API clients, constants, and utilities
+  web/src/pages/        route pages
 ~~~
 
-## 测试与质量检查
-
-后端：
+## Testing and quality checks
 
 ~~~bash
 cd backend
 go test ./...
 go vet ./...
 go test -race ./internal/services ./internal/api/handlers ./internal/mcpserver
-~~~
 
-前端：
-
-~~~bash
-cd backend/web
+cd web
 npm run build
 ~~~
 
-前端构建会按页面拆分为多个 JavaScript chunk。涉及交互、批量操作或布局的改动还必须在浏览器 MCP 中检查桌面视口、禁用态、确认/取消路径、页面溢出和控制台错误。不要提交 backend/web/dist、node_modules、本地配置、日志、截图或运行数据。
+Changes to interactions, bulk actions, or layout should also be checked in a browser at desktop widths, including disabled states, confirmation paths, overflow, and console errors. Do not commit `backend/web/dist`, `node_modules`, local configuration, logs, screenshots, or runtime data.
 
-## 日志与排障
+## Troubleshooting
 
-- Docker 日志：docker compose logs -f backend
-- 本地日志：由 logging.file 配置，默认写入 ./logs/arl.log
-- 请求日志包含方法、路径、状态码、耗时和客户端地址。
-- Failed to fetch：检查 /health、后端日志、JWT 和前端 API 地址。
-- MCP 不可用：检查 MCP_API_KEY 长度并确认 /health 中 mcp_enabled 为 true。
-- 数据库连接失败：检查 PostgreSQL 健康状态和 database.host、port、user、dbname。
-- 动态模块加载失败：前端重新构建后强制刷新浏览器缓存。
+- Docker logs: `docker compose logs -f backend`
+- Local logs: configured by `logging.file`; default `./logs/arl.log`
+- **Failed to fetch:** Check `/health`, backend logs, the JWT, and frontend API address.
+- **MCP unavailable:** Check `MCP_API_KEY` length and confirm `/health` reports `mcp_enabled: true`.
+- **Database connection failed:** Check PostgreSQL and `database.host`, `port`, `user`, and `dbname`.
+- **Dynamic module load failed:** Rebuild the frontend and force-refresh the browser cache.
 
-## 贡献约定
+## Contributing
 
-提交前至少运行 go test ./... 和 npm run build。涉及 API、MCP、代理池或扫描器行为时，同时补充对应测试或浏览器验证。
+Before submitting changes, run at least `go test ./...` and `npm run build`. Changes affecting APIs, MCP, proxies, or scanner behavior should include relevant tests or browser validation.
 
-不要提交：
-
-- .env
-- backend/configs/config.yaml
-- backend/data
-- backend/logs
-- backend/web/dist
-- backend/web/node_modules
-- 本地截图、构建二进制和参考项目
+Do not commit `.env`, `backend/configs/config.yaml`, `backend/data`, `backend/logs`, `backend/web/dist`, `backend/web/node_modules`, local screenshots, compiled binaries, or reference projects.

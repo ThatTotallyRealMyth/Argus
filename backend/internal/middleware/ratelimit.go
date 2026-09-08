@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RateLimiter 速率限制器
+// RateLimiter Speed limit
 type RateLimiter struct {
 	visitors map[string]*Visitor
 	mu       sync.RWMutex
@@ -16,13 +16,13 @@ type RateLimiter struct {
 	burst    int
 }
 
-// Visitor 访问者
+// Visitor Visitors
 type Visitor struct {
 	tokens     int
 	lastUpdate time.Time
 }
 
-// NewRateLimiter 创建速率限制器
+// NewRateLimiter Create Speed Limit
 func NewRateLimiter(rate, burst int) *RateLimiter {
 	rl := &RateLimiter{
 		visitors: make(map[string]*Visitor),
@@ -30,13 +30,13 @@ func NewRateLimiter(rate, burst int) *RateLimiter {
 		burst:    burst,
 	}
 
-	// 定期清理
+	// Regular clean-up
 	go rl.cleanupVisitors()
 
 	return rl
 }
 
-// Allow 检查是否允许请求
+// Allow Check whether requests are allowed
 func (rl *RateLimiter) Allow(ip string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
@@ -50,7 +50,7 @@ func (rl *RateLimiter) Allow(ip string) bool {
 		return true
 	}
 
-	// 令牌桶算法
+	// Acoustic Bar
 	now := time.Now()
 	elapsed := now.Sub(v.lastUpdate)
 	tokensToAdd := int(elapsed.Seconds()) * rl.rate
@@ -70,7 +70,7 @@ func (rl *RateLimiter) Allow(ip string) bool {
 	return false
 }
 
-// cleanupVisitors 清理过期访问者
+// cleanupVisitors Clear expired visitors
 func (rl *RateLimiter) cleanupVisitors() {
 	for {
 		time.Sleep(time.Minute)
@@ -84,7 +84,7 @@ func (rl *RateLimiter) cleanupVisitors() {
 	}
 }
 
-// RateLimit 速率限制中间件
+// RateLimit Intermediate Speed Limit
 func RateLimit(rl *RateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()

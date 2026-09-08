@@ -9,22 +9,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Recovery 恢复中间件
+// Recovery Restore Middle
 func Recovery(logger *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				// 获取堆栈信息
+				// Fetch Stack Information
 				stack := debug.Stack()
 
-				// 记录错误
+				// Record Error
 				logger.WithFields(logrus.Fields{
 					"error": err,
 					"stack": string(stack),
 					"path":  c.Request.URL.Path,
 				}).Error("PANIC RECOVERED")
 
-				// 返回错误响应
+				// Back to Error Response
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": fmt.Sprintf("Internal server error: %v", err),
 				})

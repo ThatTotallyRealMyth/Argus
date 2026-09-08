@@ -6,9 +6,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// SaveDomainWithDedup 保存域名并去重
+// SaveDomainWithDedup Save domain name and weigh
 func SaveDomainWithDedup(db *gorm.DB, domain *models.Domain) error {
-	// 使用 FirstOrCreate 来避免重复
+	// Use FirstOrCreate To avoid duplication
 	return db.Where("domain = ?", domain.Domain).
 		Assign(models.Domain{
 			IPAddress: domain.IPAddress,
@@ -18,7 +18,7 @@ func SaveDomainWithDedup(db *gorm.DB, domain *models.Domain) error {
 		FirstOrCreate(domain).Error
 }
 
-// SaveIPWithDedup 保存IP并去重
+// SaveIPWithDedup SaveIPAnd to weigh
 func SaveIPWithDedup(db *gorm.DB, ip *models.IP) error {
 	return db.Where("ip_address = ?", ip.IPAddress).
 		Assign(models.IP{
@@ -30,7 +30,7 @@ func SaveIPWithDedup(db *gorm.DB, ip *models.IP) error {
 		FirstOrCreate(ip).Error
 }
 
-// SavePortWithDedup 保存端口并去重
+// SavePortWithDedup Save port and weigh
 func SavePortWithDedup(db *gorm.DB, port *models.Port) error {
 	return db.Where("ip_address = ? AND port = ?", port.IPAddress, port.Port).
 		Assign(models.Port{
@@ -43,7 +43,7 @@ func SavePortWithDedup(db *gorm.DB, port *models.Port) error {
 		FirstOrCreate(port).Error
 }
 
-// SaveSiteWithDedup 保存站点并去重
+// SaveSiteWithDedup Save site and weigh
 func SaveSiteWithDedup(db *gorm.DB, site *models.Site) error {
 	return db.Where("url = ?", site.URL).
 		Assign(models.Site{
@@ -59,20 +59,20 @@ func SaveSiteWithDedup(db *gorm.DB, site *models.Site) error {
 		FirstOrCreate(site).Error
 }
 
-// BatchSaveDomainsWithDedup 批量保存域名并去重
+// BatchSaveDomainsWithDedup Batch save domain name and weigh
 func BatchSaveDomainsWithDedup(db *gorm.DB, domains []models.Domain) error {
 	if len(domains) == 0 {
 		return nil
 	}
 
-	// 使用 Upsert 批量插入/更新
+	// Use Upsert Batch Insert/Update
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "domain"}},
 		DoUpdates: clause.AssignmentColumns([]string{"ip_address", "cdn", "source", "updated_at"}),
 	}).Create(&domains).Error
 }
 
-// BatchSaveIPsWithDedup 批量保存IP并去重
+// BatchSaveIPsWithDedup Bulk SaveIPAnd to weigh
 func BatchSaveIPsWithDedup(db *gorm.DB, ips []models.IP) error {
 	if len(ips) == 0 {
 		return nil
@@ -84,7 +84,7 @@ func BatchSaveIPsWithDedup(db *gorm.DB, ips []models.IP) error {
 	}).Create(&ips).Error
 }
 
-// BatchSavePortsWithDedup 批量保存端口并去重
+// BatchSavePortsWithDedup Batch save port and weigh
 func BatchSavePortsWithDedup(db *gorm.DB, ports []models.Port) error {
 	if len(ports) == 0 {
 		return nil
@@ -96,7 +96,7 @@ func BatchSavePortsWithDedup(db *gorm.DB, ports []models.Port) error {
 	}).Create(&ports).Error
 }
 
-// BatchSaveSitesWithDedup 批量保存站点并去重
+// BatchSaveSitesWithDedup Batch save site and weigh
 func BatchSaveSitesWithDedup(db *gorm.DB, sites []models.Site) error {
 	if len(sites) == 0 {
 		return nil

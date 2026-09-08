@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// SSLCertInfo SSL证书信息
+// SSLCertInfo contains metadata extracted from an SSL/TLS certificate.
 type SSLCertInfo struct {
 	Subject        string
 	Issuer         string
@@ -24,19 +24,19 @@ type SSLCertInfo struct {
 	DaysRemaining  int
 }
 
-// SSLScanner SSL扫描器
+// SSLScanner SSLScanner
 type SSLScanner struct {
 	timeout time.Duration
 }
 
-// NewSSLScanner 创建SSL扫描器
+// NewSSLScanner CreateSSLScanner
 func NewSSLScanner() *SSLScanner {
 	return &SSLScanner{
 		timeout: 10 * time.Second,
 	}
 }
 
-// GetCertificate 获取SSL证书
+// GetCertificate FetchSSLCertificate
 func (ss *SSLScanner) GetCertificate(host string, port int) (*SSLCertInfo, error) {
 	address := fmt.Sprintf("%s:%d", host, port)
 
@@ -53,7 +53,7 @@ func (ss *SSLScanner) GetCertificate(host string, port int) (*SSLCertInfo, error
 	}
 	defer conn.Close()
 
-	// 获取证书
+	// Get Certificate
 	certs := conn.ConnectionState().PeerCertificates
 	if len(certs) == 0 {
 		return nil, fmt.Errorf("no certificates found")
@@ -61,7 +61,7 @@ func (ss *SSLScanner) GetCertificate(host string, port int) (*SSLCertInfo, error
 
 	cert := certs[0]
 
-	// 解析证书信息
+	// Parsing certificate information
 	info := &SSLCertInfo{
 		Subject:        cert.Subject.String(),
 		Issuer:         cert.Issuer.String(),
@@ -73,16 +73,16 @@ func (ss *SSLScanner) GetCertificate(host string, port int) (*SSLCertInfo, error
 		IsExpired:      time.Now().After(cert.NotAfter),
 	}
 
-	// 计算剩余天数
+	// Calculate the remaining days
 	daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
 	info.DaysRemaining = daysRemaining
 
-	// 获取组织信息
+	// Access to organizational information
 	if len(cert.Subject.Organization) > 0 {
 		info.Organization = cert.Subject.Organization[0]
 	}
 
-	// IP地址
+	// IPAddress
 	for _, ip := range cert.IPAddresses {
 		info.IPAddresses = append(info.IPAddresses, ip.String())
 	}
@@ -90,7 +90,7 @@ func (ss *SSLScanner) GetCertificate(host string, port int) (*SSLCertInfo, error
 	return info, nil
 }
 
-// ExtractDomains 从证书中提取域名
+// ExtractDomains Extract domain names from certificates
 func (ss *SSLScanner) ExtractDomains(cert *x509.Certificate) []string {
 	domains := make(map[string]bool)
 
@@ -118,18 +118,18 @@ func (ss *SSLScanner) ExtractDomains(cert *x509.Certificate) []string {
 	return result
 }
 
-// isValidDomain 验证域名格式
+// isValidDomain Authenticate domain name format
 func isValidDomain(domain string) bool {
 	if domain == "" || len(domain) > 255 {
 		return false
 	}
 
-	// 简单的域名格式检查
+	// Simple domain name format check
 	if !strings.Contains(domain, ".") {
 		return false
 	}
 
-	// 不包含空格
+	// Do not contain spaces
 	if strings.Contains(domain, " ") {
 		return false
 	}
@@ -137,7 +137,7 @@ func isValidDomain(domain string) bool {
 	return true
 }
 
-// FormatCertInfo 格式化证书信息为字符串
+// FormatCertInfo Format certificate information as a string
 func (ss *SSLScanner) FormatCertInfo(info *SSLCertInfo) string {
 	var builder strings.Builder
 

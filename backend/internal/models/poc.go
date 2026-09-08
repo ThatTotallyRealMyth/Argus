@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// PoC PoC模型
+// PoC PoCModel
 type PoC struct {
 	ID               string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Name             string         `gorm:"type:varchar(255);not null;index" json:"name"`
@@ -23,10 +23,10 @@ type PoC struct {
 	Reference        string         `gorm:"type:text" json:"reference"`
 	PoCType          string         `gorm:"type:varchar(50);not null" json:"poc_type"` // nuclei, xray, custom
 	PoCContent       string         `gorm:"type:text;not null" json:"poc_content"`
-	Tags             string         `gorm:"type:varchar(500)" json:"tags"`                      // 逗号分隔
-	Fingerprints     string         `gorm:"type:varchar(1000)" json:"fingerprints"`             // 关联的指纹名称,逗号分隔,用于智能匹配
-	AppNames         string         `gorm:"type:varchar(1000);index" json:"app_names"`          // 应用名称关键词,逗号分隔
-	MatchMode        string         `gorm:"type:varchar(20);default:'fuzzy'" json:"match_mode"` // 匹配模式: exact(精确), fuzzy(模糊), keyword(关键词)
+	Tags             string         `gorm:"type:varchar(500)" json:"tags"`                      // Comma separated
+	Fingerprints     string         `gorm:"type:varchar(1000)" json:"fingerprints"`             // Associated fingerprint name,Comma separated,For Smart Matching
+	AppNames         string         `gorm:"type:varchar(1000);index" json:"app_names"`          // Apply name keywords,Comma separated
+	MatchMode        string         `gorm:"type:varchar(20);default:'fuzzy'" json:"match_mode"` // Match Mode: exact(Precision), fuzzy(Blur), keyword(Keywords)
 	IsEnabled        bool           `gorm:"default:true" json:"is_enabled"`
 	CreatedBy        string         `gorm:"type:varchar(36)" json:"created_by"`
 	CreatedAt        time.Time      `json:"created_at"`
@@ -34,12 +34,12 @@ type PoC struct {
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (PoC) TableName() string {
 	return "pocs"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (p *PoC) BeforeCreate(tx *gorm.DB) error {
 	if p.ID == "" {
 		p.ID = uuid.New().String()
@@ -80,7 +80,7 @@ func normalizePoCContent(pocType, content string) string {
 	return candidate
 }
 
-// PoCExecutionLog PoC执行日志
+// PoCExecutionLog PoCExecute Log
 type PoCExecutionLog struct {
 	ID               string    `gorm:"type:varchar(36);primaryKey" json:"id"`
 	PoCID            string    `gorm:"type:varchar(36);not null;index" json:"poc_id"`
@@ -97,12 +97,12 @@ type PoCExecutionLog struct {
 	CreatedAt        time.Time `json:"created_at"`
 }
 
-// TableName 指定表名
+// TableName Specifying a tab name
 func (PoCExecutionLog) TableName() string {
 	return "poc_execution_logs"
 }
 
-// BeforeCreate 创建前钩子
+// BeforeCreate Create a pre-hand hook
 func (l *PoCExecutionLog) BeforeCreate(tx *gorm.DB) error {
 	if l.ID == "" {
 		l.ID = uuid.New().String()
