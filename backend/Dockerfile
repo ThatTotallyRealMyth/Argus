@@ -30,7 +30,8 @@ COPY --chown=appuser:appuser configs/ ./configs/
 COPY --from=web-builder --chown=appuser:appuser /web/dist/ ./web/dist/
 
 RUN cp configs/config.docker.yaml configs/config.yaml && \
-    mkdir -p data/screenshots data/exports logs
+    mkdir -p data/screenshots data/exports logs && \
+    chown -R appuser:appuser data logs
 
 USER appuser
 EXPOSE 5003

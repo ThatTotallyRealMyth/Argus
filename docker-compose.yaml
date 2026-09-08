@@ -51,8 +51,27 @@ services:
     volumes:
       - .storage/app/data:/app/data
     depends_on:
+      prepare-storage:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
+    restart: "no"
+
+  prepare-storage:
+    image: argus-backend:latest
+    platform: linux/amd64
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mkdir -p /app/data /app/logs
+        chown -R appuser:appuser /app/data /app/logs
+    volumes:
+      - .storage/app/data:/app/data
+      - .storage/app/logs:/app/logs
     restart: "no"
 
   db:

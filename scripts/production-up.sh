@@ -44,6 +44,6 @@ while (( SECONDS < deadline )); do
 done
 
 "${compose[@]}" ps >&2
-"${compose[@]}" logs --tail=160 backend init-admin db redis >&2
+"${compose[@]}" logs --tail=160 backend prepare-storage init-admin db redis >&2
 echo "Deployment did not become healthy within 240 seconds." >&2
 exit 1
