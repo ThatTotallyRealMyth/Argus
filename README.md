@@ -1,3 +1,124 @@
+└─$ ./scripts/production-up.sh                                  
+[+] Running 24/24
+ ✔ redis Pulled                                                                                                                                                                                                      7.1s 
+   ✔ 897d797d2723 Pull complete                                                                                                                                                                                      1.2s 
+   ✔ d85eda7b0b14 Pull complete                                                                                                                                                                                      1.2s 
+   ✔ 9516b0cd89c9 Pull complete                                                                                                                                                                                      1.3s 
+   ✔ de4b872bfdc3 Pull complete                                                                                                                                                                                      2.4s 
+   ✔ 2c96e5a02ba0 Pull complete                                                                                                                                                                                      2.4s 
+   ✔ 4f4fb700ef54 Pull complete                                                                                                                                                                                      2.4s 
+   ✔ 41caa0265cb5 Pull complete                                                                                                                                                                                      2.9s 
+ ✘ init-admin Error         pull access denied for moon-gazing-tower-backend, repository does not exist or may require 'docker login': denied: requested access to the resource is denied                            3.0s 
+ ✔ db Pulled                                                                                                                                                                                                        16.8s 
+   ✔ 6310eb16bf42 Pull complete                                                                                                                                                                                      4.7s 
+   ✔ 639367129460 Pull complete                                                                                                                                                                                      4.7s 
+   ✔ 248bdcd6e955 Pull complete                                                                                                                                                                                      4.9s 
+   ✔ 8d2f3610bf84 Pull complete                                                                                                                                                                                      4.9s 
+   ✔ 22bf49630d7e Pull complete                                                                                                                                                                                      5.2s 
+   ✔ d523576e6b46 Pull complete                                                                                                                                                                                      5.2s 
+   ✔ d522ad15b8c1 Pull complete                                                                                                                                                                                      5.3s 
+   ✔ 876153b11224 Pull complete                                                                                                                                                                                      5.7s 
+   ✔ 04913c3958ed Pull complete                                                                                                                                                                                     10.7s 
+   ✔ a849d36c92a3 Pull complete                                                                                                                                                                                     10.8s 
+   ✔ d6430d172c75 Pull complete                                                                                                                                                                                     11.7s 
+   ✔ b86905d46631 Pull complete                                                                                                                                                                                     11.7s 
+   ✔ 2659259e5615 Pull complete                                                                                                                                                                                     11.7s 
+   ✔ 8f6bdf8e7ebe Pull complete                                                                                                                                                                                     12.7s 
+[+] Building 129.3s (22/28)                                                                                                                                                                                                                             
+ => [internal] load local bake definitions                                                                                                                                                                                                         0.0s
+ => => reading from stdin 457B                                                                                                                                                                                                                     0.0s
+ => [internal] load build definition from Dockerfile                                                                                                                                                                                               0.0s
+ => => transferring dockerfile: 1.18kB                                                                                                                                                                                                             0.0s
+ => [internal] load metadata for docker.io/library/node:22-alpine                                                                                                                                                                                  3.0s
+ => [internal] load metadata for docker.io/library/debian:bookworm-slim                                                                                                                                                                            2.5s
+ => [internal] load metadata for docker.io/library/golang:1.24                                                                                                                                                                                     3.0s
+ => [internal] load .dockerignore                                                                                                                                                                                                                  0.0s
+ => => transferring context: 211B                                                                                                                                                                                                                  0.0s
+ => [builder 1/7] FROM docker.io/library/golang:1.24@sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804                                                                                                                      20.2s
+ => => resolve docker.io/library/golang:1.24@sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804                                                                                                                               0.0s
+ => => sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591 25.61MB / 25.61MB                                                                                                                                                   2.0s
+ => => sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956 67.79MB / 67.79MB                                                                                                                                                   4.6s
+ => => sha256:d2d2bc1c84f7e60d7d2438a3836ae7d0c847f4888464e7ec9ba3a1339a1ee804 9.70kB / 9.70kB                                                                                                                                                     0.0s
+ => => sha256:00925efecb9c93b3208f48a9e8ae8b1d426be1fff78baf2fc9d394d198fe9fc8 3.05kB / 3.05kB                                                                                                                                                     0.0s
+ => => sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c 49.29MB / 49.29MB                                                                                                                                                   1.3s
+ => => sha256:46fdd02b6cbcd624a4087ea298e4c8505e5d400c4ee5181e4dd06e2297d647ae 2.32kB / 2.32kB                                                                                                                                                     0.0s
+ => => sha256:b2b04fcbed4bf6e5373e2607d2705704ec5b220f1d1306e06ab8fe9471b2f86a 102.14MB / 102.14MB                                                                                                                                                 5.6s
+ => => extracting sha256:ef235bf1a09a237b896b69935c8c8d917c9c6a78b538724911414afc0a96763c                                                                                                                                                          2.8s
+ => => sha256:f7bdfd728ac2ad72d43b82689890dc698260d3a1049845f48fb3fb942df6c581 79.13MB / 79.13MB                                                                                                                                                   5.0s
+ => => extracting sha256:954d6059ca7bdbb9ceb566ca2239e01ef312165659d656753d7dbace7771a591                                                                                                                                                          1.2s
+ => => sha256:50a27cd32f8983e7e43777ec65195fb6594ea877f31993fd555513c261ffc054 126B / 126B                                                                                                                                                         5.1s
+ => => sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B                                                                                                                                                           5.5s
+ => => extracting sha256:b5e2021c4c8bd1a46b34d9608a9381afdc333600ee1ef3c94306ecf7373e1956                                                                                                                                                          4.1s
+ => => extracting sha256:b2b04fcbed4bf6e5373e2607d2705704ec5b220f1d1306e06ab8fe9471b2f86a                                                                                                                                                          4.1s
+ => => extracting sha256:f7bdfd728ac2ad72d43b82689890dc698260d3a1049845f48fb3fb942df6c581                                                                                                                                                          6.3s
+ => => extracting sha256:50a27cd32f8983e7e43777ec65195fb6594ea877f31993fd555513c261ffc054                                                                                                                                                          0.0s
+ => => extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1                                                                                                                                                          0.0s
+ => [web-builder 1/6] FROM docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32                                                                                                               10.0s
+ => => resolve docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32                                                                                                                            0.0s
+ => => sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 6.41kB / 6.41kB                                                                                                                                                     0.0s
+ => => sha256:76789712cd1ae89a1225eac9077010d68987a423588042dac30446f502f1858c 1.72kB / 1.72kB                                                                                                                                                     0.0s
+ => => sha256:395425e54d98ebbd748d388685a0c2de151a30fa92fffc10ba30fa63f3db64d6 6.56kB / 6.56kB                                                                                                                                                     0.0s
+ => => sha256:55afa1ecc21d2bb5e5045f32dafee56272ffd89860bac26f6c32123439af26a4 3.85MB / 3.85MB                                                                                                                                                     6.3s
+ => => sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a 52.63MB / 52.63MB                                                                                                                                                   7.6s
+ => => sha256:a2980c1fee17dfd6263234b253955e0e9d5f38d47c0e71c001139897134899d0 1.26MB / 1.26MB                                                                                                                                                     6.6s
+ => => extracting sha256:55afa1ecc21d2bb5e5045f32dafee56272ffd89860bac26f6c32123439af26a4                                                                                                                                                          0.2s
+ => => sha256:16da5a6403776464b5bf551ef294de57da242eac594527ea551a46e7f76ac2d6 445B / 445B                                                                                                                                                         6.8s
+ => => extracting sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a                                                                                                                                                          2.2s
+ => => extracting sha256:a2980c1fee17dfd6263234b253955e0e9d5f38d47c0e71c001139897134899d0                                                                                                                                                          0.1s
+ => => extracting sha256:16da5a6403776464b5bf551ef294de57da242eac594527ea551a46e7f76ac2d6                                                                                                                                                          0.0s
+ => [internal] load build context                                                                                                                                                                                                                  0.1s
+ => => transferring context: 2.08MB                                                                                                                                                                                                                0.0s
+ => [stage-2 1/8] FROM docker.io/library/debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171                                                                                                              8.3s
+ => => resolve docker.io/library/debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171                                                                                                                      0.0s
+ => => sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171 5.65kB / 5.65kB                                                                                                                                                     0.0s
+ => => sha256:5ae3c39ebd15e229dcedd5cee596b2497182493d41ff162e824ba13fc1b2b867 1.02kB / 1.02kB                                                                                                                                                     0.0s
+ => => sha256:160466e67bb85a4099d9d9c2356b4a6a64747b281a22c142efbd4539db1b8525 453B / 453B                                                                                                                                                         0.0s
+ => => sha256:a8ac7f6c67abc236e4c745052c404112b8fab6fe8ac3a329d1ef3b867ad67c71 28.23MB / 28.23MB                                                                                                                                                   6.1s
+ => => extracting sha256:a8ac7f6c67abc236e4c745052c404112b8fab6fe8ac3a329d1ef3b867ad67c71                                                                                                                                                          2.1s
+ => [stage-2 2/8] RUN apt-get update && apt-get install -y --no-install-recommends     ca-certificates chromium dumb-init fonts-dejavu-core nmap python3 &&     rm -rf /var/lib/apt/lists/*                                                       30.7s
+ => [web-builder 2/6] WORKDIR /web                                                                                                                                                                                                                 1.7s
+ => [web-builder 3/6] COPY web/package.json web/package-lock.json ./                                                                                                                                                                               0.2s
+ => [web-builder 4/6] RUN npm ci                                                                                                                                                                                                                   7.4s
+ => [web-builder 5/6] COPY web/ ./                                                                                                                                                                                                                 0.1s
+ => [web-builder 6/6] RUN npm run build                                                                                                                                                                                                            4.8s
+ => [builder 2/7] RUN apt-get update && apt-get install -y --no-install-recommends libpcap-dev &&     rm -rf /var/lib/apt/lists/*                                                                                                                  4.9s
+ => [builder 3/7] WORKDIR /app                                                                                                                                                                                                                     0.0s
+ => [builder 4/7] COPY go.mod go.sum ./                                                                                                                                                                                                            0.0s
+ => ERROR [builder 5/7] RUN go mod download                                                                                                                                                                                                      100.9s
+ => [stage-2 3/8] RUN useradd --system --home /app --shell /usr/sbin/nologin appuser                                                                                                                                                               0.2s
+ => [stage-2 4/8] WORKDIR /app                                                                                                                                                                                                                     0.0s
+------
+ > [builder 5/7] RUN go mod download:
+99.92 go: github.com/chromedp/cdproto@v0.0.0-20231011050154-1d073bb38998: read "https://goproxy.cn/github.com/chromedp/cdproto/@v/v0.0.0-20231011050154-1d073bb38998.zip": stream error: stream ID 1549; INTERNAL_ERROR; received from peer
+99.92 go: github.com/chromedp/chromedp@v0.9.3: read "https://goproxy.cn/github.com/chromedp/chromedp/@v/v0.9.3.zip": stream error: stream ID 1551; INTERNAL_ERROR; received from peer
+99.92 go: github.com/lcvvvv/gonmap@v1.3.4: read "https://goproxy.cn/github.com/lcvvvv/gonmap/@v/v1.3.4.zip": stream error: stream ID 1563; INTERNAL_ERROR; received from peer
+99.92 go: github.com/modelcontextprotocol/go-sdk@v0.5.0: read "https://goproxy.cn/github.com/modelcontextprotocol/go-sdk/@v/v0.5.0.zip": stream error: stream ID 1565; INTERNAL_ERROR; received from peer
+99.92 go: github.com/projectdiscovery/naabu/v2@v2.3.5: read "https://goproxy.cn/github.com/projectdiscovery/naabu/v2/@v/v2.3.5.zip": stream error: stream ID 1567; INTERNAL_ERROR; received from peer
+99.92 go: github.com/dlclark/regexp2@v1.11.5: read "https://goproxy.cn/github.com/dlclark/regexp2/@v/v1.11.5.zip": stream error: stream ID 1647; INTERNAL_ERROR; received from peer
+99.92 go: github.com/miekg/dns@v1.1.68: read "https://goproxy.cn/github.com/miekg/dns/@v/v1.1.68.zip": stream error: stream ID 1749; INTERNAL_ERROR; received from peer
+99.92 go: github.com/pelletier/go-toml/v2@v2.1.0: read "https://goproxy.cn/github.com/pelletier/go-toml/v2/@v/v2.1.0.zip": stream error: stream ID 1765; INTERNAL_ERROR; received from peer
+99.92 go: github.com/projectdiscovery/cdncheck@v1.1.27: read "https://goproxy.cn/github.com/projectdiscovery/cdncheck/@v/v1.1.27.zip": stream error: stream ID 1777; INTERNAL_ERROR; received from peer
+99.92 go: github.com/projectdiscovery/mapcidr@v1.1.34: read "https://goproxy.cn/github.com/projectdiscovery/mapcidr/@v/v1.1.34.zip": stream error: stream ID 1797; INTERNAL_ERROR; received from peer
+99.92 go: github.com/projectdiscovery/uncover@v1.1.0: read "https://goproxy.cn/github.com/projectdiscovery/uncover/@v/v1.1.0.zip": stream error: stream ID 1807; INTERNAL_ERROR; received from peer
+99.92 go: github.com/refraction-networking/utls@v1.7.0: read "https://goproxy.cn/github.com/refraction-networking/utls/@v/v1.7.0.zip": stream error: stream ID 1811; INTERNAL_ERROR; received from peer
+99.92 go: github.com/shirou/gopsutil/v3@v3.23.7: read "https://goproxy.cn/github.com/shirou/gopsutil/v3/@v/v3.23.7.zip": stream error: stream ID 1823; INTERNAL_ERROR; received from peer
+99.92 go: golang.org/x/exp@v0.0.0-20250106191152-7588d65b2ba8: read "https://goproxy.cn/golang.org/x/exp/@v/v0.0.0-20250106191152-7588d65b2ba8.zip": stream error: stream ID 1897; INTERNAL_ERROR; received from peer
+------
+Dockerfile:8
+--------------------
+   6 |     ENV GOPROXY=https://goproxy.cn,direct
+   7 |     COPY go.mod go.sum ./
+   8 | >>> RUN go mod download
+   9 |     COPY . .
+  10 |     RUN CGO_ENABLED=1 go build -o /out/server ./cmd/server && \
+--------------------
+failed to solve: process "/bin/sh -c go mod download" did not complete successfully: exit code: 1
+                                                                                                                                                                                                                                                        
+┌──(kali㉿kali)-[~/personalprojects/Argus]
+└─$ 
+
+
+
 # Argus
 
 Argus is a web app and external pen testing framework for authorized security research and attack-surface operations. It brings scan orchestration, asset management, HTTP observations, fingerprint and proof-of-concept (PoC) libraries, proxy management, internet intelligence providers, and MCP tools into one web console.
