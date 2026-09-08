@@ -39,7 +39,7 @@ func NewAdvancedPortScanner() *AdvancedPortScanner {
 		progressChan: make(chan *ScanProgress, 100),
 		engine:       NewPortScanEngine(),
 	}
-	fmt.Printf("Port scanner ready: %s discovery + gonmap service detection\n", scanner.engine.Name())
+	fmt.Printf("Port scanner ready: %s TCP discovery and service detection\n", scanner.engine.Name())
 
 	return scanner
 }
@@ -50,17 +50,14 @@ func (aps *AdvancedPortScanner) SetProgressChannel(ch chan *ScanProgress) {
 }
 
 // SetScanMode Set Scan Mode
-// normal: Naabu Self-adaptation rate + Nmap Standard Scan
-// comprehensive: Naabu Self-adaptation rate + Nmap Deep Scan
+// The mode describes the selected port set and is retained for progress output.
 func (aps *AdvancedPortScanner) SetScanMode(mode string) {
 	aps.scanMode = mode
-	// NaabuUse self-adaptation rate, No manual setting required
-	// Rates are automatically adjusted to target numbers and port range
 }
 
 // ApplyConfig Apply scanner configuration (Compatibility Interface)
 func (aps *AdvancedPortScanner) ApplyConfig(config *ScannerConfig, portCount int) {
-	// NaabuUse self-adaptation rate, Keep the configuration interface here to fit the existing code
+	// Nmap owns timing and retry behavior; this method preserves the scanner interface.
 }
 
 // ScanWithProgress Execute port scan and push progress
@@ -114,7 +111,6 @@ func (aps *AdvancedPortScanner) scanWithEngine(ctx *ScanContext, ips []models.IP
 	ctx.Logger.Printf("Stage 1/2: %s port discovery", aps.engine.Name())
 	aps.sendProgress(ctx, 0, totalScans, 0, 0, startTime, "Open port being detected...")
 
-	// Use Naabu Engine Scan
 	results, err := aps.engine.ScanPorts(ctx.Ctx, ipStrings, ports)
 	if err != nil {
 		return nil, fmt.Errorf("%s scan failed: %w", aps.engine.Name(), err)
@@ -185,6 +181,7 @@ func (aps *AdvancedPortScanner) savePortResult(ctx *ScanContext, result *PortSca
 		Port:      result.Port,
 		Protocol:  result.Protocol,
 		Service:   result.Service,
+		Version:   result.Version,
 		Banner:    result.Banner,
 	}
 

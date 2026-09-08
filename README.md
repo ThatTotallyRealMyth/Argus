@@ -16,7 +16,7 @@ Some detection resources intentionally retain source-language strings. Chinese p
 - **Asset inventory:** Normalize domains, IP addresses, ports, and sites across tasks. Preserve observations, relationship evidence, and semantic change timelines while aggregating findings and exposure risk. URL and HTTP records and asset groups are also supported.
 - **Hunting leads:** Build a global priority queue from confirmed findings, takeover candidates, sensitive services, administrative interfaces, PoC matches, and attack-surface changes. Web and MCP validation share the source task's authorization scope and retain a structured audit trail. PoC hits are stored as deduplicated finding evidence and linked to asset risk and reports.
 - **Evidence packages:** Review findings independently, copy individual evidence fields or a complete evidence package, and export a self-contained HTML security report.
-- **Reconnaissance:** Domain discovery, port scanning, service and site detection, crawling, screenshots, fingerprinting, exposed-file checks, and PoC validation.
+- **Reconnaissance:** Root-domain and subdomain discovery, Nmap TCP/service scanning, site detection on arbitrary open TCP ports, crawling, screenshots, fingerprinting, exposed-file checks, and PoC validation.
 - **Library management:** Edit and import fingerprint DSL rules, Nuclei templates, and constrained Custom HTTP PoCs with categories, severities, and matching modes.
 - **Proxy pool:** HTTP, HTTPS, and SOCKS5 proxies with authentication, bulk import, bulk validation, health checks, round-robin selection, and automatic rotation.
 - **Internet intelligence:** Built-in configuration for FOFA, Hunter, 360 Quake, ZoomEye, Shodan, VirusTotal, and GitHub. Credentials can be saved, enabled, and tested individually; encrypted values are never returned to the browser.
@@ -75,6 +75,8 @@ Service endpoints:
 - Dependency readiness check: http://localhost:5003/ready
 - PostgreSQL: localhost only at 127.0.0.1:15432
 - Redis: localhost only at 127.0.0.1:16379
+
+Port scans use an unprivileged Nmap accuracy profile (`-Pn -sT -sV --version-all -T3 --max-retries 3`). The task's **Test**, **Top 100**, **Top 1000**, and **All** choices still determine the exact TCP port set. Every authorized address in a submitted CIDR is scanned with that selection, so large ranges and the **All** profile can take substantial time. Site detection tries HTTP and HTTPS on every discovered open TCP port rather than relying on a short list of conventional web ports.
 
 On first startup, the `prepare-storage` container gives the non-root application user access to the bind-mounted runtime directories and gives your host user access to the backup directory. Then `init-admin` creates the administrator account. JWT and encryption keys are generated in the Docker data volume. Do not delete `.storage/app/data`; doing so can make previously encrypted configuration unrecoverable.
 

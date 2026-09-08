@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -144,20 +145,31 @@ func (ds *DomainScanner) Scan(ctx *ScanContext) error {
 			continue
 		}
 
-		// If it's a domain name,, We're going to blow.
-		if ds.isDomain(target) {
-			// Save master domain name
-			ds.saveDomain(ctx, target, "target", "")
+		if domain, ok := domainTarget(target); ok {
+			resolvedIPs, resolveErr := ds.resolveWithRetry(domain)
+			primaryIP := ""
+			if resolveErr != nil {
+				ctx.Logger.Printf("Root domain resolution failed for %s: %v", domain, resolveErr)
+			} else {
+				for _, ip := range resolvedIPs {
+					if primaryIP == "" {
+						primaryIP = ip
+					}
+					ds.saveIP(ctx, ip, domain)
+				}
+				ctx.Logger.Printf("Root domain resolved: %s -> %v", domain, resolvedIPs)
+			}
+			ds.saveDomain(ctx, domain, "target", primaryIP)
 
 			if ctx.Task.Options.EnableDomainBrute {
-				if err := ds.bruteForceDomain(ctx, target); err != nil {
+				if err := ds.bruteForceDomain(ctx, domain); err != nil {
 					ctx.Logger.Printf("Domain brute force failed: %v", err)
 				}
 			}
 
 			// Query domain names using plugins
 			if ctx.Task.Options.EnableDomainPlugins {
-				if err := ds.queryDomainPlugins(ctx, target); err != nil {
+				if err := ds.queryDomainPlugins(ctx, domain); err != nil {
 					ctx.Logger.Printf("Domain plugins query failed: %v", err)
 				}
 			}
@@ -837,18 +849,27 @@ func (ds *DomainScanner) updateIPLocationsInBatch(ctx *ScanContext) {
 }
 
 // isDomain Determine whether to use domain names
-func (ds *DomainScanner) isDomain(target string) bool {
-	// Simple judgment: Include Point and notIPAddress
-	if !strings.Contains(target, ".") {
-		return false
+func domainTarget(target string) (string, bool) {
+	candidate := strings.TrimSpace(target)
+	if candidate == "" {
+		return "", false
 	}
-
-	// If you can solve asIP, Not domain name
-	if net.ParseIP(target) != nil {
-		return false
+	if _, _, err := net.ParseCIDR(candidate); err == nil {
+		return "", false
 	}
-
-	return true
+	parseValue := candidate
+	if !strings.Contains(parseValue, "://") {
+		parseValue = "//" + parseValue
+	}
+	parsed, err := url.Parse(parseValue)
+	if err != nil {
+		return "", false
+	}
+	host := strings.ToLower(strings.TrimSuffix(parsed.Hostname(), "."))
+	if host == "" || net.ParseIP(host) != nil || !strings.Contains(host, ".") {
+		return "", false
+	}
+	return host, true
 }
 
 // isSubdomainOf Judgement subdomain Is it? domain subdomain name or equal to domain

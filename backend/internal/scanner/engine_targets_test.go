@@ -41,3 +41,22 @@ func TestIsIPCIDRTargetDoesNotTreatURLPathAsCIDR(t *testing.T) {
 		t.Fatal("URL path was incorrectly recognized as CIDR")
 	}
 }
+
+func TestDomainTargetNormalizesHostInputs(t *testing.T) {
+	tests := map[string]string{
+		"Example.COM":                    "example.com",
+		"https://portal.example.com/app": "portal.example.com",
+		"api.example.com:8443":           "api.example.com",
+	}
+	for input, want := range tests {
+		got, ok := domainTarget(input)
+		if !ok || got != want {
+			t.Fatalf("domainTarget(%q) = %q, %v; want %q, true", input, got, ok, want)
+		}
+	}
+	for _, input := range []string{"192.0.2.1", "192.0.2.0/24", "https://192.0.2.1/app"} {
+		if got, ok := domainTarget(input); ok {
+			t.Fatalf("domainTarget(%q) unexpectedly accepted %q", input, got)
+		}
+	}
+}

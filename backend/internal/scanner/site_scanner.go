@@ -5,8 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -63,7 +66,7 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 	})
 
 	var ports []models.Port
-	ctx.DB.Where("task_id = ? AND port IN (?)", ctx.Task.ID, []int{80, 443, 8080, 8443, 8888, 8000, 8001, 9090}).Find(&ports)
+	ctx.DB.Where("task_id = ? AND (protocol = ? OR protocol = ?)", ctx.Task.ID, "tcp", "").Find(&ports)
 
 	ctx.Logger.Printf("Detecting sites for %d ports", len(ports))
 
@@ -116,13 +119,7 @@ func (ss *SiteScanner) Detect(ctx *ScanContext) error {
 
 // detectSiteForPort Checking for a single port
 func (ss *SiteScanner) detectSiteForPort(ctx *ScanContext, port models.Port) {
-	schemes := []string{"http"}
-	if port.Port == 443 || port.Port == 8443 {
-		schemes = []string{"https"}
-	} else if port.Port == 80 || port.Port == 8080 || port.Port == 8888 {
-		// Try two protocols.
-		schemes = []string{"http", "https"}
-	}
+	schemes := siteProbeSchemes(port)
 
 	// Find thisIPThe corresponding domain name
 	var domains []models.Domain
@@ -139,7 +136,7 @@ func (ss *SiteScanner) detectSiteForPort(ctx *ScanContext, port models.Port) {
 
 	for _, host := range hosts {
 		for _, scheme := range schemes {
-			url := fmt.Sprintf("%s://%s:%d", scheme, host, port.Port)
+			url := fmt.Sprintf("%s://%s", scheme, net.JoinHostPort(host, strconv.Itoa(port.Port)))
 
 			if siteInfo := ss.probeSite(ctx, url); siteInfo != nil {
 				siteInfo.TaskID = ctx.Task.ID
@@ -155,6 +152,17 @@ func (ss *SiteScanner) detectSiteForPort(ctx *ScanContext, port models.Port) {
 			}
 		}
 	}
+}
+
+func siteProbeSchemes(port models.Port) []string {
+	service := strings.ToLower(port.Service)
+	if strings.Contains(service, "https") || strings.Contains(service, "ssl") || strings.Contains(service, "tls") {
+		return []string{"https", "http"}
+	}
+	if port.Port == 443 || port.Port == 8443 || port.Port == 9443 || port.Port == 10443 {
+		return []string{"https", "http"}
+	}
+	return []string{"http", "https"}
 }
 
 // probeSite Stations

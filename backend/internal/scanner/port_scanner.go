@@ -74,7 +74,7 @@ func (ps *PortScanner) Scan(ctx *ScanContext) error {
 
 	// 🆕 Apply Configuration
 	ps.scanner.ApplyConfig(scannerConfig, len(ports))
-	ctx.Logger.Printf("[Config] Port scanner: using Masscan + Nmap for %d ports", len(ports))
+	ctx.Logger.Printf("[Config] Port scanner: Nmap accuracy profile across %d selected ports", len(ports))
 
 	return ps.scanWithScanner(ctx, ips, ports)
 }

@@ -6,11 +6,11 @@ import (
 	"log"
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/reconmaster/backend/internal/models"
 	"github.com/reconmaster/backend/internal/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ScanContext Scan context
@@ -129,31 +129,13 @@ func (e *Engine) ResolveIPs(ctx *ScanContext) error {
 				return err
 			}
 
-			ctx.Logger.Printf("Generated %d IPs from CIDR %s, checking liveness...", len(ips), target)
-
-			// 🆕 Survival tests: Only the ones that survive.IP
-			aliveIPs, err := e.checkCIDRAlive(scanContext, ips)
+			ctx.Logger.Printf("Generated %d IPs from CIDR %s; queueing every address for Nmap", len(ips), target)
+			saved, err := saveIPTargets(ctx, ips, "cidr")
 			if err != nil {
+				ctx.Logger.Printf("Failed to save CIDR %s targets: %v", target, err)
 				return err
 			}
-
-			// Save the living.IP
-			aliveCount := 0
-			for _, aliveIP := range aliveIPs {
-				ipModel := &models.IP{
-					TaskID:    ctx.Task.ID,
-					IPAddress: aliveIP,
-					Source:    "cidr",
-				}
-				ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, aliveIP).FirstOrCreate(ipModel)
-				aliveCount++
-
-				if aliveCount%10 == 0 {
-					ctx.Logger.Printf("CIDR scan: found %d alive IPs so far...", aliveCount)
-				}
-			}
-
-			ctx.Logger.Printf("CIDR %s: scanned %d IPs, found %d alive", target, len(ips), aliveCount)
+			ctx.Logger.Printf("CIDR %s: queued %d addresses (%d new) for the selected Nmap port profile", target, len(ips), saved)
 		} else if net.ParseIP(target) != nil {
 			// SingleIPAddress
 			ctx.Logger.Printf("Parsing single IP: %s", target)
@@ -178,62 +160,26 @@ func isIPCIDRTarget(target string) bool {
 	return net.ParseIP(prefix) != nil
 }
 
-func (e *Engine) checkCIDRAlive(ctx context.Context, ips []string) ([]string, error) {
-	if len(ips) == 0 {
-		return nil, nil
+func saveIPTargets(ctx *ScanContext, addresses []string, source string) (int64, error) {
+	if len(addresses) == 0 {
+		return 0, nil
 	}
-	jobs := make(chan string)
-	alive := make(chan string)
-	const workerCount = 50
-
-	var workers sync.WaitGroup
-	workers.Add(workerCount)
-	for i := 0; i < workerCount; i++ {
-		go func() {
-			defer workers.Done()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case ip, ok := <-jobs:
-					if !ok {
-						return
-					}
-					if e.cSegmentScanner.IsAlive(ip) {
-						select {
-						case alive <- ip:
-						case <-ctx.Done():
-							return
-						}
-					}
-				}
-			}
-		}()
-	}
-
-	go func() {
-		defer close(jobs)
-		for _, ip := range ips {
-			select {
-			case jobs <- ip:
-			case <-ctx.Done():
-				return
-			}
+	records := make([]models.IP, 0, len(addresses))
+	for _, address := range addresses {
+		if net.ParseIP(address) == nil {
+			return 0, fmt.Errorf("invalid IP address %q", address)
 		}
-	}()
-	go func() {
-		workers.Wait()
-		close(alive)
-	}()
-
-	result := make([]string, 0, len(ips))
-	for ip := range alive {
-		result = append(result, ip)
+		records = append(records, models.IP{TaskID: ctx.Task.ID, IPAddress: address, Source: source})
 	}
-	if err := ctx.Err(); err != nil {
-		return nil, err
+	dbContext := ctx.Ctx
+	if dbContext == nil {
+		dbContext = context.Background()
 	}
-	return result, nil
+	result := ctx.DB.WithContext(dbContext).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "task_id"}, {Name: "ip_address"}},
+		DoNothing: true,
+	}).CreateInBatches(&records, 500)
+	return result.RowsAffected, result.Error
 }
 
 // ScanCSegment CParagraph Scan

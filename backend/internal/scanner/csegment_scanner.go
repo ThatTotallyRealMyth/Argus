@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"time"
 
 	"github.com/reconmaster/backend/internal/models"
 )
@@ -17,7 +16,7 @@ func NewCSegmentScanner() *CSegmentScanner {
 	return &CSegmentScanner{}
 }
 
-// Scan ScanCParagraphIP (With a survival test.)
+// Scan queues authorized neighboring addresses for the selected Nmap profile.
 func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 	if !ctx.Task.Options.EnableCSegment {
 		return nil
@@ -59,11 +58,7 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 		}
 	}
 
-	ctx.Logger.Printf("Generated %d C segment IPs, checking liveness...", len(cSegmentIPs))
-
-	// Survival detection and preservation (Use fast port detection)
-	count := 0
-	aliveCount := 0
+	ctx.Logger.Printf("Generated %d C segment IPs", len(cSegmentIPs))
 
 	// Convert to slice for commoprocessing
 	ipList, blockedCount := authorizedNetworkTargets(ctx, cSegmentIPs)
@@ -71,54 +66,11 @@ func (cs *CSegmentScanner) Scan(ctx *ScanContext) error {
 		ctx.Logger.Printf("C segment authorization blocked %d out-of-scope IPs", blockedCount)
 	}
 
-	// And we're gonna have to test and survive.IP
-	aliveChan := make(chan string, len(ipList))
-	semaphore := make(chan struct{}, 50) // Together.50One.
-
-	for _, segmentIP := range ipList {
-		semaphore <- struct{}{}
-		go func(ip string) {
-			defer func() { <-semaphore }()
-
-			// Quick Test: Try connecting to common ports
-			if cs.IsAlive(ip) {
-				aliveChan <- ip
-			}
-		}(segmentIP)
+	saved, err := saveIPTargets(ctx, ipList, "c_segment")
+	if err != nil {
+		return err
 	}
-
-	// Waiting for all detections to be completed
-	go func() {
-		for i := 0; i < 50; i++ {
-			semaphore <- struct{}{}
-		}
-		close(aliveChan)
-	}()
-
-	// Save the living.IP
-	for aliveIP := range aliveChan {
-		ipModel := &models.IP{
-			TaskID:    ctx.Task.ID,
-			IPAddress: aliveIP,
-			Source:    "c_segment",
-		}
-
-		// UseFirstOrCreateAvoidance of duplication
-		if err := ctx.DB.Where("task_id = ? AND ip_address = ?", ctx.Task.ID, aliveIP).
-			FirstOrCreate(ipModel).Error; err != nil {
-			ctx.Logger.Printf("Failed to save C segment IP %s: %v", aliveIP, err)
-			continue
-		}
-		count++
-		aliveCount++
-
-		if aliveCount%10 == 0 {
-			ctx.Logger.Printf("C segment: found %d alive IPs so far...", aliveCount)
-		}
-	}
-
-	ctx.Logger.Printf("C segment scanning completed: scanned %d IPs, found %d alive, saved %d new IPs",
-		len(ipList), aliveCount, count)
+	ctx.Logger.Printf("C segment preparation completed: queued %d authorized addresses (%d new) for Nmap", len(ipList), saved)
 	return nil
 }
 
@@ -168,23 +120,4 @@ func (cs *CSegmentScanner) generateCSegment(ipAddr string) []string {
 	}
 
 	return result
-}
-
-// IsAlive Quick TestIPAlive or not? (Detection of common ports)
-func (cs *CSegmentScanner) IsAlive(ip string) bool {
-	// List of common ports (Rapid detection)
-	commonPorts := []int{80, 443, 22, 3389, 8080, 8443}
-
-	timeout := 500 // 500msTimeout
-
-	for _, port := range commonPorts {
-		address := net.JoinHostPort(ip, fmt.Sprintf("%d", port))
-		conn, err := net.DialTimeout("tcp", address, time.Duration(timeout)*time.Millisecond)
-		if err == nil {
-			conn.Close()
-			return true // Any port open, Thinking of survival.
-		}
-	}
-
-	return false
 }

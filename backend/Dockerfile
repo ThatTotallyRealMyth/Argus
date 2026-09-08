@@ -1,13 +1,11 @@
 FROM golang:1.24 AS builder
-RUN apt-get update && apt-get install -y --no-install-recommends libpcap-dev && \
-    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ENV GOPROXY=https://proxy.golang.org,direct
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=1 go build -o /out/server ./cmd/server && \
+RUN CGO_ENABLED=0 go build -o /out/server ./cmd/server && \
     CGO_ENABLED=0 go build -o /out/init-admin ./cmd/init-admin
 
 FROM node:22-alpine AS web-builder

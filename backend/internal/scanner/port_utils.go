@@ -7,8 +7,8 @@ type PortScanResult struct {
 	Protocol string
 	Open     bool
 	Service  string
-	Version  string // Service version (ThroughgonmapIdentification)
-	Product  string // Product Name (ThroughgonmapIdentification)
+	Version  string // Service version reported by the scan engine.
+	Product  string // Product name reported by the scan engine.
 	Banner   string
 }
 
