@@ -69,9 +69,15 @@ services:
       - |
         mkdir -p /app/data /app/logs
         chown -R appuser:appuser /app/data /app/logs
+        mkdir -p /backups
+        chown -R "$${ARGUS_HOST_UID}:$${ARGUS_HOST_GID}" /backups
+    environment:
+      - ARGUS_HOST_UID=${ARGUS_HOST_UID:-1000}
+      - ARGUS_HOST_GID=${ARGUS_HOST_GID:-1000}
     volumes:
       - .storage/app/data:/app/data
       - .storage/app/logs:/app/logs
+      - .storage/backups:/backups
     restart: "no"
 
   db:

@@ -197,7 +197,7 @@ Service endpoints:
 - PostgreSQL: localhost only at 127.0.0.1:15432
 - Redis: localhost only at 127.0.0.1:16379
 
-On first startup, the `prepare-storage` container gives the non-root application user access to the bind-mounted runtime directories, then `init-admin` creates the administrator account. JWT and encryption keys are generated in the Docker data volume. Do not delete `.storage/app/data`; doing so can make previously encrypted configuration unrecoverable.
+On first startup, the `prepare-storage` container gives the non-root application user access to the bind-mounted runtime directories and gives your host user access to the backup directory. Then `init-admin` creates the administrator account. JWT and encryption keys are generated in the Docker data volume. Do not delete `.storage/app/data`; doing so can make previously encrypted configuration unrecoverable.
 
 Create a database backup manually:
 

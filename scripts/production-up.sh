@@ -3,6 +3,9 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ENV_FILE:-${ROOT_DIR}/.env}"
+ARGUS_HOST_UID="${ARGUS_HOST_UID:-$(id -u)}"
+ARGUS_HOST_GID="${ARGUS_HOST_GID:-$(id -g)}"
+export ARGUS_HOST_UID ARGUS_HOST_GID
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Missing ${ENV_FILE}; copy .env.example to .env and replace every secret." >&2
