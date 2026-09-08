@@ -9,12 +9,16 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Missing ${ENV_FILE}; copy .env.example to .env and replace every secret." >&2
   exit 1
 fi
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is required" >&2
+if docker compose version >/dev/null 2>&1; then
+  compose_command=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  compose_command=(docker-compose)
+else
+  echo "Docker Compose v2 is required (docker compose or docker-compose)." >&2
   exit 1
 fi
 
-compose=(docker compose --env-file "${ENV_FILE}" -f "${ROOT_DIR}/docker-compose.yaml")
+compose=("${compose_command[@]}" --env-file "${ENV_FILE}" -f "${ROOT_DIR}/docker-compose.yaml")
 db_container="$("${compose[@]}" ps -q db)"
 if [[ -z "${db_container}" ]] || [[ "$(docker inspect -f '{{.State.Running}}' "${db_container}" 2>/dev/null || true)" != "true" ]]; then
   echo "PostgreSQL container is not running; no backup was created." >&2
@@ -23,7 +27,7 @@ fi
 
 mkdir -p "${BACKUP_DIR}"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-destination="${BACKUP_DIR}/moon-gazing-tower-${timestamp}.sql.gz"
+destination="${BACKUP_DIR}/argus-${timestamp}.sql.gz"
 temporary="${destination}.tmp"
 trap 'rm -f "${temporary}"' EXIT
 

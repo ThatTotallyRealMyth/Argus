@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpcap-dev && 
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-ENV GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=https://proxy.golang.org,direct
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .

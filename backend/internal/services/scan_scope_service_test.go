@@ -32,6 +32,24 @@ func TestScanScopeDomainRulesAndDenyPrecedence(t *testing.T) {
 	}
 }
 
+func TestScanScopeBlockedErrorIncludesScopeAndTargets(t *testing.T) {
+	validation := &ScanScopeValidation{
+		ScopeName: "Program A",
+		Allowed:   false,
+		Targets: []ScanScopeTargetDecision{
+			{Input: "outside.example", Allowed: false},
+			{Input: "allowed.example", Allowed: true},
+		},
+	}
+	err := ScanScopeBlockedError(validation)
+	if err == nil || !IsScanScopeInputError(err) {
+		t.Fatalf("blocked validation error = %v", err)
+	}
+	if message := err.Error(); !strings.Contains(message, `"Program A"`) || !strings.Contains(message, "outside.example") {
+		t.Fatalf("blocked validation message = %q", message)
+	}
+}
+
 func TestScanScopeWildcardDoesNotIncludeApex(t *testing.T) {
 	validation, err := ValidateScanScopePreview(models.ScanScope{Name: "Subdomains", AllowRules: []string{"*.example.com"}}, "example.com, api.example.com")
 	if err != nil {

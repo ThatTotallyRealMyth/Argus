@@ -8,12 +8,16 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "Missing ${ENV_FILE}; copy .env.example to .env and replace every secret." >&2
   exit 1
 fi
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is required" >&2
+if docker compose version >/dev/null 2>&1; then
+  compose_command=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  compose_command=(docker-compose)
+else
+  echo "Docker Compose v2 is required (docker compose or docker-compose)." >&2
   exit 1
 fi
 
-compose=(docker compose --env-file "${ENV_FILE}" -f "${ROOT_DIR}/docker-compose.yaml")
+compose=("${compose_command[@]}" --env-file "${ENV_FILE}" -f "${ROOT_DIR}/docker-compose.yaml")
 "${compose[@]}" config --quiet
 
 db_container="$("${compose[@]}" ps -q db)"

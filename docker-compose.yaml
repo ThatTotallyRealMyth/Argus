@@ -1,6 +1,6 @@
 services:
   backend:
-    image: moon-gazing-tower-backend:latest
+    image: argus-backend:latest
     platform: linux/amd64
     build:
       context: ./backend
@@ -36,8 +36,11 @@ services:
     restart: unless-stopped
 
   init-admin:
-    image: moon-gazing-tower-backend:latest
+    image: argus-backend:latest
     platform: linux/amd64
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     command: ["/app/init-admin"]
     environment:
       - TZ=Asia/Shanghai

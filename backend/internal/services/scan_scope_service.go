@@ -473,7 +473,7 @@ func ScanScopeBlockedError(validation *ScanScopeValidation) error {
 	if len(blocked) > 5 {
 		blocked = append(blocked[:5], fmt.Sprintf("and %d more", len(blocked)-5))
 	}
-	return scanScopeInputErrorf("Targets are beyond the scope of the mandate."%s": %s", validation.ScopeName, strings.Join(blocked, ", "))
+	return scanScopeInputErrorf("targets are outside authorization scope %q: %s", validation.ScopeName, strings.Join(blocked, ", "))
 }
 
 func SaveScanScope(db *gorm.DB, scope *models.ScanScope) error {
