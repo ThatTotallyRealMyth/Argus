@@ -347,6 +347,13 @@ func (s *TaskService) executeScanner(ctx context.Context, task *models.Task, tas
 	if err := s.updateProgress(ctx, task, 35); err != nil {
 		return err
 	}
+	var resolvedIPCount int64
+	if err := database.DB.Model(&models.IP{}).Where("task_id = ?", task.ID).Count(&resolvedIPCount).Error; err != nil {
+		return fmt.Errorf("count resolved task IPs: %w", err)
+	}
+	if resolvedIPCount == 0 {
+		return taskInputErrorf("no scannable IP addresses were resolved; check the target, DNS connectivity, selected discovery options, and authorization scope")
+	}
 
 	// 2.5. CParagraph Scan
 	if task.Options.EnableCSegment {
